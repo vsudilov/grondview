@@ -1,0 +1,21 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html lang="en">
+
+<head>
+  <meta name="robots" content="noindex">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/style.css" />
+  <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.min.js"></script>
+  {% include "nav.html" %}
+</head>
+
+<body>
+  {% include "banner.html" %}
+  <div id="main">
+    {% block content %}
+    {% endblock %}
+  {% include "footer.html" %}
+  </div>
+</body>
+</html>
+

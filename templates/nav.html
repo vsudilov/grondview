@@ -1,0 +1,35 @@
+<script>
+// Javascript originally by Patrick Griffiths and Dan Webb.
+// http://htmldog.com/articles/suckerfish/dropdowns/
+sfHover = function() {
+   var sfEls = document.getElementById("menu").getElementsByTagName("li");
+   for (var i=0; i<sfEls.length; i++) {
+      sfEls[i].onmouseover=function() {
+         this.className+=" hover";
+      }
+      sfEls[i].onmouseout=function() {
+         this.className=this.className.replace(new RegExp(" hover\\b"), "");
+      }
+   }
+}
+if (window.attachEvent) window.attachEvent("onload", sfHover);
+</script>
+
+<div id="navbar">
+      <ul>
+        <li {% if request.path == "/" %} class="current" {% endif %}><a href="/">Home</a></li>
+        <li {% if "/imagequery/" in request.path %} class="current" {% endif %}><a href="/imagequery/">Image query</a></li>
+        <li {% if "/XX/" in request.path %} class="current" {% endif %}><a href="/XX/">Object query</a></li>
+        <li {% if "/XX/" in request.path %} class="current" {% endif %}><a href="/XX/">Info</a></li>
+        <li {% if "/contact/" in request.path %} class="current" {% endif %}><a href="/contact/">Impressum</a></li>
+        {% if user.is_authenticated %}        
+        <li class="logout"><a href="/logout/">Log out</a></li>  
+        {% else %}
+        <li class="login"><a href="/login/">Log in</a></li>
+        {% endif %}        
+        </div>
+      </ul>
+</div>
+
+
+

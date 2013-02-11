@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+
+<script type="text/javascript">
+$(document).ready(function() {
+     window.onload = function() {
+     $("#id_username").focus();
+    };  
+}); 
+</script> 
+
+<div id="login">
+<!--{% if form.errors %}-->
+<!--<div class="error"><span>-->
+<!--  Please correct the error{{ form.errors|pluralize }} below.-->
+<!--</span></div>-->
+<!--{% endif %}-->
+
+<form action="" method="post">{% csrf_token %}
+ <table>
+ {{ form.as_table }}
+ </table>
+ <input type="submit" value="Submit">
+</form>
+</div>
+
+{% if images %}
+<div>
+{% for image in images %}
+<img src="{{ MEDIA_URL }}{{ image }}" />
+{% endfor %}
+</div>
+
+{% endif %}
+
+{% endblock %}

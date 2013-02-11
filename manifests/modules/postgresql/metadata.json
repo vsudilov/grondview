@@ -1,0 +1,61 @@
+{
+  "summary": "PostgreSQL defined resource types",
+  "types": [
+
+  ],
+  "project_page": "https://github.com/puppetlabs/puppet-postgresql/issues",
+  "author": "Inkling/Puppet Labs",
+  "checksums": {
+    "spec/manifests/test_user.pp": "50ce5db98373cd300ce7b9ad0b309b5f",
+    "manifests/db.pp": "c60c0a0c5a9e85a0c84bf419f0709141",
+    "templates/pg_hba.conf.erb": "fc5c3616ba6f45c7699a520c1f79e128",
+    "spec/manifests/test_grant_create.pp": "bb0b343c73da3839297c47fb6fc76718",
+    "manifests/database_user.pp": "77cf2692c066b59f128b3c5f45369c61",
+    "tests/postgresql_grant.pp": "6f1e08c4f7394b32573a70acc314c3a7",
+    "manifests/database_grant.pp": "5a527a97d0261ee63541aad221a47593",
+    "manifests/config.pp": "3d82a9378e1bc8f5c661fac602bd68f9",
+    "LICENSE": "3b83ef96387f14655fc854ddc3c6bd57",
+    "tests/init.pp": "c5c2dc703ef988a31150bd7a5e7c9d23",
+    "spec/base.pp": "6b8abaa0a919708fd67a898e73830d53",
+    "spec/Vagrantfile": "40fefd4b70d97affd6167635a459ec32",
+    "manifests/validate_db_connection.pp": "8e4ad077c59372696ad02192f24001c2",
+    "tests/server.pp": "055c8fe0ff5dd0fcb6c00c85aac9b190",
+    "tests/postgresql_db.pp": "90166650659e8522094ec89498d7ee4f",
+    "spec/postgresql_spec.rb": "873d84dce37e185e903e49fbce17821e",
+    "spec/manifests/test_psql.pp": "d3d9fa93e8f84f83087f8139ad0af732",
+    "spec/manifests/test_initdb.pp": "4cb4898358ac1a437b63f5e9539e7cc5",
+    "spec/manifests/test_db.pp": "35fd4b4ac817fd62a659afd346b9cd6c",
+    "manifests/initdb.pp": "e4b657f07006ae0d615f9c2105fac72a",
+    "manifests/init.pp": "f3bf0ca93da2d18aa1f7007770bf2b94",
+    "CHANGELOG.md": "3018fa8b7c08876984fee08d2899a647",
+    "manifests/params.pp": "6ecc6f03994b1523a4a697b511806fb1",
+    "manifests/database.pp": "530da1310e7fa64aa1883a03aff88195",
+    "manifests/config/afterservice.pp": "20f753019721cf2b42e36d6353d9e912",
+    "README.md": "0d47c863baf981686d107756682c518a",
+    "manifests/server.pp": "3c5f31fadaf77522bb7ee3c412965604",
+    "manifests/role.pp": "41b6e0badf7031cde7e87a6ef0eebf36",
+    "manifests/psql.pp": "59dfb4ec5b7d3ebe1c4c4030a76928a2",
+    "manifests/devel.pp": "e1f97a097dfd32a9f406f0184eb1a36c",
+    "manifests/config/beforeservice.pp": "544d419f9061ca667e98ffcea2b9adcd",
+    "lib/puppet/parser/functions/postgresql_password.rb": "820da02a888ab42357fe9bc2352b1c37",
+    "tests/postgresql_user.pp": "5c560a912d8c9e0f594a0d974abd123e",
+    "lib/facter/postgres_default_version.rb": "4ddd6ed5c1f4b86a96ccc85e075ba69b",
+    "tests/postgresql_database.pp": "294b46eb51704a742936265ff7c327df",
+    "Modulefile": "4eefe96e232f1c7c78149787df6ca25c"
+  },
+  "source": "git://github.com/puppetlabs/puppet-postgresql.git",
+  "dependencies": [
+    {
+      "version_requirement": "2.x",
+      "name": "puppetlabs/stdlib"
+    },
+    {
+      "version_requirement": ">= 0.0.4",
+      "name": "puppetlabs/firewall"
+    }
+  ],
+  "license": "Apache",
+  "name": "puppetlabs-postgresql",
+  "version": "1.0.0",
+  "description": "PostgreSQL defined resource types"
+}
