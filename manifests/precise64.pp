@@ -1,7 +1,9 @@
 stage { 'first': before  => Stage['main'] }
 stage { 'last':  require => Stage['main'] }
+stage { 'pre': before => Stage['first'] }
 
 class {
+      'apt_update':     stage => pre;
       'system':         stage => first;     
       'python_modules': stage => main;
       'ruby_modules':   stage => main;
@@ -15,6 +17,16 @@ postgresql::db{ 'grondviewdb':
   grant         => 'all',
 }
 
+
+# Run apt-get update once on VM creation
+# -----------------------------
+class apt_update { 
+  exec {
+     "apt-get update":
+        command => "/usr/bin/apt-get update && touch /root/apt-updated",
+        creates => "/root/apt-updated";
+       }
+}
 
 # System packages via apt
 #------------------------------
@@ -38,6 +50,13 @@ class system{
       "libpq-dev":
           ensure => installed,
           provider => apt;
+      "git":
+          ensure => installed,
+          provider => apt;
+      "python-matplotlib":
+          ensure => installed,
+          provider => apt;
+
   }
 }
 
@@ -59,9 +78,14 @@ class python_modules{
 }
 class post_python_modules{
   package{
-      "astropy":
-          ensure => "0.1",
+       "astLib":
+          ensure => "0.6.1",
           provider => pip;
+
+#      "astropy":
+#          ensure => "0.1",
+#          provider => pip;
+
       "psycopg2":
           ensure => "2.4.6",
           provider => pip;

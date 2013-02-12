@@ -10,39 +10,64 @@ from grondview.settings import MEDIA_ROOT
 from imagequery.forms import ImageQueryForm
 from imagequery.models import image_header
 
-
 import os, sys
 import numpy as np
 
-import astropy
-#coordinates subpackage not available in 0.1 ouch
-#from astropy import coordinates as coord
-#from astropy import units
+import astLib
+from astLib import astCoords
 
+class CoordinateParseError(Exception):
+  def __init__(self):
+    self.msg = "Unable to parse coordinates"
+
+class AreaParseError(Exception):
+  def __init__(self):
+    self.msg = "Unable to parse area"
+
+class NoCoverage(Exception):
+  def __init__(self):
+    self.msg = "No GROND data in that area"
 
 def make_images(cd):
- #Will use astropy coords to calc arclen
-#  def arclen(ra1,ra2,dec1,dec2):
-#    def cosd(degs):
-#      return np.cos(degs*np.pi/180)
-#    return (    (    (ra1-ra2)*cosd(  (dec1+dec2)/2.0  )  )**2 + (dec1-dec2)**2)**(1/2.)*60.*60.
-
   bands = cd['bands']
-  coordstring = cd['coords']
-  area = cd['area']
-  user_coord = coord.ICRSCoordinates(str(coordstring), unit=(None, None))
-  #Remember possibilty of mixed up ra,dec
-  db_coord = coord.ICRSCoordinates(ra=ra, dec=dec, unit=(units.degree, units.degree))
-  sep = db_coord.separation(user_coord)    
-  if sep.arcmins <= area:
-    rows.append(result)
+  radius = cd['radius']
+  coordstr = cd['coords'].replace(',',' ').strip()
+
+  #Validate user input
+  #Should implement at least basic client-side js validation later
+  if ':' in coordstr:
+    try:
+      c = coordstr.split()
+      ra = astCoords.hms2decimal(c[0],':')
+      dec = astCoords.dms2decimal(c[1],':') 
+    except:
+      raise CoordinateParseError
+  else:
+    try:
+      c = coordstr.split()
+      ra,dec = map(float,c)
+    except:
+      raise CoordinateParseError
+  try:
+    float(radius)
+  except:
+    raise AreaParseError
+  # -- 
+
+  for img in image_header.objects.order_by('TARGETID'):
+    pass
   return images
 
 def home(request):
   if request.method == 'POST':
     form = ImageQueryForm(request.POST)
-    if form.is_valid():
-      cd = form.cleaned_data
+    if not form.is_valid():
+      return render(request,'imagequery.html',{'form': form})
+    cd = form.cleaned_data
+    try:
       images=make_images(cd)
-      return render(request,'imagequery.html',{'form': ImageQueryForm,'images':images,'request':request.POST})
-  return render(request, 'imagequery.html',{'form':ImageQueryForm})
+      return render(request,'imagequery.html',{'form': form,'images':images,'request':request.POST})
+    except (AreaParseError,CoordinateParseError,NoCoverage) as e:
+      return render(request,'imagequery.html',{'form': form,'formerror':e.msg,'request':request.POST})    
+  else:
+    return render(request, 'imagequery.html',{'form':ImageQueryForm})

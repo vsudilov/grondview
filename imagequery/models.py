@@ -8,14 +8,14 @@ class image_header(models.Model):
   def __unicode__(self):
     return self.PATH
 
-  PATH = models.TextField()
+  PATH = models.CharField(max_length=80)
   NAXIS1 = models.IntegerField()
   NAXIS2 = models.IntegerField()
-  RA2000 = models.FloatField()
-  DEC2000 = models.FloatField()
+  RA = models.FloatField()
+  DEC = models.FloatField()
   EXPTIME = models.FloatField()
   MJD_OBS = models.FloatField()
-  DATE_OBS = models.TextField()
+  DATE_OBS = models.CharField(max_length=30)
   CRVAL1 = models.FloatField()
   CRVAL2 = models.FloatField()
   NGR = models.IntegerField()
