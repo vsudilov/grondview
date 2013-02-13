@@ -47,6 +47,33 @@ html {
     padding-top: 80%;
     color: #007BFF; }
 
+#form {
+  width: 333.33333px;
+  background: #e6e6e6;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 10px;
+  padding-right: 10px; }
+  #form li {
+    list-style-type: none;
+    float: inline; }
+  #form input {
+    width: 200px; }
+  #form .area_input {
+    width: 30px; }
+  #form .area_select-unit {
+    float: inline; }
+  #form .bands_checkbox {
+    width: 20px; }
+
+#image-area {
+  width: 333.33333px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  border: 1px solid blue; }
+
 #main {
   width: 1000px;
   margin-left: 230px; }

@@ -1,4 +1,4 @@
 from django.contrib import admin
-from models import image_header
+from models import ImageHeader
 
-admin.site.register(image_header)
+admin.site.register(ImageHeader)

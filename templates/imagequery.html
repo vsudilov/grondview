@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<div id="">
-
+<div id="form">
   {% if formerror %}
   <div class="formerror">
     <p>{{ formerror }}</p>
@@ -9,22 +8,22 @@
   {% endif %}
 
   <form action="" method="post">{% csrf_token %}
-   <table>
-   {{ form.as_table }}
-   </table>
-   <input type="submit" value="Submit">
+    <table>
+    {{ form.as_table }}
+    </table> 
+    <input id="submit" type="submit" value="Search for images">
   </form>
 </div>
 
 <div class="hint">
-<p>(Hint) hint-text</p>
+  <p>(Hint) coordinates of the stubdata are ra,dec 315.297, -51.096
 </div>
 
 {% if images %}
-<div>
-{% for image in images %}
-<img src="{{ MEDIA_URL }}{{ image }}" />
-{% endfor %}
+<div id="image-area">
+  {% for image in images %}
+  <div class="image"><img src="{{ MEDIA_URL }}{{ image }}" /></div>
+  {% endfor %}
 </div>
 {% endif %}
 

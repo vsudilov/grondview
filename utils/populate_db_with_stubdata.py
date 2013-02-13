@@ -48,8 +48,8 @@ def main():
 
       fields = dict([(k.replace('-','_'),hdr[k]) for k in hdr if k]) #pyfits does not make its dict transparent. Easier to just build a new one.
       fields = match_db_fields(fields) #Need to remove the extraneous keys...Django blindly tries to copy all keys to models
-      fields['PATH'] = os.path.abspath(f)
-      json['imagequery'].append({"model":"imagequery.image_header","fields":fields,'pk':i})
+      fields['PATH'] = os.path.join(os.path.abspath('.'),os.path.join(STUB_DIR,f))
+      json['imagequery'].append({"model":"imagequery.ImageHeader","fields":fields,'pk':i})
     elif f.endswith('.result'):      
       pass
       j+=1
@@ -82,7 +82,7 @@ if __name__ == "__main__":
 #  pyraf.iraf.blkavg(input='GROND_%s_OB_ana.fits' % band,output='%s_binned.fits' % band, b1=10,b2=10)
 
 
-#class image_header(models.Model):
+#class ImageHeader(models.Model):
 #  PATH = models.TextField()
 #  NAXIS1 = models.IntegerField()
 #  NAXIS2 = models.IntegerField()

@@ -8,3 +8,5 @@ local_settings.py
 *.sass-cache/
 .vagrant
 fixtures/*
+*matplotlibrc*
+media/*

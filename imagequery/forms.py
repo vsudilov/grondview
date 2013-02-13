@@ -17,21 +17,38 @@ class ImageQueryForm(forms.Form):
               label="Coordinates"
               )
 
-  radius = forms.FloatField(
-              widget=forms.TextInput(
-                  attrs={'placeholder':"1.0\" - 900\'",'min': '0', 'max': '900'}),
-              label="Search radius"
-              )
+#  radius = forms.FloatField(
+#              widget=forms.TextInput(
+#                  attrs={'placeholder':"1.0\" - 900\'",'min': '0', 'max': '900'}),
+#              label="Search radius"
+#              )
 
-  unit = forms.ChoiceField(
+#  unit_radius = forms.ChoiceField(
+#              label="",
+#              choices=[('arcmin','arcminutes'),
+#                       ('arcsec','arcseconds')],
+#              widget=forms.RadioSelect(attrs={'class':'unit'},
+#              initial="arcmin")
+#              )
+
+  area = forms.FloatField(
+              widget=forms.TextInput(
+                  attrs={'value':"5.4",'min': '0.0167', 'max': '20','class':'area_input'}),
+              label="Area"
+              ) 
+
+  unit_area = forms.ChoiceField(
               label="",
               choices=[('arcmin','arcminutes'),
-                       ('arcsec','arcseconds')]
+                       ('arcsec','arcseconds')],
+              widget=forms.Select(attrs={'class':'area_select-unit'}),
+              initial="arcmin"
               )
-  
+
   bands = forms.MultipleChoiceField(
               widget=CheckboxSelectMultiple(
-                    attrs={'class' : 'form-checkbox','checked' : 'checked'}), 
+                    attrs={'class' : 'bands_checkbox'}), 
               choices=BANDS,
-              required=False,)
+              required=False,
+              initial='r')
   

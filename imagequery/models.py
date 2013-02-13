@@ -1,22 +1,52 @@
 from django.db import models
+from django.db.models.query import QuerySet
 
-#class image(models.Model):
-#  def __unicode__(self):
-#    return self.PATH
+from astLib import astCoords
 
-class image_header(models.Model):
+#--------------------------------------------
+#Clever trick to override QuerySets, enabling
+#chaining of custom queries:
+#Enables model.objects.positionFilter()
+#as well as model.objects.filter(FILTER__in=bands).positionFilter(ra,dec,radius)
+#http://zmsmith.com/2010/04/using-custom-django-querysets/
+class ImageHeaderQuerySet(QuerySet):
+  def imagePositionFilter(self,ra,dec,radius,units="arcminutes"):
+    """
+    Filters a queryset based on arclength. Returns a List of 
+    database rows, therefore must be the last piece of a QuerySet chain.
+    """
+    convert_units = {'arcminutes':60.,'arcseconds':3600.,'degrees':1}
+    radius /= convert_units[units]
+
+    results = []
+    for i in self:
+      if astCoords.calcAngSepDeg(i.CRVAL1,i.CRVAL2,ra,dec) <= radius:
+        results.append(i)
+    return results
+class ImageHeaderManager(models.Manager):
+  def get_query_set(self):
+    return ImageHeaderQuerySet(self.model)
+  def __getattr__(self, name):
+    return getattr(self.get_query_set(), name)
+#--------------------------------------------
+
+
+class ImageHeader(models.Model):
+  """
+  Defines the django model that stores FITS header info, along with path to that image
+  """
   def __unicode__(self):
-    return self.PATH
-
+    return "%s-%s: %s" % (self.TARGETID,self.FILTER,self.PATH)
+  #-- Fields
   PATH = models.CharField(max_length=80)
   NAXIS1 = models.IntegerField()
   NAXIS2 = models.IntegerField()
-  RA = models.FloatField()
+  RA = models.FloatField() #Telescope pointing
   DEC = models.FloatField()
   EXPTIME = models.FloatField()
   MJD_OBS = models.FloatField()
   DATE_OBS = models.CharField(max_length=30)
-  CRVAL1 = models.FloatField()
+  CRVAL1 = models.FloatField() #Center of field (astrometry)
   CRVAL2 = models.FloatField()
   NGR = models.IntegerField()
   NINT = models.IntegerField()
@@ -38,6 +68,9 @@ class image_header(models.Model):
   INTERPSM = models.FloatField()
   AIRMASS = models.FloatField()
   IMGEXP = models.FloatField()
+  
+  #-- Manager
+  objects = ImageHeaderManager()
 
 
 

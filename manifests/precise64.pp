@@ -56,7 +56,9 @@ class system{
       "python-matplotlib":
           ensure => installed,
           provider => apt;
-
+      "python-scipy":
+          ensure => installed,
+          provider => apt;
   }
 }
 
@@ -89,7 +91,17 @@ class post_python_modules{
       "psycopg2":
           ensure => "2.4.6",
           provider => pip;
-  }
+        }
+  
+
+  exec {
+     "mpl-rc":
+        command => "/bin/echo 'backend: agg' > /home/vagrant/.matplotlib/matplotlibrc",
+        creates => "/home/vagrant/.matplotlib/matplotlibrc";
+       }
+
+
+
 }
 
 

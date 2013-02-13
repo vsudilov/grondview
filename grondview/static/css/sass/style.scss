@@ -8,6 +8,7 @@ $page-width: 1200px;
 $navbar-width: 200px;
 $navbar-height: 1080px;
 $banner-height: 90px;
+$navbar-offset: 30px;
 
 #banner {
   height: $banner-height;
@@ -52,22 +53,69 @@ $banner-height: 90px;
       color: #000;
       text-shadow: 1px 1px #FFF;
       text-decoration: none;
-      }
     }
+  }
   .login a{
           padding-top: 80%;
           color: #F00;
-          }
+    }
   .logout a{
           padding-top: 80%;
           color: #007BFF;
-          }
+   }
 
 }
 
+#form {
+  $bkg_color: #E6E6E6;
+
+  width: (($page-width)-($navbar_width))/3;
+  background: $bkg_color;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  li {
+        list-style-type: none;
+        float: inline;     
+  }
+  
+  input {
+        width: 200px;
+  }
+  
+  .area_input {
+        width:30px;
+  }
+
+  .area_select-unit {
+        float:inline;
+  }
+
+  .bands_checkbox {
+        width:20px;
+  }
+
+}
+
+#image-area {
+  width: (($page-width)-($navbar_width))/3;  
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  border: 1px solid blue;
+
+  .image {
+       display: block;
+       background: transparent no-repeat 0 0;
+  } 
+
+
+
 #main {
   width: ($page-width)-($navbar-width);
-  margin-left: $navbar-width+30px;
+  margin-left: ($navbar-width)+($navbar_offset);
 }
 
 #footer {
