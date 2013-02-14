@@ -9,6 +9,7 @@ class {
       'ruby_modules':   stage => main;
       'post_python_modules': stage => last;
       'cronjobs':	stage=> last;
+      'sass-watch':	stage=> last;
 }
 
 include postgresql::server
@@ -97,8 +98,9 @@ class post_python_modules{
 
   exec {
      "mpl-rc":
-        command => "/bin/echo 'backend: agg' > /home/vagrant/.matplotlib/matplotlibrc",
-        creates => "/home/vagrant/.matplotlib/matplotlibrc";
+        command => "/bin/mkdir /home/vagrant/.matplotlib && /bin/echo 'backend: agg' > /home/vagrant/.matplotlib/matplotlibrc",
+        creates => "/home/vagrant/.matplotlib/matplotlibrc",
+        user => vagrant;
        }
 
 }
@@ -126,11 +128,12 @@ class ruby_modules{
         ensure => installed,
         provider => gem;
   }
+}
+
+class sass-watch{
   exec {
    "sass-watch":
        command => "/usr/local/bin/sass --watch /home/vagrant/grondview/grondview/static/css/sass/style.scss:/home/vagrant/grondview/grondview/static/css/style.css >/dev/null &",
        user => vagrant;
        }
-
 }
-

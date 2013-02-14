@@ -11,3 +11,4 @@ fixtures/*
 *matplotlibrc*
 media/*
 logs/*
+.vagrant
