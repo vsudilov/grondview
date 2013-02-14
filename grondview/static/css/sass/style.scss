@@ -1,14 +1,20 @@
-html { height: 100%;
-        margin-top: 1px;}
+body { 
+  height: 100%;
+  font: 100% Arial, Helvetica, sans-serif
+  }
 
-* { margin: 0;
-  padding: 0;}
+* {
+margin: 0; padding: 0;
+}
 
-$page-width: 1200px;
-$navbar-width: 200px;
+$page-width: 1550px;
+$navbar-width: 190px;
 $navbar-height: 1080px;
 $banner-height: 90px;
-$navbar-offset: 30px;
+$navbar-offset: 25px;
+$content-bkg-color: #E6E6E6;
+$content-width: ($page-width)-($navbar-width)-($navbar-offset);
+
 
 #banner {
   height: $banner-height;
@@ -18,8 +24,6 @@ $navbar-offset: 30px;
 #navbar { 
   $bkg_color: #FFF;
   $grad_color: #CCC;
-
-
   background: $bkg_color;
   background: -moz-linear-gradient($bkg_color, $grad_color);
   background: -o-linear-gradient($bkg_color, $grad_color);
@@ -39,86 +43,118 @@ $navbar-offset: 30px;
     background: transparent;
   
     a {
-    
-
       float: left;
       font: bold 120% Arial, Helvetica, sans-serif;
       height: 24px;
       padding-top: 10px;
       padding-bottom: 0;
-      padding-left: 20px;
+      padding-left: 15px;
       padding-right: 20px;
       background: transparent; 
       text-align: left;
       color: #000;
       text-shadow: 1px 1px #FFF;
       text-decoration: none;
+      .hover, &:hover {
+        color:darken($grad_color,35%)
+       }
     }
+
+
   }
   .login a{
-          padding-top: 80%;
-          color: #F00;
+    color: #F00;
     }
   .logout a{
-          padding-top: 80%;
-          color: #007BFF;
+    color: #007BFF;
    }
-
 }
-
-#form {
-  $bkg_color: #E6E6E6;
-
-  width: (($page-width)-($navbar_width))/3;
-  background: $bkg_color;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  padding-left: 10px;
-  padding-right: 10px;
-  li {
-        list-style-type: none;
-        float: inline;     
-  }
-  
-  input {
-        width: 200px;
-  }
-  
-  .area_input {
-        width:30px;
-  }
-
-  .area_select-unit {
-        float:inline;
-  }
-
-  .bands_checkbox {
-        width:20px;
-  }
-
-}
-
-#image-area {
-  width: (($page-width)-($navbar_width))/3;  
-  padding-top: 10px;
-  padding-bottom: 10px;
-  padding-left: 10px;
-  padding-right: 10px;
-  border: 1px solid blue;
-
-  .image {
-       display: block;
-       background: transparent no-repeat 0 0;
-  } 
+ 
 
 
-
-#main {
-  width: ($page-width)-($navbar-width);
+#content-container {
+  position: absolute;
+  width: $content-width;
   margin-left: ($navbar-width)+($navbar_offset);
+  margin-right: 0px;
+  border: 1px solid green;
+
+  #form-container {
+    float:left;
+    width: ($content-width)*(0.25);
+    background: $content-bkg-color;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    display: inline-block;
+    margin-right: ($navbar_offset)*(0.3);
+    -webkit-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
+    -moz-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px; 
+   
+  .hint {
+      font-size: 0.8em;
+      color: blue;
+    }
+
+    table {
+      width:100%;
+      li {
+        list-style-type: none;
+      }
+      .coordinates_input {
+        width: 100%;
+      }      
+      .area_input {
+        width: 20%;
+      }
+      .bands_checkbox {
+        width: 20px;
+      }
+      .errorlist {
+      font-size: 0.8em;
+      color:red;
+      }
+    }
+
+
+  }
+
+  #image-container {
+    float: left;
+    background: $content-bkg-color;
+    width: ($content-width)*(0.70);
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    -webkit-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
+    -moz-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px; 
+    border: 2px solid green;
+
+    .image {
+      float:left;
+      border: 2px solid blue;
+    } 
+
+    .image-info *
+    {
+      text-decoration: none;
+      list-style: none;
+    }
+
+
+  }
 }
+
 
 #footer {
-  margin-top: 20px;
-  margin-left: 50%;
+ clear: both;
+ position: relative;
+ margin-left: 50%;
+ z-index: 10;
+ height: 3em;
+ margin-top: -3em;
 }

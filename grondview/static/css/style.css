@@ -1,6 +1,6 @@
-html {
+body {
   height: 100%;
-  margin-top: 1px; }
+  font: 100% Arial, Helvetica, sans-serif; }
 
 * {
   margin: 0;
@@ -8,7 +8,7 @@ html {
 
 #banner {
   height: 90px;
-  width: 1000px; }
+  width: 1360px; }
 
 #navbar {
   background: white;
@@ -18,7 +18,7 @@ html {
   -webkit-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
   -moz-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
   box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
-  width: 200px;
+  width: 190px;
   height: 1080px;
   float: left;
   padding-right: 10px; }
@@ -33,51 +33,78 @@ html {
       height: 24px;
       padding-top: 10px;
       padding-bottom: 0;
-      padding-left: 20px;
+      padding-left: 15px;
       padding-right: 20px;
       background: transparent;
       text-align: left;
       color: #000;
       text-shadow: 1px 1px white;
       text-decoration: none; }
+      #navbar li a .hover, #navbar li a:hover {
+        color: #737373; }
   #navbar .login a {
-    padding-top: 80%;
     color: #F00; }
   #navbar .logout a {
-    padding-top: 80%;
     color: #007BFF; }
 
-#form {
-  width: 333.33333px;
-  background: #e6e6e6;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  padding-left: 10px;
-  padding-right: 10px; }
-  #form li {
-    list-style-type: none;
-    float: inline; }
-  #form input {
-    width: 200px; }
-  #form .area_input {
-    width: 30px; }
-  #form .area_select-unit {
-    float: inline; }
-  #form .bands_checkbox {
-    width: 20px; }
-
-#image-area {
-  width: 333.33333px;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  padding-left: 10px;
-  padding-right: 10px;
-  border: 1px solid blue; }
-
-#main {
-  width: 1000px;
-  margin-left: 230px; }
+#content-container {
+  position: absolute;
+  width: 1335px;
+  margin-left: 215px;
+  margin-right: 0px;
+  border: 1px solid green; }
+  #content-container #form-container {
+    float: left;
+    width: 333.75px;
+    background: #e6e6e6;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    display: inline-block;
+    margin-right: 7.5px;
+    -webkit-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
+    -moz-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px; }
+    #content-container #form-container .hint {
+      font-size: 0.8em;
+      color: blue; }
+    #content-container #form-container table {
+      width: 100%; }
+      #content-container #form-container table li {
+        list-style-type: none; }
+      #content-container #form-container table .coordinates_input {
+        width: 100%; }
+      #content-container #form-container table .area_input {
+        width: 20%; }
+      #content-container #form-container table .bands_checkbox {
+        width: 20px; }
+      #content-container #form-container table .errorlist {
+        font-size: 0.8em;
+        color: red; }
+  #content-container #image-container {
+    float: left;
+    background: #e6e6e6;
+    width: 934.5px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    -webkit-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
+    -moz-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
+    border: 2px solid green; }
+    #content-container #image-container .image {
+      float: left;
+      border: 2px solid blue; }
+    #content-container #image-container .image-info * {
+      text-decoration: none;
+      list-style: none; }
 
 #footer {
-  margin-top: 20px;
-  margin-left: 50%; }
+  clear: both;
+  position: relative;
+  margin-left: 50%;
+  z-index: 10;
+  height: 3em;
+  margin-top: -3em; }

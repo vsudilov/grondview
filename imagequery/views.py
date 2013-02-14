@@ -64,14 +64,18 @@ def make_images(cd,radius=10):
   results = ImageHeader.objects.filter(FILTER__in=bands).imagePositionFilter(ra,dec,radius=radius,units='degrees')
   if not results:
     raise NoCoverageError(radius=radius)
-  paths = [i.PATH for i in results]
   images = []
-  for path in paths:
-    d = pyfits.open(path)[0].data
+  for i in results:
+    image = i.__dict__
+    image['DATE_OBS'] = image['DATE_OBS'].replace('T',' ')
+    d = pyfits.open(i.PATH)[0].data
     unique_filename = uuid.uuid4()
     fname = '%s.png' % unique_filename
-    images.append(fname)
+    image['PATH_PNG'] = fname
+    image['PATH_RAW'] = i.PATH
     astImages.saveBitmap(os.path.join(MEDIA_ROOT,fname),d,cutLevels=["smart", 99.5],size=300,colorMapName='gray')
+    images.append(image)  
+    print image
   return images
 
 def home(request):

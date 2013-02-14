@@ -11,11 +11,11 @@
 
 <body>
   {% include "banner.html" %}
-  <div id="main">
+  <div id="content-container">
     {% block content %}
     {% endblock %}
-  {% include "footer.html" %}
   </div>
+  {% include "footer.html" %}
 </body>
 </html>
 

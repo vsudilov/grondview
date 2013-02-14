@@ -13,7 +13,8 @@ BANDS = ( ('g', 'g'),
 class ImageQueryForm(forms.Form):
   coords = forms.CharField(
               widget=forms.TextInput(
-                  attrs={'placeholder':"Decimal or hh:mm:ss dd:mm:ss",'autofocus':'autofocus'}),
+                  attrs={'placeholder':"Decimal or hh:mm:ss dd:mm:ss",'autofocus':'autofocus',
+                          'class':'coordinates_input'}),
               label="Coordinates"
               )
 
@@ -51,4 +52,13 @@ class ImageQueryForm(forms.Form):
               choices=BANDS,
               required=False,
               initial='r')
+
+  dates = forms.CharField(
+              widget=forms.DateInput(
+                  attrs={'placeholder':"(Optional)",
+                          'class':'dates_input'},
+                  format="YYYY-MM-DD"),
+              label="Date range",
+              required=False,
+              )
   

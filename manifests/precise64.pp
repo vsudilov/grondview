@@ -8,6 +8,7 @@ class {
       'python_modules': stage => main;
       'ruby_modules':   stage => main;
       'post_python_modules': stage => last;
+      'cronjobs':	stage=> last;
 }
 
 include postgresql::server
@@ -100,10 +101,20 @@ class post_python_modules{
         creates => "/home/vagrant/.matplotlib/matplotlibrc";
        }
 
-
-
 }
 
+
+
+# cron jobs
+#----------------------------
+class cronjobs{
+  cron { "purge_media":
+           command => "/usr/bin/python /home/vagrant/grondview/utils/purge_media.py >~/grondview/logs/cron.log 2>&1",
+           user => vagrant,
+           ensure => present,
+           minute => "*/5"
+  }
+}
 
 
 
@@ -115,5 +126,11 @@ class ruby_modules{
         ensure => installed,
         provider => gem;
   }
+  exec {
+   "sass-watch":
+       command => "/usr/local/bin/sass --watch /home/vagrant/grondview/grondview/static/css/sass/style.scss:/home/vagrant/grondview/grondview/static/css/style.css >/dev/null &",
+       user => vagrant;
+       }
+
 }
 
