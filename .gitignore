@@ -2,7 +2,7 @@
 *.pot
 *.pyc
 *.pyo
-local_settings.py
+*local_settings.py*
 *build/
 *~
 *.sass-cache/
@@ -12,3 +12,4 @@ fixtures/*
 media/*
 logs/*
 .vagrant
+static/*

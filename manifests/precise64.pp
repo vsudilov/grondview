@@ -8,8 +8,9 @@ class {
       'python_modules': stage => main;
       'ruby_modules':   stage => main;
       'post_python_modules': stage => last;
-      'cronjobs':	stage=> last;
-      'sass-watch':	stage=> last;
+      'cronjobs':	stage => last;
+      'sass-watch':	stage => last;
+      'celeryd-init':        stage => last;
 }
 
 include postgresql::server
@@ -17,6 +18,12 @@ postgresql::db{ 'grondviewdb':
   user          => 'grondview',
   password      => 'grondview',
   grant         => 'all',
+}
+
+user { "celery":
+  ensure => present,
+  shell => '/usr/sbin/nologin',
+  managehome => false;
 }
 
 
@@ -61,6 +68,9 @@ class system{
       "python-scipy":
           ensure => installed,
           provider => apt;
+      "redis-server":
+          ensure => installed,
+          provider => apt;
   }
 }
 
@@ -93,6 +103,19 @@ class post_python_modules{
       "psycopg2":
           ensure => "2.4.6",
           provider => pip;
+
+     "celery-with-redis":
+          ensure => installed,
+          provider => pip;
+
+     "django-celery":
+          ensure => installed,
+          provider => pip;
+
+     "django-dajaxice":
+          ensure => "0.5.5",
+          provider => pip;
+
         }
   
 
@@ -124,16 +147,54 @@ class cronjobs{
 #------------------------------
 class ruby_modules{
   package{
-      "sass":
-        ensure => installed,
-        provider => gem;
+    "sass":
+      ensure => installed,
+      provider => gem;
   }
 }
 
 class sass-watch{
   exec {
    "sass-watch":
-       command => "/usr/local/bin/sass --watch /home/vagrant/grondview/grondview/static/css/sass/style.scss:/home/vagrant/grondview/grondview/static/css/style.css >/dev/null &",
-       user => vagrant;
+     command => "/usr/local/bin/sass --watch /home/vagrant/grondview/grondview/static/css/sass/style.scss:/home/vagrant/grondview/grondview/static/css/style.css >/dev/null &",
+     user => vagrant;
        }
+}
+
+
+# Start up celeryd
+#----------------------------
+class celeryd-init {
+  exec {
+     "ln celeryd":
+       command => "/bin/ln -fs /home/vagrant/grondview/etc/celeryd /etc/init.d/celeryd",
+#         creates => "/etc/init.d/celeryd";
+       }
+
+  exec {
+     "ln celeryd.conf":
+       command => "/bin/ln -fs /home/vagrant/grondview/etc/celeryd.conf /etc/default/celeryd",
+#         creates => "/etc/default/celeryd";
+       }
+
+  exec {
+    "init /var/run/celery":
+      command => "/bin/mkdir /var/run/celery/ && /bin/chgrp -R vagrant /var/run/celery && /bin/chmod -R g+rw /var/run/celery && /bin/chmod -R g+s /var/run/celery",
+      creates => "/var/run/celery";
+       }
+
+  exec {
+    "init /var/log/celery":
+      command => "/bin/mkdir /var/log/celery/ && /bin/chgrp -R vagrant /var/log/celery && /bin/chmod -R g+rw /var/log/celery && /bin/chmod -R g+s /var/log/celery",
+      creates => "/var/log/celery";
+       }
+
+  exec {        #Don't use service, it will break the cwd!
+   "celeryd":
+     command => "/etc/init.d/celeryd start",
+     cwd => "/home/vagrant/grondview",
+     user => "vagrant",
+     environment => ['HOME=/home/vagrant'],
+     require => [Exec['ln celeryd.conf'],Exec['init /var/run/celery'],Exec['init /var/log/celery'],Exec['ln celeryd'],Class['post_python_modules']];
+  }
 }

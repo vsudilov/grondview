@@ -16,4 +16,5 @@ urlpatterns = patterns('',
      url(r'^(?P<page_name>contact|projects|CV)/$', 'grondview.views.staticpage'),
      url(r'^imagequery/$', 'imagequery.views.home'),
      url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
+     url(r'^%s/' % settings.DAJAXICE_MEDIA_PREFIX, include('dajaxice.urls')),
 )

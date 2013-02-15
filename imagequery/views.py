@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 
 from grondview.settings import PROJECT_ROOT
 from grondview.settings import MEDIA_ROOT
+from grondview import tasks
 from imagequery.forms import ImageQueryForm
 from imagequery.models import ImageHeader
 
@@ -17,6 +18,7 @@ import numpy as np
 from astLib import astCoords
 from astLib import astImages
 import pyfits
+
 
 #------------------------------------------
 # Custom exceptions
@@ -75,7 +77,7 @@ def make_images(cd,radius=10):
     image['PATH_RAW'] = i.PATH
     astImages.saveBitmap(os.path.join(MEDIA_ROOT,fname),d,cutLevels=["smart", 99.5],size=300,colorMapName='gray')
     images.append(image)  
-    print image
+  tasks.makeImages.delay(results)
   return images
 
 def home(request):

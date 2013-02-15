@@ -8,6 +8,12 @@ IMAGES_ROOT = os.path.join(USER_HOME,'anaField/data')
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
+import djcelery
+djcelery.setup_loader()
+BROKER_URL = 'redis://localhost/'
+CELERY_RESULT_BACKEND = "redis://"
+CELERY_IMPORTS = ("grondview.tasks", )
+
 
 ADMINS = (
      ('vsudilov', 'vsudilov@mpe.mpg.de'),
@@ -82,6 +88,7 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'dajaxice.finders.DajaxiceFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
@@ -92,7 +99,17 @@ SECRET_KEY = 'w_gai1yi-g51febe5pz0r)wdqrr!4o@9qnpk1p%mx4l8wn$uzw'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
+    'django.template.loaders.eggs.Loader',
+)
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.debug',
+    #'django.core.context_processors.i18n',
+    'django.core.context_processors.media',
+    'django.core.context_processors.static',
+    'django.core.context_processors.request',
+    'django.contrib.messages.context_processors.messages',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -133,7 +150,11 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
      'django.contrib.admindocs',
      'imagequery',
+     'djcelery',
+     'dajaxice',
 )
+
+DAJAXICE_MEDIA_PREFIX="dajaxice"
 
 #FIXTURE_DIRS = ()
 
