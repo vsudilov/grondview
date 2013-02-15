@@ -13,3 +13,4 @@ media/*
 logs/*
 .vagrant
 static/*
+!.touch

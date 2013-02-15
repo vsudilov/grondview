@@ -40,7 +40,7 @@ MEDIA_DIR = os.path.join(os.path.dirname(__file__),'../media/')
 
 def main():
   deleted_MB = 0
-  for f in [os.path.join(MEDIA_DIR,i) for i in os.listdir(MEDIA_DIR)]:  
+  for f in [os.path.join(MEDIA_DIR,i) for i in os.listdir(MEDIA_DIR) if not i.startswith('.')]:  
     (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(f)
     now = time.time()
     if now-atime > 60:
