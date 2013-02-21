@@ -70,14 +70,13 @@ def make_images(cd,radius=10):
   for i in results:
     image = i.__dict__
     image['DATE_OBS'] = image['DATE_OBS'].replace('T',' ')
-    d = pyfits.open(i.PATH)[0].data
     unique_filename = uuid.uuid4()
     fname = '%s.png' % unique_filename
     image['PATH_PNG'] = fname
     image['PATH_RAW'] = i.PATH
-    astImages.saveBitmap(os.path.join(MEDIA_ROOT,fname),d,cutLevels=["smart", 99.5],size=300,colorMapName='gray')
+    #astImages.saveBitmap(os.path.join(MEDIA_ROOT,fname),d,cutLevels=["smart", 99.5],size=300,colorMapName='gray')
     images.append(image)  
-  tasks.makeImages.delay(results)
+  tasks.makeImages.delay(images)
   return images
 
 def home(request):

@@ -2,7 +2,7 @@
 <div id="image-container">
   {% for image in images %}
   <div class="image">
-    <img src="{{ MEDIA_URL }}{{ image.PATH_PNG }}" />
+    <img src="" />
     <div class="image-info">
       <ul>
         <li>Field TARGETID: {{ image.TARGETID }}</li>
@@ -12,9 +12,10 @@
         <li><a download="grond.png" type="application/octet-stream" href="{{ MEDIA_URL }}{{ image.PATH_PNG }}">Download PNG</a></li>
         <li><a href="{{ image.PATH_RAW }}">Download FITS</a></li>
       </ul>    
-    <script>
-      $(document).ready(fileExists("{{ MEDIA_URL }}{{ image.PATH_PNG }}"));
-    </script>
+      <script>
+      file = "{{ MEDIA_URL }}{{ image.PATH_PNG }}"
+      int_id = setInterval(function(){fileExists(file)}, updateInterval)
+      </script>
     </div>
   </div>
   {% endfor %}
