@@ -1,0 +1,21 @@
+<script src="{{ STATIC_URL }}js/imagequery.js"></script>  <!--Load the images only when the server has created them-->
+<div id="image-container">
+  {% for image in images %}
+  <div class="image">
+    <img src="{{ MEDIA_URL }}{{ image.PATH_PNG }}" />
+    <div class="image-info">
+      <ul>
+        <li>Field TARGETID: {{ image.TARGETID }}</li>
+        <li>Band: {{ image.FILTER }}</li>
+        <li>Date: {{ image.DATE_OBS }}</li>
+        <li><a href="X">Query detected objects in this field</a></li>
+        <li><a download="grond.png" type="application/octet-stream" href="{{ MEDIA_URL }}{{ image.PATH_PNG }}">Download PNG</a></li>
+        <li><a href="{{ image.PATH_RAW }}">Download FITS</a></li>
+      </ul>    
+    <script>
+      $(document).ready(fileExists("{{ MEDIA_URL }}{{ image.PATH_PNG }}"));
+    </script>
+    </div>
+  </div>
+  {% endfor %}
+</div>

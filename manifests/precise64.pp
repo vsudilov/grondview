@@ -10,7 +10,8 @@ class {
       'post_python_modules': stage => last;
       'cronjobs':	stage => last;
       'sass-watch':	stage => last;
-      'celeryd-init':        stage => last;
+#      'coffee-watch': stage => last; #Doesnt work, bug in coffee --watch
+      'celeryd-init': stage => last;
 }
 
 include postgresql::server
@@ -71,6 +72,9 @@ class system{
       "redis-server":
           ensure => installed,
           provider => apt;
+      "coffeescript":
+          ensure => installed,
+          provider => apt;
   }
 }
 
@@ -112,9 +116,9 @@ class post_python_modules{
           ensure => installed,
           provider => pip;
 
-     "django-dajaxice":
-          ensure => "0.5.5",
-          provider => pip;
+#     "django-dajaxice":
+#          ensure => "0.5.5",
+#          provider => pip;
 
         }
   
@@ -197,4 +201,15 @@ class celeryd-init {
      environment => ['HOME=/home/vagrant'],
      require => [Exec['ln celeryd.conf'],Exec['init /var/run/celery'],Exec['init /var/log/celery'],Exec['ln celeryd'],Class['post_python_modules']];
   }
+}
+
+
+# Misc
+#------
+class coffee-watch{
+  exec {
+   "coffee-watch":
+     command => "/usr/bin/coffee -o /home/vagrant/grondview/static/js/ -cw /home/vagrant/grondview/static/coffee/ &",
+     user => vagrant;
+       }
 }
