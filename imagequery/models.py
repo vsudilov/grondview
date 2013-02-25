@@ -1,5 +1,12 @@
 from django.db import models
 from django.db.models.query import QuerySet
+import os
+import sys
+
+from grondview.settings import PROJECT_ROOT
+sys.path.insert(0,os.path.join(PROJECT_ROOT,'utils'))
+
+from lib import constants
 
 from astLib import astCoords
 
@@ -15,8 +22,7 @@ class ImageHeaderQuerySet(QuerySet):
     Filters a queryset based on arclength. Returns a List of 
     database rows, therefore must be the last piece of a QuerySet chain.
     """
-    convert_units = {'arcminutes':60.,'arcseconds':3600.,'degrees':1}
-    radius /= convert_units[units]
+    radius *= constants.convert_arcmin_or_arcsec_to_degrees[units]
 
     results = []
     for i in self:

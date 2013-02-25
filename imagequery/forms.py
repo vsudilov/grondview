@@ -40,8 +40,8 @@ class ImageQueryForm(forms.Form):
 
   unit_area = forms.ChoiceField(
               label="",
-              choices=[('arcmin','arcminutes'),
-                       ('arcsec','arcseconds')],
+              choices=[('arcminutes','arcminutes'),
+                       ('arcseconds','arcseconds')],
               widget=forms.Select(attrs={'class':'area_select-unit'}),
               initial="arcmin"
               )

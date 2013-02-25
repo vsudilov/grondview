@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 from grondview.celery import celery
-from astLib import astCoords
+from astLib import astWCS
 
 import matplotlib
 from matplotlib import pyplot as plt
@@ -16,26 +16,14 @@ sys.path.insert(0,os.path.join(PROJECT_ROOT,'utils'))
 from lib import img_scale
 from lib import astImages
 
-
-
 @celery.task
-def add(x, y):
-    return x + y
-
-
-@celery.task
-def mul(x, y):
-    return x * y
-
-
-@celery.task
-def xsum(numbers):
-    return sum(numbers)
-
-@celery.task
-def makeImage(image):
+def makeImage(image,area,ra,dec):
   fname = image['PATH_PNG']
   d = pyfits.open(image['PATH_RAW'])[0].data
-  astImages.saveBitmap(os.path.join(MEDIA_ROOT,fname),d,cutLevels=["smart", 99.5],size=300,colorMapName='gray')
+  wcs = astWCS.WCS(image['PATH_RAW'])
+  clipSizeDeg = area
+  
+  d = astImages.clipImageSectionWCS(d, wcs, ra, dec, clipSizeDeg, returnWCS = False)
+  astImages.saveBitmap(os.path.join(MEDIA_ROOT,fname),d['data'],cutLevels=["smart", 99.5],size=300,colorMapName='gray')
 
   return None

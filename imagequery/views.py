@@ -16,8 +16,9 @@ import uuid
 import numpy as np
 
 from astLib import astCoords
-from astLib import astImages
-import pyfits
+
+sys.path.insert(0,os.path.join(PROJECT_ROOT,'utils'))
+from lib import constants
 
 
 #------------------------------------------
@@ -57,8 +58,10 @@ def make_images(cd,radius=10):
       ra,dec = map(float,c)
     except:
       raise CoordinateParseError
+  
   try:
-    float(area)
+    area = float(area)
+    area *= constants.convert_arcmin_or_arcsec_to_degrees[unit_area]
   except:
     raise AreaParseError
   #-------------------------------------
@@ -67,15 +70,15 @@ def make_images(cd,radius=10):
   if not results:
     raise NoCoverageError(radius=radius)
   images = []
-  for i in results:
+
+  for i in results:# -- Sanitize the database results, prepare to give the task to celery
     image = i.__dict__
     image['DATE_OBS'] = image['DATE_OBS'].replace('T',' ')
     unique_filename = uuid.uuid4()
     fname = '%s.png' % unique_filename
     image['PATH_PNG'] = fname
     image['PATH_RAW'] = i.PATH
-    #astImages.saveBitmap(os.path.join(MEDIA_ROOT,fname),d,cutLevels=["smart", 99.5],size=300,colorMapName='gray')
-    tasks.makeImage.delay(image)    
+    tasks.makeImage.delay(image,area,ra,dec)    
     images.append(image)
 
   pattern = {} #-- Sort images based on targetID first, then band[grizJHK] second
@@ -90,6 +93,7 @@ def make_images(cd,radius=10):
     return (item['TARGETID'], pattern[item['FILTER']])
   images.sort(key=keyfunc)
 
+  #Return the list of images that will (eventually) be created by a celeryworker. html will be updated after the fact via ajax
   return images
 
 def home(request):
