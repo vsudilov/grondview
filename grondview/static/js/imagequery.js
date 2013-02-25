@@ -1,54 +1,22 @@
-/*
-fileExists = (location) $ -> $.ajax(
-  url: location
-  type: 'HEAD'
-  error: -> $('p').text("failure") 
-  success: -> $('p').text("success"))
+var fileExists, tolerance_requests;
 
-fileExists("{{ MEDIA_URL }}{{ image.RAW_PNG }}")
-*/
-var fileExists, myFun, updateInterval;
+tolerance_requests = 5;
 
-myFun = function(msg) {
-  var towrite;
-  towrite = msg;
-  return $('p').text(towrite);
-};
-
-/*
-fileExists = $.get(para)
-  .success (response) ->
-    $('p').text("Reponse recieved")
-  .error (response) ->
-    $('p').text("Not yet there...")
-*/
-
-/*
-fileExists = $.ajax "test",
-    type: 'HEAD'
-    dataType: 'html'
-    async: true
-    error: (jqXHR, textStatus, errorThrown) ->
-        $('p').append "AJAX Error: #{textStatus} #{errorThrown}"
-        fileExists
-    success: (data, textStatus, jqXHR) ->
-        $('p').append "Successful AJAX call: #{data}"
-*/
-
-updateInterval = 5000;
-
-fileExists = function(file) {
+fileExists = function(file, i, pngID) {
   return $.ajax(file, {
     type: 'HEAD',
     dataType: 'html',
     async: true,
-    timeout: 3000,
+    timeout: 2000,
     error: function(jqXHR, textStatus, errorThrown) {
-      return null;
+      i += 1;
+      if (i > tolerance_requests) return null;
+      return setTimeout((function() {
+        return fileExists(file, i, pngID);
+      }), 1000);
     },
     success: function(data, textStatus, jqXHR) {
-      $('img').attr('src', file);
-      return clearInterval(int_id);
+      return $('img.png' + pngID).attr('src', file);
     }
   });
 };

@@ -75,8 +75,8 @@ def make_images(cd,radius=10):
     image['PATH_PNG'] = fname
     image['PATH_RAW'] = i.PATH
     #astImages.saveBitmap(os.path.join(MEDIA_ROOT,fname),d,cutLevels=["smart", 99.5],size=300,colorMapName='gray')
-    images.append(image)  
-  tasks.makeImages.delay(images)
+    tasks.makeImage.delay(image)    
+    images.append(image)
   return images
 
 def home(request):
