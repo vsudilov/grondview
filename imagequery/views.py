@@ -77,6 +77,19 @@ def make_images(cd,radius=10):
     #astImages.saveBitmap(os.path.join(MEDIA_ROOT,fname),d,cutLevels=["smart", 99.5],size=300,colorMapName='gray')
     tasks.makeImage.delay(image)    
     images.append(image)
+
+  pattern = {} #-- Sort images based on targetID first, then band[grizJHK] second
+  pattern['g'] = 1
+  pattern['r'] = 2
+  pattern['i'] = 3
+  pattern['z'] = 4
+  pattern['J'] = 5
+  pattern['H'] = 6
+  pattern['K'] = 7
+  def keyfunc(item): 
+    return (item['TARGETID'], pattern[item['FILTER']])
+  images.sort(key=keyfunc)
+
   return images
 
 def home(request):
