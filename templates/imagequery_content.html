@@ -1,8 +1,9 @@
-<script src="{{ STATIC_URL }}js/imagequery.js"></script>  <!--Load the images only when the server has created them-->
+
 <div id="image-container">
+<script src="{{ STATIC_URL }}js/imagequery.js"></script>  <!--Load the images only when the server has created them--> 
   {% for image in images %}
   <div class="image">
-    <img src="" />
+    <img class="png{{forloop.counter}}" src="{{ STATIC_URL }}images/hourglass.png" />
     <div class="image-info">
       <ul>
         <li>Field TARGETID: {{ image.TARGETID }}</li>
@@ -11,12 +12,11 @@
         <li><a href="X">Query detected objects in this field</a></li>
         <li><a download="grond.png" type="application/octet-stream" href="{{ MEDIA_URL }}{{ image.PATH_PNG }}">Download PNG</a></li>
         <li><a href="{{ image.PATH_RAW }}">Download FITS</a></li>
-      </ul>    
-      <script>
-      file = "{{ MEDIA_URL }}{{ image.PATH_PNG }}"
-      int_id = setInterval(function(){fileExists(file)}, updateInterval)
-      </script>
+      </ul>   
     </div>
   </div>
+  <script>
+    setTimeout(function(){fileExists("{{ MEDIA_URL }}{{ image.PATH_PNG }}",0,{{forloop.counter}})},1200)
+  </script>
   {% endfor %}
 </div>
