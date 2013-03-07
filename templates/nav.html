@@ -2,9 +2,10 @@
       <ul>
         <li {% if request.path == "/" %} class="current" {% endif %}><a href="/">Home</a></li>
         <li {% if "/imagequery/" in request.path %} class="current" {% endif %}><a href="/imagequery/">Image query</a></li>
-        <li {% if "/XX/" in request.path %} class="current" {% endif %}><a href="/XX/">Object query</a></li>
-        <li {% if "/XX/" in request.path %} class="current" {% endif %}><a href="/XX/">Info</a></li>
-        <li {% if "/contact/" in request.path %} class="current" {% endif %}><a href="/contact/">Impressum</a></li>
+        <li {% if "/objectquery/" in request.path %} class="current" {% endif %}><a href="/objectquery/">Object query</a></li>
+        <li {% if "/readme/" in request.path %} class="current" {% endif %}><a href="/Readme/">Readme</a></li>
+        <li {% if "/impressum/" in request.path %} class="current" {% endif %}><a href="/impressum/">Impressum</a></li>
+        <li {% if "/contact/" in request.path %} class="current" {% endif %}><a href="/contact/">Contact</a></li>
         {% if user.is_authenticated %}        
         <li class="logout"><a href="/logout/">Log out</a></li>  
         {% else %}

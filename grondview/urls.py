@@ -13,7 +13,8 @@ urlpatterns = patterns('',
      url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
      url(r'^admin/', include(admin.site.urls)),
 
-     url(r'^(?P<page_name>contact|projects|CV)/$', 'grondview.views.staticpage'),
+     url(r'^(?P<page_name>contact|impressum|readme)/$', 'grondview.views.staticpage'),
      url(r'^imagequery/$', 'imagequery.views.home'),
+     url(r'^objectquery/$', 'objectquery.views.home'),
      url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
 )

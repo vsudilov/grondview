@@ -7,6 +7,8 @@ import sys
 import pyfits
 import json
 
+from lib import resultfile
+
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__),'../fixtures/')
 STUB_DIR =  os.path.join(os.path.dirname(__file__),'../stubdata/')
 
@@ -22,17 +24,36 @@ def writeJSON(data,OUTPUT_FILENAME="stubdata.json"):
   print "Populated %s with info from %s" % (OUTPUT_FILENAME,STUB_DIR)
 
 
-def match_db_fields(fields):
-  #Match the FITS header keys with those defined in the database table
-  modelfields = ('PATH','NAXIS1', 'NAXIS2', 'RA', 'DEC', 'EXPTIME', 'MJD_OBS', 
-                 'DATE_OBS', 'CRVAL1', 'CRVAL2', 'NGR', 'NINT', 'NIZ', 'NMD', 
-                 'NTD', 'NTP', 'OBSEQNUM', 'OBSRUNID', 'TARGETID', 'FILTER', 'RON',
-                 'GAIN', 'MJD_MID', 'OBSERR', 'NCOMBINE', 'NIMGS', 'TDP_MID', 
-                 'INTERPSM', 'AIRMASS', 'IMGEXP')
-  matched = dict( [(k,v) for k,v in fields.iteritems() if k in modelfields]  )
-  return matched
 
+
+
+def pop_ImageProperties(rf,pk):
+  fields = {}
+  D = {"model":"imagequery.ImageHeader","fields":fields,'pk':}
+  return D
+
+def pop_AstroSource(rf,pk):
+  pk = [1,2,3,4,5,6,7] #Hard coded for stub data.
+  fields = {}
+  D = {"model":"objectquery.AstroSource","fields":fields,'pk':pk}
+  return D
   
+def pop_ImageHeader(hdr,pk):
+  def match_db_fields(fields):
+    #Match the FITS header keys with those defined in the database table
+    modelfields = ('PATH','NAXIS1', 'NAXIS2', 'RA', 'DEC', 'EXPTIME', 'MJD_OBS', 
+                   'DATE_OBS', 'CRVAL1', 'CRVAL2', 'NGR', 'NINT', 'NIZ', 'NMD', 
+                   'NTD', 'NTP', 'OBSEQNUM', 'OBSRUNID', 'TARGETID', 'FILTER', 'RON',
+                   'GAIN', 'MJD_MID', 'OBSERR', 'NCOMBINE', 'NIMGS', 'TDP_MID', 
+                   'INTERPSM', 'AIRMASS', 'IMGEXP')
+    matched = dict( [(k,v) for k,v in fields.iteritems() if k in modelfields]  )
+    return matched
+
+  fields = dict([(k.replace('-','_'),hdr[k]) for k in hdr if k]) 
+  fields = match_db_fields(fields) #Need to remove the extraneous keys...Django blindly tries to copy all keys to models
+  fields['PATH'] = os.path.join(os.path.abspath('.'),os.path.join(STUB_DIR,f))
+  D = {"model":"imagequery.ImageHeader","fields":fields,'pk':pk}
+  return D
 
 def main():
   json = {}
@@ -42,19 +63,17 @@ def main():
   for f in os.listdir(STUB_DIR):
     if f.endswith('.fits'):
       i+=1 
-
       hdulist = pyfits.open(os.path.join(STUB_DIR,f))
       hdr = hdulist[0].header
-
-      fields = dict([(k.replace('-','_'),hdr[k]) for k in hdr if k]) #pyfits does not make its dict transparent. Easier to just build a new one.
-      fields = match_db_fields(fields) #Need to remove the extraneous keys...Django blindly tries to copy all keys to models
-      fields['PATH'] = os.path.join(os.path.abspath('.'),os.path.join(STUB_DIR,f))
-      json['imagequery'].append({"model":"imagequery.ImageHeader","fields":fields,'pk':i})
-    elif f.endswith('.result'):      
-      pass
+      json['imagequery'].append(pop_ImageHeader(hdr,i))
+    elif f.endswith('.result'):
       j+=1
+      rf = resultfile.ResultFile(os.path.join(STUB_DIR,f))
+      json['imagequery'].append(pop_ImageProperties(hdr,j))
+      json['objectquery'].append(pop_AstroSource(hdr,j))
+      
 
-  django_json = []  #Django json parser requires a specific top level organization
+  django_json = []  #Django json parser (for stubdata) requires a specific top level organization
   for k in json:
     django_json.extend( json[k] )
   writeJSON(django_json)

@@ -1,3 +1,62 @@
 from django.db import models
+from imagequery import ImageHeader
+import os
+import sys
 
-# Create your models here.
+from grondview.settings import PROJECT_ROOT
+sys.path.insert(0,os.path.join(PROJECT_ROOT,'utils'))
+
+from lib import constants
+
+from astLib import astCoords
+
+
+#--------------------------------------------
+#Clever trick to override QuerySets, enabling
+#chaining of custom queries:
+#Enables model.objects.positionFilter()
+#as well as model.objects.filter(FILTER__in=bands).positionFilter(ra,dec,radius)
+#http://zmsmith.com/2010/04/using-custom-django-querysets/
+class AstroSourceQuerySet(QuerySet):
+  def sourcePositionFilter(self,ra,dec,radius,units="arcseconds"):
+    """
+    Filters a queryset based on arclength. Returns a List of 
+    database rows, therefore must be the last piece of a QuerySet chain.
+    """
+    radius *= constants.convert_arcmin_or_arcsec_to_degrees[units]
+
+    results = []
+    for i in self:
+      if astCoords.calcAngSepDeg(i.RA,i.DEC,ra,dec) <= radius:
+        results.append(i)
+    return results
+class AstroSourceManager(models.Manager):
+  def get_query_set(self):
+    return AstroSourceQuerySet(self.model)
+  def __getattr__(self, name):
+    return getattr(self.get_query_set(), name)
+#--------------------------------------------
+
+class AstroSource(models.Model):
+  
+  imageheader = models.ManyToManyField(ImageHeader) #one object should have 7 image headers, regardless if they are 99% redundant
+  sourceID = models.IntegerField()    
+
+  #No distinction between calib and zeropoint magnitudes,
+  #as we should not report zeropoint mags in production
+  RA = models.FloatField() #Object (not field) wcs
+  DEC = models.FloatField()
+  MAG_PSF = models.FloatField()
+  MAG_PSF_ERR = models.FloatField()
+  MAG_APP = models.FloatField()
+  MAG_APP_ERR = models.FloatField()
+  MAG_KRON = models.FloatField()
+  MAG_KRON_ERR = models.FloatField()
+  ELONGATION = models.FloatField()
+  R_HALFLIGHT = models.FloatField()
+
+  
+  #-- Manager
+  objects = AstroSourceManager()
+  
+  
