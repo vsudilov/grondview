@@ -1,0 +1,14 @@
+
+<div id="image-container">
+  {% for source in sources %}
+  <div class="source">
+      <ul>
+        <li>Field TARGETID:</li>
+        {% for header in source.imageheader.all %}        
+        <li>{{header.TARGETID}}</li>
+        {% endfor %}
+        <li>stuff: {{ source }}</li>
+      </ul>   
+  </div>
+  {% endfor %}
+</div>

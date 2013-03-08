@@ -7,6 +7,8 @@
 python manage.py syncdb
 python utils/populate_db_with_stubdata.py
 python manage.py loaddata fixtures/stubdata.json
+#python manage.py loaddata fixtures/1.json
+#python manage.py loaddata fixtures/2.json
 python manage.py collectstatic --noinput
 
 #Run dev server

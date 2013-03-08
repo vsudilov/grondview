@@ -47,6 +47,7 @@ class ImageHeader(models.Model):
   """
   def __unicode__(self):
     return "%s-%s: %s" % (self.TARGETID,self.FILTER,self.PATH)
+
   #-- Fields
   PATH = models.CharField(max_length=80)
   NAXIS1 = models.IntegerField()
@@ -78,14 +79,16 @@ class ImageHeader(models.Model):
   INTERPSM = models.FloatField()
   AIRMASS = models.FloatField()
   IMGEXP = models.FloatField()
-  
+
+  def OB(self):
+    return "%s_%s" % (self.OBRUNID,self.OBSEQNUM)
+
   #-- Manager
   objects = ImageHeaderManager()
-  
-  #-- Serialization
-  class Meta:
-        unique_together = (('PATH'),)
 
+  def natural_key(self):
+    return (self.PATH,) 
+  
 class ImageProperties(models.Model):
   imageheader = models.OneToOneField(ImageHeader)
   
@@ -99,3 +102,7 @@ class ImageProperties(models.Model):
   APP_SIZE = models.FloatField() #In arcseconds
   CALIB_CHI2 = models.FloatField()
   CALIB_RMS = models.FloatField()
+
+  #-- Manager
+  objects = ImageHeaderManager()
+

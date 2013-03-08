@@ -12,7 +12,7 @@ class ObjectQueryForm(forms.Form):
 
   area = forms.FloatField(
               widget=forms.TextInput(
-                  attrs={'value':"1.0 (arcseconds)",'min': '1.0', 'max': '180','class':'area_input'}),
+                  attrs={'value':"1.0",'min': '1.0', 'max': '180','class':'area_input'}),
               label="Area"
               ) 
 

@@ -21,11 +21,11 @@ postgresql::db{ 'grondviewdb':
   grant         => 'all',
 }
 
-user { "celery":
-  ensure => present,
-  shell => '/usr/sbin/nologin',
-  managehome => false;
-}
+#user { "celery":
+#  ensure => present,
+#  shell => '/usr/sbin/nologin',
+#  managehome => false;
+#}
 
 
 # Run apt-get update once on VM creation

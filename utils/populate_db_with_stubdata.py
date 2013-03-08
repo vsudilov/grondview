@@ -7,12 +7,17 @@ import sys
 import pyfits
 import json
 
+from astLib import astCoords
 from lib import resultfile
+from lib.constants import convert_arcmin_or_arcsec_to_degrees
 
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__),'../fixtures/')
 STUB_DIR =  os.path.join(os.path.dirname(__file__),'../stubdata/')
-
-
+BANDS = 'grizJHK'
+FITS = "%s_binned.fits"
+RESULT = "%s.result"
+SOURCES = []
+MATCH_TOLERANCE = 0.3 #arcseconds tolerance to match sources between bands
 
 def writeJSON(data,OUTPUT_FILENAME="stubdata.json"):
   #Write the final JSON product to disk 
@@ -24,21 +29,64 @@ def writeJSON(data,OUTPUT_FILENAME="stubdata.json"):
   print "Populated %s with info from %s" % (OUTPUT_FILENAME,STUB_DIR)
 
 
-
-
-
-def pop_ImageProperties(rf,pk):
+def pop_ImageProperties(rf,pk,D):
   fields = {}
-  D = {"model":"imagequery.ImageHeader","fields":fields,'pk':}
+  fields['imageheader'] = [ D['fields']['PATH'] ] #OneToOneField, with natural key
+  translation = {'LIMITING_MAG_3S_ZP':'LIMITING_MAG_3SIG_ZP',
+                 'LIMITING_MAG_3S_CALIB':'LIMITING_MAG_3SIG_CALIB',
+                 'SEEING':'MEAN_FWHM_ARCSEC',
+                 'MEAN_AIRMASS':'MEAN_AIRMASS',
+                 'ASTROMETRY_ACCURACY_RA':'ASTRO_SOLN_ACCURACY_RA',
+                 'ASTROMETRY_ACCURACY_DEC':'ASTRO_SOLN_ACCURACY_DEC',
+                 'KRON_CORRECTION':'KRON_CORRECTION',
+                 'APP_SIZE':'APERTURE_SIZE_ARCSEC',
+                 'CALIB_CHI2':'CALIB_CHI2',
+                 'CALIB_RMS':'CALIB_RMS'}
+  for k in translation:
+    fields[k] = rf.header[translation[k]]
+  D = {"model":"imagequery.ImageProperties","fields":fields,'pk':pk}
   return D
 
-def pop_AstroSource(rf,pk):
-  pk = [1,2,3,4,5,6,7] #Hard coded for stub data.
+
+
+def pop_AstroSource(source,pk,D):
   fields = {}
+  #Setup the ManyToManyField relationship (one object has 7 images)
+  #Bit of a cheat here, as we know what the stubdata filenames are
+  p = D['fields']['PATH']
+  b = D['fields']['FILTER']
+  fields['imageheader'] = [[p.replace('%s_binned.fits' % b,'%s_binned.fits' % band)] for band in BANDS] 
+  translation = {'RA':'RA',
+                 'DEC':'DEC',
+                 'MAG_PSF':'MAG_PSF',
+                 'MAG_PSF_ERR':'MAG_PSF_ERR',
+                 'MAG_APP':'MAG_APP',
+                 'MAG_APP_ERR':'MAG_APP_ERR',
+                 'MAG_KRON':'MAG_KRON',
+                 'MAG_KRON_ERR':'MAG_KRON_ERR',
+                 'ELONGATION':'ELONGATION',
+                 'R_HALFLIGHT':'R_HALFLIGHT',}
+  for k in translation:
+    v = source[translation[k]]
+    try:
+      float(v)
+      fields[k] = v
+    except ValueError:
+      fields[k] = -99
+  radius=MATCH_TOLERANCE*convert_arcmin_or_arcsec_to_degrees['arcseconds']
+  for src in SOURCES:
+    if astCoords.calcAngSepDeg(source['RA'],source['DEC'],src['RA'],src['DEC']) <= radius:
+      fields['sourceID'] = src['sourceID']
+      break
+  if not fields.has_key('sourceID'):
+    fields['sourceID'] = '%s-%s' % (D['fields']['TARGETID'],source['ObjID'])
+    SOURCES.append(fields)
   D = {"model":"objectquery.AstroSource","fields":fields,'pk':pk}
   return D
   
-def pop_ImageHeader(hdr,pk):
+
+
+def pop_ImageHeader(hdr,pk,fits):
   def match_db_fields(fields):
     #Match the FITS header keys with those defined in the database table
     modelfields = ('PATH','NAXIS1', 'NAXIS2', 'RA', 'DEC', 'EXPTIME', 'MJD_OBS', 
@@ -51,26 +99,40 @@ def pop_ImageHeader(hdr,pk):
 
   fields = dict([(k.replace('-','_'),hdr[k]) for k in hdr if k]) 
   fields = match_db_fields(fields) #Need to remove the extraneous keys...Django blindly tries to copy all keys to models
-  fields['PATH'] = os.path.join(os.path.abspath('.'),os.path.join(STUB_DIR,f))
+  fields['PATH'] = os.path.abspath(fits)
   D = {"model":"imagequery.ImageHeader","fields":fields,'pk':pk}
   return D
+
+
+
+def populate_json(json,hdr,rf,fits,result):
+  pk = len(json['imagequery'])/2+1
+  D = pop_ImageHeader(hdr,pk,fits)
+  json['imagequery'].append(D)
+  json['imagequery'].append(pop_ImageProperties(rf,pk,D))
+  
+  for source in rf.objects:
+    pk = max(len(json['objectquery']),1)  
+    json['objectquery'].append(pop_AstroSource(source,pk,D))
+  
+  return json
+
 
 def main():
   json = {}
   json['imagequery'] = []
   json['objectquery'] = []
-  i,j = 0,0 #Counters needed for required 'pk' field
-  for f in os.listdir(STUB_DIR):
-    if f.endswith('.fits'):
-      i+=1 
-      hdulist = pyfits.open(os.path.join(STUB_DIR,f))
+  for directory in os.listdir(STUB_DIR):
+    for band in BANDS:
+      fullpath = os.path.join(STUB_DIR,directory)
+      fits = os.path.join(fullpath,FITS % band)
+      result = os.path.join(fullpath,RESULT % band)
+
+      hdulist = pyfits.open(fits)
       hdr = hdulist[0].header
-      json['imagequery'].append(pop_ImageHeader(hdr,i))
-    elif f.endswith('.result'):
-      j+=1
-      rf = resultfile.ResultFile(os.path.join(STUB_DIR,f))
-      json['imagequery'].append(pop_ImageProperties(hdr,j))
-      json['objectquery'].append(pop_AstroSource(hdr,j))
+      rf = resultfile.ResultFile(result)      
+      json = populate_json(json,hdr,rf,fits,result)
+
       
 
   django_json = []  #Django json parser (for stubdata) requires a specific top level organization
@@ -82,54 +144,4 @@ def main():
 
 if __name__ == "__main__":
   main()
-
-
-#{
-#    "pk": 1,
-#    "model": "store.book",
-#    "fields": {
-#        "name": "Mostly Harmless",
-#        "author": 42
-#    }
-#}
-
-
-#import pyraf
-
-#bands = 'grizJHK'
-#for band in bands: #10x10 binning for stubdata, ie useless for science
-#  pyraf.iraf.blkavg(input='GROND_%s_OB_ana.fits' % band,output='%s_binned.fits' % band, b1=10,b2=10)
-
-
-#class ImageHeader(models.Model):
-#  PATH = models.TextField()
-#  NAXIS1 = models.IntegerField()
-#  NAXIS2 = models.IntegerField()
-#  RA = models.FloatField()
-#  DEC = models.FloatField()
-#  EXPTIME = models.FloatField()
-#  MJD_OBS = models.FloatField()
-#  DATE_OBS = models.TextField()
-#  CRVAL1 = models.FloatField()
-#  CRVAL2 = models.FloatField()
-#  NGR = models.IntegerField()
-#  NINT = models.IntegerField()
-#  NIZ = models.IntegerField()
-#  NMD = models.IntegerField()
-#  NTD = models.IntegerField()
-#  NTP = models.IntegerField()
-#  OBSEQNUM = models.IntegerField()
-#  OBSRUNID = models.IntegerField()
-#  TARGETID = models.CharField(max_length=40)
-#  FILTER = models.CharField(max_length=1)
-#  RON = models.FloatField()
-#  GAIN = models.FloatField()
-#  MJD_MID = models.FloatField()
-#  OBSERR = models.FloatField()
-#  NCOMBINE = models.IntegerField()
-#  NIMGS = models.IntegerField()
-#  TDP_MID = models.FloatField()
-#  INTERPSM = models.FloatField()
-#  AIRMASS = models.FloatField()
-#  IMGEXP = models.FloatField()
 

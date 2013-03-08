@@ -1,5 +1,7 @@
 from django.db import models
-from imagequery import ImageHeader
+from django.db.models.query import QuerySet
+from imagequery.models import ImageHeader
+from imagequery.models import ImageProperties
 import os
 import sys
 
@@ -35,17 +37,35 @@ class AstroSourceManager(models.Manager):
     return AstroSourceQuerySet(self.model)
   def __getattr__(self, name):
     return getattr(self.get_query_set(), name)
+  def get_by_natural_key(self, sourceID):
+    return self.get(sourceID=sourceID)
 #--------------------------------------------
 
 class AstroSource(models.Model):
+  def __unicode__(self):
+    return "%s" % (self.sourceID) 
   
-  imageheader = models.ManyToManyField(ImageHeader) #one object should have 7 image headers, regardless if they are 99% redundant
-  sourceID = models.IntegerField()    
+  #one object should have 7 image headers, regardless if they are 99% redundant
+  imageheader = models.ManyToManyField(ImageHeader,related_name='imageheaders') 
+
+  sourceID = models.CharField(max_length=30)    
 
   #No distinction between calib and zeropoint magnitudes,
   #as we should not report zeropoint mags in production
   RA = models.FloatField() #Object (not field) wcs
   DEC = models.FloatField()
+
+  #-- Manager
+  objects = AstroSourceManager()
+
+  def natural_key(self):
+    return (self.sourceID,)
+
+class Photometry(models.Model):
+  astrosource = models.OneToOneField(AstroSource,related_name='astrosource')
+  imageheader = models.OneToOneField(ImageHeader,related_name='imageheader')
+  imageproperties = models.OneToOneField(ImageProperties,related_name='imageproperties')
+
   MAG_PSF = models.FloatField()
   MAG_PSF_ERR = models.FloatField()
   MAG_APP = models.FloatField()
@@ -53,10 +73,8 @@ class AstroSource(models.Model):
   MAG_KRON = models.FloatField()
   MAG_KRON_ERR = models.FloatField()
   ELONGATION = models.FloatField()
-  R_HALFLIGHT = models.FloatField()
+  R_HALFLIGHT = models.FloatField()  
 
-  
-  #-- Manager
-  objects = AstroSourceManager()
+
   
   

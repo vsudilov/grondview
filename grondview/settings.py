@@ -3,7 +3,6 @@
 import os
 USER_HOME = os.path.expanduser('~')
 PROJECT_ROOT = os.path.join(USER_HOME,'grondview')
-IMAGES_ROOT = os.path.join(USER_HOME,'anaField/data')
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -149,6 +148,7 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
      'django.contrib.admindocs',
      'imagequery',
+     'objectquery',
      'djcelery',
 )
 
