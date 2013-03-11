@@ -3,11 +3,12 @@
   {% for source in sources %}
   <div class="source">
       <ul>
-        <li>Field TARGETID:</li>
-        {% for header in source.imageheader.all %}        
-        <li>{{header.TARGETID}}</li>
-        {% endfor %}
-        <li>stuff: {{ source }}</li>
+        <li>Field TARGETID: {{source.imageheader.TARGETID}}</li>      
+        <li>Band: {{source.imageheader.FILTER}}</li>
+        <li>SourceID: {{ source.astrosource.sourceID }}</li>
+        <li>PSF Magnitude: {{ source.MAG_PSF }}</li>
+        <li>APP Magnitude: {{ source.MAG_APP }}</li>
+        <p>------------------------------------</p>
       </ul>   
   </div>
   {% endfor %}

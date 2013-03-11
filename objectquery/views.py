@@ -10,6 +10,7 @@ from grondview.settings import MEDIA_ROOT
 from grondview import tasks
 from objectquery.forms import ObjectQueryForm
 from objectquery.models import AstroSource
+from objectquery.models import Photometry
 
 import os, sys
 import uuid
@@ -66,7 +67,10 @@ def get_sources(cd):
   results = AstroSource.objects.sourcePositionFilter(ra,dec,radius=radius,units='arcseconds')
   if not results:
     raise NoCoverageError(radius=radius)
-  sources = results
+  sources = []
+  for obj in results:
+    for p in Photometry.objects.filter(astrosource__sourceID__exact=obj.sourceID):
+      sources.append(p)
   return sources
 
 

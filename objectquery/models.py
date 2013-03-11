@@ -42,6 +42,9 @@ class AstroSourceManager(models.Manager):
 #--------------------------------------------
 
 class AstroSource(models.Model):
+  '''
+  Detected source
+  '''
   def __unicode__(self):
     return "%s" % (self.sourceID) 
   
@@ -62,9 +65,15 @@ class AstroSource(models.Model):
     return (self.sourceID,)
 
 class Photometry(models.Model):
-  astrosource = models.OneToOneField(AstroSource,related_name='astrosource')
-  imageheader = models.OneToOneField(ImageHeader,related_name='imageheader')
-  imageproperties = models.OneToOneField(ImageProperties,related_name='imageproperties')
+  '''
+  Photometric parameters
+  '''
+
+  def __unicode__(self):
+    return '%s: %s' % (self.imageheader,self.astrosource)
+  
+  astrosource = models.ForeignKey(AstroSource,related_name='astrosource')
+  imageheader = models.ForeignKey(ImageHeader,related_name='imageheader')
 
   MAG_PSF = models.FloatField()
   MAG_PSF_ERR = models.FloatField()

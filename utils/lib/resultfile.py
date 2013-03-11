@@ -102,11 +102,13 @@ structure of _parseRules in __init__(). Also, the columns are hardcoded in.
     '''
     def arclength(target_ra,target_dec,entry_ra,entry_dec,approx=False):
       #assumes decimal notation for ra,dec. Returns result in arcseconds
-      
+      from math import cos, sin, acos, degrees, radians, pi
+      def cosd(degs):
+        return cos(degs*pi/180)
+
       if approx:
-        return ((target_ra-entry_ra)**2+(target_dec-entry_dec)**2)**(1/2.) * (3600.)
+        return (    (    (ra1-ra2)*cosd(  (dec1+dec2)/2.0  )  )**2 + (dec1-dec2)**2)**(1/2.)*60.*60.
       
-      from math import cos, sin, acos, degrees, radians
       arclen = cos(radians(90-target_dec))*cos(radians(90-entry_dec)) 
       arclen += sin(radians(90-target_dec))*sin(radians(90-entry_dec))*cos(radians(target_ra-entry_ra))
       arclen = acos(arclen)

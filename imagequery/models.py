@@ -43,10 +43,10 @@ class ImageHeaderManager(models.Manager):
 
 class ImageHeader(models.Model):
   """
-  Defines the django model that stores FITS header info, along with path to that image
+  Stores FITS header info, along with path to that image
   """
   def __unicode__(self):
-    return "%s-%s: %s" % (self.TARGETID,self.FILTER,self.PATH)
+    return "%s" % (self.PATH)
 
   #-- Fields
   PATH = models.CharField(max_length=80)
@@ -90,6 +90,9 @@ class ImageHeader(models.Model):
     return (self.PATH,) 
   
 class ImageProperties(models.Model):
+  '''
+  Stores field properties derived from the analysis of the image
+  '''
   imageheader = models.OneToOneField(ImageHeader)
   
   LIMITING_MAG_3S_ZP = models.FloatField()
