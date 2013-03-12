@@ -83,7 +83,7 @@ structure of _parseRules in __init__(). Also, the columns are hardcoded in.
     fp.write(line)
     fp.close()
     
-  def getNearbyObjs(self,ra,dec,limit=1,approx=False):
+  def getNearbyObjs(self,ra,dec,limit=1,approx=True):
     '''
     Returns a dictionary of the following form:
     
@@ -100,14 +100,14 @@ structure of _parseRules in __init__(). Also, the columns are hardcoded in.
      --> 0.52      #result is distance in arcseconds
     
     '''
-    def arclength(target_ra,target_dec,entry_ra,entry_dec,approx=False):
+    def arclength(target_ra,target_dec,entry_ra,entry_dec,approx=True):
       #assumes decimal notation for ra,dec. Returns result in arcseconds
       from math import cos, sin, acos, degrees, radians, pi
       def cosd(degs):
         return cos(degs*pi/180)
 
       if approx:
-        return (    (    (ra1-ra2)*cosd(  (dec1+dec2)/2.0  )  )**2 + (dec1-dec2)**2)**(1/2.)*60.*60.
+        return (    (    (target_ra-entry_ra)*cosd(  (target_dec+entry_dec)/2.0  )  )**2 + (target_dec-entry_dec)**2)**(1/2.)*60.*60.
       
       arclen = cos(radians(90-target_dec))*cos(radians(90-entry_dec)) 
       arclen += sin(radians(90-target_dec))*sin(radians(90-entry_dec))*cos(radians(target_ra-entry_ra))
@@ -133,10 +133,13 @@ structure of _parseRules in __init__(). Also, the columns are hardcoded in.
           break
       results[objID].update({'DISTANCE':dist})
     return results
-  
+
+  def __repr__(self):
+    return self.path  
+
   def __init__(self,file_):
     import re
-    
+    self.path = file_
     #header attribute: resultFile.header{'KEYWORD':value}
     self.header = {}
         

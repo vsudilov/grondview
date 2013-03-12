@@ -49,7 +49,7 @@ class AstroSource(models.Model):
     return "%s" % (self.sourceID) 
   
   #one object should have 7 image headers, regardless if they are 99% redundant
-  imageheader = models.ManyToManyField(ImageHeader,related_name='imageheaders') 
+  imageheader = models.ManyToManyField(ImageHeader,related_name="%(app_label)s_%(class)s_related") 
 
   sourceID = models.CharField(max_length=30)    
 
@@ -70,10 +70,10 @@ class Photometry(models.Model):
   '''
 
   def __unicode__(self):
-    return '%s: %s' % (self.imageheader,self.astrosource)
+    return '%s: %s-%s' % (self.astrosource,self.imageheader.OB(),self.BAND)
   
-  astrosource = models.ForeignKey(AstroSource,related_name='astrosource')
-  imageheader = models.ForeignKey(ImageHeader,related_name='imageheader')
+  astrosource = models.ForeignKey(AstroSource)
+  imageheader = models.ForeignKey('imagequery.ImageHeader',related_name="%(app_label)s_%(class)s_related")
 
   MAG_PSF = models.FloatField()
   MAG_PSF_ERR = models.FloatField()
@@ -82,7 +82,8 @@ class Photometry(models.Model):
   MAG_KRON = models.FloatField()
   MAG_KRON_ERR = models.FloatField()
   ELONGATION = models.FloatField()
-  R_HALFLIGHT = models.FloatField()  
+  R_HALFLIGHT = models.FloatField()
+  BAND = models.CharField(max_length=1)  
 
 
   
