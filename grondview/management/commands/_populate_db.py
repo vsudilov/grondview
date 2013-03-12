@@ -105,24 +105,32 @@ class GrondData:
             known = True
             break
         if not known:
-          current_source.update(ObjID=len(all_sources)+1)
+          current_source.update(ObjID=len(all_sources)+1) #Ensure unique sourceID among all bands
           all_sources.append(current_source)
     
     print "     (detected %s unique sources among all bands)" % len(all_sources)
+
     #Compare the sources detected in this OB with all previous OBs. If sourceID already exists, we shouldn't re-write it!
-    previously_detected_sources = AstroSource.objects.filter(imageheader__TARGETID__exact=self.imageheaders['r'].TARGETID)
+    previously_detected_sources = AstroSource.objects.filter(imageheader__TARGETID__exact=self.imageheaders[self.bands[0]].TARGETID)
     for pds in previously_detected_sources:
       for source in all_sources:
         if self._arclength(pds.RA,pds.DEC,source['RA'],source['DEC']) <= MATCH_TOLERANCE:        
           all_sources.remove(source)
     print "     (after removal of sources from previous OBs of the same field, %s unique sources remain)" % len(all_sources)
+
     #Finally, make the Django models and save to DB
+
     self.sources = []
+    previous_IDs = [int(i.sourceID.split('-')[:-1]) for i in previously_detected_sources]
     for source in all_sources:
       fields = {}
       fields['RA'] = source['RA']
-      fields['DEC'] = source['DEC']
-      fields['sourceID'] = '%s-%s' % (self.imageheaders['r'].TARGETID,source['ObjID'])
+      fields['DEC'] = source['DEC']     
+      ID = 1
+      while ID in previous_IDs:
+        ID+=1
+      previous_IDs.append(ID)
+      fields['sourceID'] = '%s-%s' % (self.imageheaders[self.bands[0]].TARGETID,ID)
       d = AstroSource(**fields)
       d.save()
       for h in self.imageheaders.values():
@@ -161,8 +169,8 @@ class GrondData:
 
   def _make_Field(self):
     fields = {}
-    fields['TARGETID'] = self.imageheaders['r'].TARGETID
-    fields['OB'] = self.imageheaders['r'].OB()
+    fields['TARGETID'] = self.imageheaders[self.bands[0]].TARGETID
+    fields['OB'] = self.imageheaders[self.bands[0]].OB()
     self.field = Field(**fields)
     self.field.save()
     for h in self.imageheaders.values():
