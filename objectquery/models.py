@@ -70,7 +70,7 @@ class Photometry(models.Model):
   '''
 
   def __unicode__(self):
-    return '%s: %s-%s' % (self.astrosource,self.imageheader.OB(),self.BAND)
+    return '%s: %s-%s' % (self.astrosource,self.imageheader.OB,self.BAND)
   
   astrosource = models.ForeignKey(AstroSource)
   imageheader = models.ForeignKey('imagequery.ImageHeader',related_name="%(app_label)s_%(class)s_related")

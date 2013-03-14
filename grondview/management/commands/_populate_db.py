@@ -170,7 +170,7 @@ class GrondData:
   def _make_Field(self):
     fields = {}
     fields['TARGETID'] = self.imageheaders[self.bands[0]].TARGETID
-    fields['OB'] = self.imageheaders[self.bands[0]].OB()
+    fields['OB'] = self.imageheaders[self.bands[0]].OB
     self.field = Field(**fields)
     self.field.save()
     for h in self.imageheaders.values():

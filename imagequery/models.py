@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models.query import QuerySet
+from django.db.models import F
 import os
 import sys
 
@@ -79,9 +80,11 @@ class ImageHeader(models.Model):
   INTERPSM = models.FloatField()
   AIRMASS = models.FloatField()
   IMGEXP = models.FloatField()
+  OB = models.CharField(max_length=10,null=True)
 
-  def OB(self):
-    return "OB%s_%s" % (self.OBSRUNID,self.OBSEQNUM)
+  def save(self, *args, **kwargs):
+    self.OB="%s_%s" % ( self.OBSRUNID, self.OBSEQNUM )
+    super(ImageHeader, self).save(*args, **kwargs) # Call the "real" save() method.
 
   #-- Manager
   objects = ImageHeaderManager()
