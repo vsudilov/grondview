@@ -70,10 +70,10 @@ def get_images(cd,radius=10):
   if not results:
     raise NoCoverageError(radius=radius)
   images = []
-  targetIDs = [r.TARGETID for r in results]
 
   #Initialize the python data structure that will be expanded in the html-template:
   # targets = {TARGETID:{OB:[{band:x,PATH_RAW:x,PATH_PNG:x,DATE_OBS:x},...],...},...}
+  targetIDs = [r.TARGETID for r in results]
   targets = dict([(t,{}) for t in targetIDs])  
 
   for i in results:

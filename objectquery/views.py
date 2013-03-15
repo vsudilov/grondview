@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib import auth
 from django.views.generic.simple import direct_to_template
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 
 from grondview.settings import PROJECT_ROOT
 from grondview.settings import MEDIA_ROOT
@@ -13,6 +14,7 @@ from objectquery.models import AstroSource
 from objectquery.models import Photometry
 
 import os, sys
+import operator
 import uuid
 import numpy as np
 
@@ -65,12 +67,26 @@ def get_sources(cd):
     raise AreaParseError
   #-------------------------------------
   results = AstroSource.objects.sourcePositionFilter(ra,dec,radius=radius,units='arcseconds')
+    
   if not results:
     raise NoCoverageError(radius=radius)
-  sources = []
+  #Initialize the python data structure that will be expanded in the html-template:
+  # targets = {sourceID:{OB:[{band:x,MAG_PSF:x,MAG_APP:x},...],...},...}
+  sourceIDs = [i.sourceID for i in results]
+  distances = dict((i.sourceID,i.distance) for i in results)
+  sources = dict((sourceID,{}) for sourceID in sourceIDs)
+  Qs = [Q(astrosource__sourceID=sourceID) for sourceID in sourceIDs]
+  q = reduce(operator.or_, Qs)
+  results = Photometry.objects.filter(q)  
   for obj in results:
-    for p in Photometry.objects.filter(astrosource__sourceID__exact=obj.sourceID):
-      sources.append(p)
+    if not sources[obj.astrosource.sourceID].has_key(obj.imageheader.OB):
+      sources[obj.astrosource.sourceID][obj.imageheader.OB] = []
+    D = {}
+    D = obj.__dict__
+    D['imageheader'] = obj.imageheader #obj.__dict__ gives the ForeignKeys funny names
+    D['astrosource'] = obj.astrosource
+    D['distance'] = distances[obj.astrosource.sourceID]
+    sources[obj.astrosource.sourceID][obj.imageheader.OB].append(D)
   return sources
 
 

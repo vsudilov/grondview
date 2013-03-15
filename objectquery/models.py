@@ -29,7 +29,9 @@ class AstroSourceQuerySet(QuerySet):
 
     results = []
     for i in self:
-      if astCoords.calcAngSepDeg(i.RA,i.DEC,ra,dec) <= radius:
+      distance = astCoords.calcAngSepDeg(i.RA,i.DEC,ra,dec)
+      if distance <= radius:
+        i.__setattr__("distance",distance)
         results.append(i)
     return results
 class AstroSourceManager(models.Manager):

@@ -1,15 +1,25 @@
-
+{% load sorting %}
+{% load hash %}
 <div id="image-container">
-  {% for source in sources %}
-  <div class="source">
-      <ul>
-        <li>Field TARGETID: {{source.imageheader.TARGETID}}</li>      
-        <li>Band: {{source.imageheader.FILTER}}</li>
-        <li>SourceID: {{ source.astrosource.sourceID }}</li>
-        <li>PSF Magnitude: {{ source.MAG_PSF }}</li>
-        <li>APP Magnitude: {{ source.MAG_APP }}</li>
-        <p>------------------------------------</p>
-      </ul>   
+  {% for sourceID in sources %}
+  <h2>Source ID: {{ sourceID }}</h2>
+  {% for OB in sources|hash:sourceID|sortListByOB %}
+  <h3>Observation block: {{ OB }}</h3>
+  <input class="spoilerbutton" type="button" value="Show" onclick="this.value=this.value=='Show'?'Hide':'Show';">
+  <div class="spoiler">
+      {% for srcdata in sources|hash:sourceID|hash:OB|sortListDictByBand %}
+      <div class="image">
+        <div class="image-info">
+          <ul>
+            <li>BAND: {{ srcdata.BAND }} </li>
+            <li>PSF: {{ srcdata.MAG_PSF }}</li>
+            <li>APP: {{ srcdata.MAG_APP }}</li>
+            <li>Imageheader: {{ srcdata.imageheader }}</li>
+          </ul>   
+        </div>
+      </div>
+  {% endfor %}
+  {% endfor %}
   </div>
   {% endfor %}
 </div>
