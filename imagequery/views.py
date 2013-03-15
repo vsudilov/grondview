@@ -36,7 +36,7 @@ class NoCoverageError(Exception):
 #------------------------------------------
 
 
-def make_images(cd,radius=10):
+def get_images(cd,radius=10):
   bands = cd['bands']
   coordstr = cd['coords'].replace(',',' ').strip()
   area = cd['area']
@@ -70,31 +70,25 @@ def make_images(cd,radius=10):
   if not results:
     raise NoCoverageError(radius=radius)
   images = []
+  targetIDs = [r.TARGETID for r in results]
 
-  for i in results:# -- Sanitize the database results, prepare to give the task to celery
-    image = i.__dict__
-    image['DATE_OBS'] = image['DATE_OBS'].replace('T',' ')
+  #Initialize the python data structure that will be expanded in the html-template:
+  # targets = {TARGETID:{OB:[{band:x,PATH_RAW:x,PATH_PNG:x,DATE_OBS:x},...],...},...}
+  targets = dict([(t,{}) for t in targetIDs])  
+
+  for i in results:
+    image = {} # -- Sanitize the database results, prepare to give the task to celery
+    image['DATE_OBS'] = i.DATE_OBS.replace('T',' ')
     unique_filename = uuid.uuid4()
     fname = '%s.png' % unique_filename
     image['PATH_PNG'] = fname
     image['PATH_RAW'] = i.PATH
-    tasks.makeImage.delay(image,area,ra,dec)    
-    images.append(image)
-
-  pattern = {} #-- Sort images based on targetID first, then band[grizJHK] second
-  pattern['g'] = 1
-  pattern['r'] = 2
-  pattern['i'] = 3
-  pattern['z'] = 4
-  pattern['J'] = 5
-  pattern['H'] = 6
-  pattern['K'] = 7
-  def keyfunc(item): 
-    return (item['TARGETID'], pattern[item['FILTER']])
-  images.sort(key=keyfunc)
-
-  #Return the list of images that will (eventually) be created by a celeryworker. html will be updated after the fact via ajax
-  return images
+    image['BAND'] = i.FILTER
+    tasks.makeImage.delay(image,area,ra,dec)
+    if not targets[i.TARGETID].has_key(i.OB):
+      targets[i.TARGETID][i.OB] = []
+    targets[i.TARGETID][i.OB].append(image)
+  return targets
 
 def home(request):
   if request.method == 'POST':
@@ -103,8 +97,8 @@ def home(request):
       return render(request,'imagequery.html',{'form': form})
     cd = form.cleaned_data
     try:
-      images=make_images(cd)
-      return render(request,'imagequery.html',{'form': form,'images':images,'request':request.POST})
+      targets=get_images(cd)
+      return render(request,'imagequery.html',{'form': form,'targets':targets,'request':request.POST})
     except (AreaParseError,CoordinateParseError,NoCoverageError) as e:
       return render(request,'imagequery.html',{'form': form,'formerror':e.msg,'request':request.POST})    
   else:

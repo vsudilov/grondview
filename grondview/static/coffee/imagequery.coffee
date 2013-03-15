@@ -1,5 +1,5 @@
 tolerance_requests = 5
-fileExists = (file,i,pngID) -> $.ajax file,
+fileExists = (file,i) -> $.ajax file,
     type: 'HEAD'
     dataType: 'html'
     async: true
@@ -10,4 +10,5 @@ fileExists = (file,i,pngID) -> $.ajax file,
           return null
         setTimeout (-> fileExists file,i,pngID), 1000
     success: (data, textStatus, jqXHR) ->
-        $('img.png'+pngID).attr('src',file)
+        id = file.split('/').pop().slice(0,-4)
+        $('img.png'+id).attr('src',file)

@@ -1,25 +1,31 @@
-<input class="spoilerbutton" type="button" value="Show" onclick="this.value=this.value=='Show'?'Hide':'Show';">
-<div class="spoiler"><div>
-
+{% load sorting %}
+{% load hash %}
 <div id="image-container">
-<script src="{{ STATIC_URL }}js/imagequery.js"></script>  <!--Load the images only when the server has created them--> 
-  {% for image in images %}
-  <div class="image">
-    <img class="png{{forloop.counter}}" src="{{ STATIC_URL }}images/hourglass.png" />
-    <div class="image-info">
-      <ul>
-        <li>Field TARGETID: {{ image.TARGETID }}</li>
-        <li>Band: {{ image.FILTER }}</li>
-        <li>Date: {{ image.DATE_OBS }}</li>
-        <li><a href="X">Query detected objects in this field</a></li>
-        <li><a download="grond.png" type="application/octet-stream" href="{{ MEDIA_URL }}{{ image.PATH_PNG }}">Download PNG</a></li>
-        <li><a href="{{ image.PATH_RAW }}">Download FITS</a></li>
-      </ul>   
-    </div>
-  </div>
-  <script>
-    setTimeout(function(){fileExists("{{ MEDIA_URL }}{{ image.PATH_PNG }}",0,{{forloop.counter}})},800)
-  </script>
+  <script src="{{ STATIC_URL }}js/imagequery.js"></script>  <!--Load the images only when the server has created them--> 
+  {% for targetID in targets.keys %}
+  <h2>Field TARGETID: {{ targetID }}</h2>
+  {% for OB in targets|hash:targetID|sortListByOB %}
+  <h3>Observation block: {{ OB }}</h3>
+  <input class="spoilerbutton" type="button" value="Show" onclick="this.value=this.value=='Show'?'Hide':'Show';">
+  <div class="spoiler">
+      {% for imgdata in targets|hash:targetID|hash:OB|sortListDictByBand %}
+      <div class="image">
+        <img class="png{{imgdata.PATH_PNG|cut:".png"}}" src="{{ STATIC_URL }}images/hourglass.png" />
+        <div class="image-info">
+          <ul>
+            <li>Band: {{ imgdata.BAND }}</li>
+            <li>Date: {{ imgdata.DATE_OBS }}</li>
+            <li><a href="X">Query detected objects in this field</a></li>
+            <li><a download="grond.png" type="application/octet-stream" href="{{ MEDIA_URL }}{{ imgdata.PATH_PNG }}">Download PNG</a></li>
+            <li><a href="{{ imgdata.PATH_RAW }}">Download FITS</a></li>
+          </ul>   
+        </div>
+      </div>
+      <script>
+        setTimeout(function(){fileExists("{{ MEDIA_URL }}{{ imgdata.PATH_PNG }}",0)},800)
+      </script>
   {% endfor %}
+  {% endfor %}
+  {% endfor %}
+  </div>
 </div>
-</div></div>

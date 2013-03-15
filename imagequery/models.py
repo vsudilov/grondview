@@ -83,7 +83,7 @@ class ImageHeader(models.Model):
   OB = models.CharField(max_length=10,null=True)
 
   def save(self, *args, **kwargs):
-    self.OB="%s_%s" % ( self.OBSRUNID, self.OBSEQNUM )
+    self.OB="OB%s_%s" % ( self.OBSRUNID, self.OBSEQNUM )
     super(ImageHeader, self).save(*args, **kwargs) # Call the "real" save() method.
 
   #-- Manager
