@@ -9,7 +9,7 @@
     <table>
     {{ form.as_table }}
     </table> 
-    <input id="submit" type="submit" value="Search for objects">
+    <input id="submit" type="submit" value="Search for images">
   </form>
 
   <div class="hint">
@@ -24,6 +24,10 @@
   {% endif %}
 
 </div>
+
+{% if targets %}
+{% include "imagequery_content.html" %}
+{% endif %}
 
 {% if sources %}
 {% include "objectquery_content.html" %}

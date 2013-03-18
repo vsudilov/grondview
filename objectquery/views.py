@@ -75,9 +75,12 @@ def get_sources(cd):
   sourceIDs = [i.sourceID for i in results]
   distances = dict((i.sourceID,i.distance) for i in results)
   sources = dict((sourceID,{}) for sourceID in sourceIDs)
+
+  #Filter based on sourceID (chaining Q functions)
   Qs = [Q(astrosource__sourceID=sourceID) for sourceID in sourceIDs]
   q = reduce(operator.or_, Qs)
   results = Photometry.objects.filter(q)  
+
   for obj in results:
     if not sources[obj.astrosource.sourceID].has_key(obj.imageheader.OB):
       sources[obj.astrosource.sourceID][obj.imageheader.OB] = []
@@ -98,8 +101,8 @@ def home(request):
     cd = form.cleaned_data
     try:
       sources=get_sources(cd)
-      return render(request,'objectquery.html',{'form': form,'sources':sources,'request':request.POST})
+      return render(request,'content.html',{'form': form,'sources':sources,'request':request.POST})
     except (AreaParseError,CoordinateParseError,NoCoverageError) as e:
-      return render(request,'objectquery.html',{'form': form,'formerror':e.msg,'request':request.POST})    
+      return render(request,'content.html',{'form': form,'formerror':e.msg,'request':request.POST})    
   else:
-    return render(request, 'objectquery.html',{'form':ObjectQueryForm})
+    return render(request, 'content.html',{'form':ObjectQueryForm})

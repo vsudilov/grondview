@@ -94,12 +94,12 @@ def home(request):
   if request.method == 'POST':
     form = ImageQueryForm(request.POST)
     if not form.is_valid():
-      return render(request,'imagequery.html',{'form': form})
+      return render(request,'content.html',{'form': form})
     cd = form.cleaned_data
     try:
       targets=get_images(cd)
-      return render(request,'imagequery.html',{'form': form,'targets':targets,'request':request.POST})
+      return render(request,'content.html',{'form': form,'targets':targets,'request':request.POST})
     except (AreaParseError,CoordinateParseError,NoCoverageError) as e:
-      return render(request,'imagequery.html',{'form': form,'formerror':e.msg,'request':request.POST})    
+      return render(request,'content.html',{'form': form,'formerror':e.msg,'request':request.POST})    
   else:
-    return render(request, 'imagequery.html',{'form':ImageQueryForm})
+    return render(request, 'content.html',{'form':ImageQueryForm})
