@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+{% if form %}
 <div id="form-container">
   {% if formerror %}
   <div class="errorlist">{{ formerror }}</div>
@@ -22,15 +23,19 @@
   {{ hint }}
   </div>
   {% endif %}
-
 </div>
+{% endif %}
 
 {% if targets %}
-{% include "imagequery_content.html" %}
+{% include "content/imagequery_content.html" %}
 {% endif %}
 
 {% if sources %}
-{% include "objectquery_content.html" %}
+{% include "content/objectquery_content.html" %}
+{% endif %}
+
+{% if source %}
+{% include "content/source_content.html" %}
 {% endif %}
 
 {% endblock %}

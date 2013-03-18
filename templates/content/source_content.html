@@ -1,0 +1,50 @@
+{% load sorting %}
+{% load hash %}
+<p>SourceID: {{ sourceID }} </p>
+
+
+
+<script type="text/javascript">
+  $(document).ready(function(){
+      var d = "{{ lightcurve|safe }}"
+      d = d.replace( / u'/g, " '" ).replace( /'/g, "\"" );
+      d = $.parseJSON(d)
+      // Data in the form [{x:x1,y:y1,err:err1},...{x:xn,y:yn,err:errn}]
+      // You could add in other variables here that you can
+      // then make use of when making labels.
+      {% verbatim %}
+      graph = $.graph('lightcurve', {
+        data: d,
+        color: "#dd9901",
+        hoverable:true,
+        clickable:true,
+        hover: {
+        	text: '{{xlabel}}: {{x}}&lt;br /&gt;{{ylabel}}: {{y}}&lt;br /&gt;Error: {{err}}',
+        	before: '{{title}}&lt;br /&gt;'
+        },
+        points: {show:true,radius:5.5},
+        lines:{show:true,width:1}
+}, {
+        xaxis: {log:false,label:'MJD'},
+        yaxis: {log:false,label:'Brightness (AB)'},
+        grid: {show:false,color:'rgb(255,0,0)',background:'rgb(255,255,255)'}
+});
+  });{% endverbatim %}
+</script>
+
+
+
+<div id="lightcurve" style="width:30%;height:300px;font-size:0.8em;font-family:Century Gothic,sans-serif;"></div>
+<div id="image-container">
+{% for OB in source|sortListByOB %}
+  <h3>{{ OB }}</h3>
+  {% for srcdata in source|hash:OB|sortListDictByBand %}
+  <ul>
+    <li>BAND: {{ srcdata.BAND }} </li>
+    <li>PSF: {{ srcdata.MAG_PSF }}</li>
+    <li>APP: {{ srcdata.MAG_APP }}</li>
+    <li>Imageheader: {{ srcdata.imageheader }}</li>
+  </ul>
+  {% endfor %}
+{% endfor %}
+</div>

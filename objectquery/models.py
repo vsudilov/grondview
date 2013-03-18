@@ -53,7 +53,8 @@ class AstroSource(models.Model):
   #one object should have 7 image headers, regardless if they are 99% redundant
   imageheader = models.ManyToManyField(ImageHeader,related_name="%(app_label)s_%(class)s_related") 
 
-  sourceID = models.CharField(max_length=30)    
+  sourceID = models.CharField(max_length=30) #Unique source ID, generated from field's TARGETID-source#
+  name = models.CharField(max_length=30,null=True) #Optional name to add to the source
 
   #No distinction between calib and zeropoint magnitudes,
   #as we should not report zeropoint mags in production

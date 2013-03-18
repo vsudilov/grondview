@@ -3,7 +3,6 @@ from django.shortcuts import get_object_or_404
 from django.contrib import auth
 from django.template import RequestContext
 from django.template import TemplateDoesNotExist
-from django.views.generic.simple import direct_to_template
 from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.utils.importlib import import_module

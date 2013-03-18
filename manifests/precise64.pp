@@ -89,7 +89,7 @@ class python_modules{
           ensure => "2.4.0",
           provider => pip;
       "django":
-          ensure => "1.4.3",
+          ensure => "1.5",
           provider => pip;
 
   }

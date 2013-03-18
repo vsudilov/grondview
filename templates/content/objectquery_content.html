@@ -2,9 +2,11 @@
 {% load hash %}
 <div id="image-container">
   {% for sourceID in sources %}
-  <h2>Source ID: {{ sourceID }}</h2>
+  <h2>Source ID: <a href="/sources/{{sourceID}}">{{ sourceID }}<a/></h2>
+  <a href="">Plot lightcurve</a>
   {% for OB in sources|hash:sourceID|sortListByOB %}
   <h3>Observation block: {{ OB }}</h3>
+  <a href="/sources/sed/{{sourceID}}/">Plot SED</a>
   <input class="spoilerbutton" type="button" value="Show" onclick="this.value=this.value=='Show'?'Hide':'Show';">
   <div class="spoiler">
       {% for srcdata in sources|hash:sourceID|hash:OB|sortListDictByBand %}

@@ -1,8 +1,8 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
+from django.shortcuts import get_list_or_404
 from django.contrib import auth
-from django.views.generic.simple import direct_to_template
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 
@@ -93,11 +93,34 @@ def get_sources(cd):
   return sources
 
 
+def view_source(request,sourceID):
+  results = get_list_or_404(Photometry.objects.filter(astrosource__sourceID=sourceID))
+  source = {}
+  for r in results:
+    OB = r.imageheader.OB
+    if not source.has_key(OB):
+      source[OB] = []
+    D = {}
+    D = r.__dict__
+    D['imageheader'] = r.imageheader #obj.__dict__ gives the ForeignKeys funny names
+    D['astrosource'] = r.astrosource
+    source[OB].append(D)
+
+  x,y,yerr = [],[],[]
+  for OB in source:
+    x.append(source[OB][0]['imageheader'].MJD_MID)
+    y.append(source[OB][0]['MAG_PSF'])
+    yerr.append(source[OB][0]['MAG_PSF_ERR'])
+    
+  lightcurve = [dict([('x',i),('y',j),('err',k)]) for i,j,k in zip(x,y,yerr)]
+  return render(request,'content.html',{'source':source,'request':request,'sourceID':sourceID,'lightcurve':lightcurve})
+
+
 def home(request):
   if request.method == 'POST':
     form = ObjectQueryForm(request.POST)
     if not form.is_valid():
-      return render(request,'objectquery.html',{'form': form})
+      return render(request,'content.html',{'form': form})
     cd = form.cleaned_data
     try:
       sources=get_sources(cd)

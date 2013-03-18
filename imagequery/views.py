@@ -2,7 +2,6 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from django.contrib import auth
-from django.views.generic.simple import direct_to_template
 from django.contrib.auth.decorators import login_required
 
 from grondview.settings import PROJECT_ROOT
