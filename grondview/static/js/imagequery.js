@@ -12,8 +12,8 @@ fileExists = function(file, i) {
       i += 1;
       if (i > tolerance_requests) return null;
       return setTimeout((function() {
-        return fileExists(file, i, pngID);
-      }), 1000);
+        return fileExists(file, i);
+      }), 2000);
     },
     success: function(data, textStatus, jqXHR) {
       var id;

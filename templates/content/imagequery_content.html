@@ -1,14 +1,13 @@
-{% load sorting %}
-{% load hash %}
 <div id="image-container">
   <script src="{{ STATIC_URL }}js/imagequery.js"></script>  <!--Load the images only when the server has created them--> 
-  {% for targetID in targets.keys %}
-  <h2>Field TARGETID: {{ targetID }}</h2>
-  {% for OB in targets|hash:targetID|sortListByOB %}
-  <h3>Observation block: {{ OB }}</h3>
+  {% for target in targets %}
+  <h2>Field TARGETID: {{ target.name }}</h2>
+  <p>(Distance from center of image: {{target.distance|stringformat:"0.1f"}} arcseconds)</p>
+  {% for OB in target.OBs %}
+  <h3>Observation block: {{ OB.OBname }}</h3>
   <input class="spoilerbutton" type="button" value="Show" onclick="this.value=this.value=='Show'?'Hide':'Show';">
   <div class="spoiler">
-      {% for imgdata in targets|hash:targetID|hash:OB|sortListDictByBand %}
+      {% for imgdata in OB.data %}
       <div class="image">
         <img class="png{{imgdata.PATH_PNG|cut:".png"}}" src="{{ STATIC_URL }}images/hourglass.png" />
         <div class="image-info">

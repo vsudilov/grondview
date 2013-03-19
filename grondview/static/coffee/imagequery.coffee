@@ -8,7 +8,7 @@ fileExists = (file,i) -> $.ajax file,
         i+=1        
         if i>tolerance_requests
           return null
-        setTimeout (-> fileExists file,i,pngID), 1000
+        setTimeout (-> fileExists file,i), 2000
     success: (data, textStatus, jqXHR) ->
         id = file.split('/').pop().slice(0,-4)
         $('img.png'+id).attr('src',file)

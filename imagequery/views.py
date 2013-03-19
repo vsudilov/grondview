@@ -69,12 +69,39 @@ def get_images(cd,radius=10):
   results = ImageHeader.objects.filter(FILTER__in=bands).imagePositionFilter(ra,dec,radius=radius,units='degrees')
   if not results:
     raise NoCoverageError(radius=radius)
-  images = []
+  distances = dict((i.TARGETID,i.distance*3600) for i in results) #Keep distance for later
 
-  #Initialize the python data structure that will be expanded in the html-template:
-  # targets = {TARGETID:{OB:[{band:x,PATH_RAW:x,PATH_PNG:x,DATE_OBS:x},...],...},...}
-  targetIDs = [r.TARGETID for r in results]
-  targets = dict([(t,{}) for t in targetIDs])  
+  #group results by targetID
+  grouped_targets = dict((i.TARGETID,[]) for i in results)
+  images = dict([(i.TARGETID,[]) for i in results])  
+  for r in results:
+    grouped_targets[r.TARGETID].append(r)
+  targets = []
+
+  #Append GenericDataCounters to targets list
+  for targetID in grouped_targets:
+    targets.append(GenericDataContainer(name=targetID,distance=distances[targetID]))
+    for source_data in grouped_targets[targetID]:
+      OBname = source_data.OB
+      D = source_data.__dict__
+      D['DATE_OBS'] = source_data.DATE_OBS.replace('T',' ')
+      D['BAND'] = D['FILTER'] #For sorting to work
+      unique_filename = uuid.uuid4()
+      fname = '%s.png' % unique_filename
+      D['PATH_PNG'] = fname
+      D['PATH_RAW'] = source_data.PATH
+      tasks.makeImage.delay(D,area,ra,dec)
+      targets[-1].appendOB(OBname=OBname,data=D)
+    targets[-1].sortOBs()
+    targets[-1].sortBands()
+  targets = sorted(targets,key=lambda k: k.distance)
+  return targets
+
+
+
+
+
+
 
   for i in results:
     image = {} # -- Sanitize the database results, prepare to give the task to celery

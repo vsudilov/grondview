@@ -27,7 +27,9 @@ class ImageHeaderQuerySet(QuerySet):
 
     results = []
     for i in self:
-      if astCoords.calcAngSepDeg(i.CRVAL1,i.CRVAL2,ra,dec) <= radius:
+      distance = astCoords.calcAngSepDeg(i.CRVAL1,i.CRVAL2,ra,dec)
+      if distance <= radius:
+        i.__setattr__("distance",distance)
         results.append(i)
     return results
 class ImageHeaderManager(models.Manager):

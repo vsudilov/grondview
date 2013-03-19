@@ -1,7 +1,7 @@
 <div id="image-container">
   {% for source in sources %}
   <h2>Source ID: <a href="/sources/{{source.name}}">{{ source.name }}<a/></h2>
-  <p>(Distance: {{source.distance}}) arcseconds</p>
+  <p>(Distance: {{source.distance|stringformat:"0.1f"}} arcseconds)</p>
   {% for OB in source.OBs %}
   <h3>Observation block: {{ OB.OBname }}</h3>
   <input class="spoilerbutton" type="button" value="Show" onclick="this.value=this.value=='Show'?'Hide':'Show';">

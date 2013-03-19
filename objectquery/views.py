@@ -83,6 +83,8 @@ def get_sources(cd):
   for r in results:
     grouped_sources[r.astrosource.sourceID].append(r)
   sources = []
+
+  #Append GenericDataContainers to sources list
   for sourceID in grouped_sources:
     sources.append(GenericDataContainer(name=sourceID,distance=distances[sourceID]))
     for source_data in grouped_sources[sourceID]:
@@ -91,6 +93,8 @@ def get_sources(cd):
       D['imageheader'] = source_data.imageheader #obj.__dict__ gives the ForeignKeys funny names
       D['astrosource'] = source_data.astrosource
       sources[-1].appendOB(OBname=OBname,data=D)
+    sources[-1].sortOBs()
+    sources[-1].sortBands()
   sources = sorted(sources,key=lambda k: k.distance)
   return sources
 
