@@ -65,7 +65,7 @@ class GrondData:
                        'DATE_OBS', 'CRVAL1', 'CRVAL2', 'NGR', 'NINT', 'NIZ', 'NMD', 
                        'NTD', 'NTP', 'OBSEQNUM', 'OBSRUNID', 'TARGETID', 'FILTER', 'RON',
                        'GAIN', 'MJD_MID', 'OBSERR', 'NCOMBINE', 'NIMGS', 'TDP_MID', 
-                       'INTERPSM', 'AIRMASS', 'IMGEXP')
+                       'INTERPSM', 'AIRMASS', 'IMGEXP','OBTYPEID')
         matched = dict( [(k,v) for k,v in fields.iteritems() if k in modelfields]  )
         return matched
       fields = dict([(k.replace('-','_'),self.headers[band][k]) for k in self.headers[band] if k]) 

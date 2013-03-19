@@ -1,15 +1,12 @@
-{% load sorting %}
-{% load hash %}
 <div id="image-container">
-  {% for sourceID in sources %}
-  <h2>Source ID: <a href="/sources/{{sourceID}}">{{ sourceID }}<a/></h2>
-  <a href="">Plot lightcurve</a>
-  {% for OB in sources|hash:sourceID|sortListByOB %}
-  <h3>Observation block: {{ OB }}</h3>
-  <a href="/sources/sed/{{sourceID}}/">Plot SED</a>
+  {% for source in sources %}
+  <h2>Source ID: <a href="/sources/{{source.name}}">{{ source.name }}<a/></h2>
+  <p>(Distance: {{source.distance}}) arcseconds</p>
+  {% for OB in source.OBs %}
+  <h3>Observation block: {{ OB.OBname }}</h3>
   <input class="spoilerbutton" type="button" value="Show" onclick="this.value=this.value=='Show'?'Hide':'Show';">
   <div class="spoiler">
-      {% for srcdata in sources|hash:sourceID|hash:OB|sortListDictByBand %}
+      {% for srcdata in OB.data %}
       <div class="image">
         <div class="image-info">
           <ul>

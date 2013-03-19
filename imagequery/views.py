@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from grondview.settings import PROJECT_ROOT
 from grondview.settings import MEDIA_ROOT
 from grondview import tasks
+from grondview.views import GenericDataContainer
 from imagequery.forms import ImageQueryForm
 from imagequery.models import ImageHeader
 

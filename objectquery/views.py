@@ -9,6 +9,7 @@ from django.db.models import Q
 from grondview.settings import PROJECT_ROOT
 from grondview.settings import MEDIA_ROOT
 from grondview import tasks
+from grondview.views import GenericDataContainer
 from objectquery.forms import ObjectQueryForm
 from objectquery.models import AstroSource
 from objectquery.models import Photometry
@@ -70,54 +71,52 @@ def get_sources(cd):
     
   if not results:
     raise NoCoverageError(radius=radius)
-  #Initialize the python data structure that will be expanded in the html-template:
-  # targets = {sourceID:{OB:[{band:x,MAG_PSF:x,MAG_APP:x},...],...},...}
-  sourceIDs = [i.sourceID for i in results]
-  distances = dict((i.sourceID,i.distance) for i in results)
-  sources = dict((sourceID,{}) for sourceID in sourceIDs)
+  distances = dict((i.sourceID,i.distance*3600) for i in results) #Keep distance for later
 
   #Filter based on sourceID (chaining Q functions)
-  Qs = [Q(astrosource__sourceID=sourceID) for sourceID in sourceIDs]
+  Qs = [Q(astrosource__sourceID=i.sourceID) for i in results]
   q = reduce(operator.or_, Qs)
-  results = Photometry.objects.filter(q)  
-
-  for obj in results:
-    if not sources[obj.astrosource.sourceID].has_key(obj.imageheader.OB):
-      sources[obj.astrosource.sourceID][obj.imageheader.OB] = []
-    D = {}
-    D = obj.__dict__
-    D['imageheader'] = obj.imageheader #obj.__dict__ gives the ForeignKeys funny names
-    D['astrosource'] = obj.astrosource
-    D['distance'] = distances[obj.astrosource.sourceID]
-    sources[obj.astrosource.sourceID][obj.imageheader.OB].append(D)
+  results = Photometry.objects.filter(q)
+  
+  #group results by sourceID
+  grouped_sources = dict((i.astrosource.sourceID,[]) for i in results)
+  for r in results:
+    grouped_sources[r.astrosource.sourceID].append(r)
+  sources = []
+  for sourceID in grouped_sources:
+    sources.append(GenericDataContainer(name=sourceID,distance=distances[sourceID]))
+    for source_data in grouped_sources[sourceID]:
+      OBname = source_data.imageheader.OB
+      D = source_data.__dict__
+      D['imageheader'] = source_data.imageheader #obj.__dict__ gives the ForeignKeys funny names
+      D['astrosource'] = source_data.astrosource
+      sources[-1].appendOB(OBname=OBname,data=D)
+  sources = sorted(sources,key=lambda k: k.distance)
   return sources
 
 
 def view_source(request,sourceID):
-  results = get_list_or_404(Photometry.objects.filter(astrosource__sourceID=sourceID).order_by('imageheader__OB'))
-  source = {}
+  results = get_list_or_404(Photometry.objects.filter(astrosource__sourceID=sourceID))
+  source = GenericDataContainer(name=sourceID)
   for r in results:
     OB = r.imageheader.OB
-    if not source.has_key(OB):
-      source[OB] = []
-      x,y,yerr = [],[],[] #For SED
     D = {}
     D = r.__dict__
     D['imageheader'] = r.imageheader #obj.__dict__ gives the ForeignKeys funny names
     D['astrosource'] = r.astrosource
-    x.append(constants.GrondFilters[D['BAND']]['lambda_eff'])
-    y.append(D['MAG_PSF'])
-    yerr.append(D['MAG_PSF_ERR'])
-    source[OB].append(D)
+    source.appendOB(OBname=OB,data=D,OBtype=r.imageheader.OBTYPEID)
+
+  source.sortOBs()
+  source.sortBands()
 
   x,y,yerr = [],[],[] #For lightcurve
-  for OB in source:
-    x.append(source[OB][0]['imageheader'].MJD_MID)
-    y.append(source[OB][0]['MAG_PSF'])
-    yerr.append(source[OB][0]['MAG_PSF_ERR'])
+  for OB in source.OBs:
+    x.append(OB.data[0]['imageheader'].MJD_MID)
+    y.append(OB.data[0]['MAG_PSF'])
+    yerr.append(OB.data[0]['MAG_PSF_ERR'])
     
   lightcurve = [dict([('x',i),('y',j),('err',k)]) for i,j,k in zip(x,y,yerr)]
-  return render(request,'content.html',{'source':source,'request':request,'sourceID':sourceID,'lightcurve':lightcurve})
+  return render(request,'content.html',{'source':source,'request':request,'lightcurve':lightcurve})
 
 
 def home(request):

@@ -80,6 +80,7 @@ class ImageHeader(models.Model):
   INTERPSM = models.FloatField()
   AIRMASS = models.FloatField()
   IMGEXP = models.FloatField()
+  OBTYPEID = models.CharField(max_length=10)
   OB = models.CharField(max_length=10,null=True)
 
   def save(self, *args, **kwargs):
