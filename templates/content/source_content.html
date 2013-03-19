@@ -18,10 +18,6 @@
         color: "#dd9901",
         hoverable:true,
         clickable:true,
-        hover: {
-        	text: '{{xlabel}}: {{x}}&lt;br /&gt;{{ylabel}}: {{y}}&lt;br /&gt;Error: {{err}}',
-        	before: '{{title}}&lt;br /&gt;'
-        },
         points: {show:true,radius:5.5},
         lines:{show:true,width:1}
 }, {
@@ -44,7 +40,7 @@
     <li>PSF: {{ srcdata.MAG_PSF }}</li>
     <li>APP: {{ srcdata.MAG_APP }}</li>
     <li>Imageheader: {{ srcdata.imageheader }}</li>
-  </ul>
+  </ul><br>
   {% endfor %}
 {% endfor %}
 </div>
