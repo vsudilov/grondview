@@ -112,6 +112,15 @@ def view_source(request,sourceID):
 
   source.sortOBs()
   source.sortBands()
+  
+  for OB in source.OBs: #For SEDs
+    x,y,yerr = [],[],[]
+    for d in OB.data:
+      x.append(constants.GrondFilters[d['BAND']]['lambda_eff'])
+      y.append(d['MAG_PSF'])
+      yerr.append(d['MAG_PSF_ERR'])
+    OB.SED = [dict([('x',i),('y',j),('err',k)]) for i,j,k in zip(x,y,yerr)]
+
 
   x,y,yerr = [],[],[] #For lightcurve
   for OB in source.OBs:
