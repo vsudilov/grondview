@@ -117,19 +117,5 @@ class ImageProperties(models.Model):
 
   def __unicode__(self):
     return "%s-%s ImageProperties" % (self.imageheader.PATH,self.imageheader.FILTER)
-
-class Field(models.Model):
-
-  imageheader = models.ManyToManyField(ImageHeader,related_name="%(app_label)s_%(class)s_related")
-  astrosource = models.ManyToManyField('objectquery.AstroSource')
-
-  TARGETID = models.CharField(max_length=40)
-  OB = models.CharField(max_length=10)
-
-  def __unicode__(self):
-    return "%s:%s" % (self.TARGETID,self.OB)
-
-  def natural_key(self):
-    return (self.TARGETID,OB) 
   
 

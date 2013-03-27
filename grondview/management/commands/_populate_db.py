@@ -4,38 +4,34 @@ Populates the grondviewdb database.
 
 import os,sys
 import pyfits
-import json
+import re
 from astLib import astCoords
 
-from imagequery.models import ImageHeader,ImageProperties,Field
+from imagequery.models import ImageHeader,ImageProperties
 from objectquery.models import AstroSource,Photometry
 from grondview.settings import PROJECT_ROOT
 
 sys.path.insert(0,os.path.join(PROJECT_ROOT,'utils'))
 from lib import resultfile
-
-FITS = "%s_binned.fits"
-RESULT = "%s.result"
-DATADIR = "/home/vagrant/grondview/stubdata"
-MATCH_TOLERANCE = 0.3
-BANDS = 'grizJHK'
+from lib import deg2sex
 
 class GrondData:
   def __repr__(self):
     return self.path
 
-  def __init__(self,path):
+  def __init__(self,path,**kwargs):
+    self.args = kwargs
     self.path = path
-    self.bands = BANDS
-    self.images = {}
-    self.headers = {}
-    self.resultfiles = {}
-    for band in self.bands:
-      d = os.path.join(self.path,band)
-      self.images[band] = os.path.join(d,FITS % band)
-      hdulist = pyfits.open(self.images[band])
-      self.headers[band] = hdulist[0].header
-      self.resultfiles[band] = resultfile.ResultFile(os.path.join(d,RESULT % band))
+    self.resultfile = None
+    for f in os.listdir(path):
+      if re.search(kwargs['fits_regex'],f):
+        self.image = os.path.join(path,f)
+      if re.search(kwargs['results_regex'],f): 
+        self.resultfile = resultfile.ResultFile(os.path.join(path,f))
+    if not self.resultfile:
+      sys.exit("FATAL: No resultfiles found in [%s], yet the reduced image seems to exist." % self.path)
+    hdulist = pyfits.open(self.image)
+    self.header = hdulist[0].header
 
   def _arclength(self,ra1,dec1,ra2,dec2):
     from math import cos, pi
@@ -52,27 +48,29 @@ class GrondData:
     print "  --> AstroSource done."
     self._make_Photometry()
     print "  --> Photometry done."
-    self._make_Field()
-    print "  --> Field done."
 
   def _make_ImageHeader(self):
-    self.imageheaders = {}
-    for band in self.bands:
-      fields = {}
-      def _match_db_fields(fields):
-        #Match the FITS header keys with those defined in the database table
-        modelfields = ('PATH','NAXIS1', 'NAXIS2', 'RA', 'DEC', 'EXPTIME', 'MJD_OBS', 
-                       'DATE_OBS', 'CRVAL1', 'CRVAL2', 'NGR', 'NINT', 'NIZ', 'NMD', 
-                       'NTD', 'NTP', 'OBSEQNUM', 'OBSRUNID', 'TARGETID', 'FILTER', 'RON',
-                       'GAIN', 'MJD_MID', 'OBSERR', 'NCOMBINE', 'NIMGS', 'TDP_MID', 
-                       'INTERPSM', 'AIRMASS', 'IMGEXP','OBTYPEID')
-        matched = dict( [(k,v) for k,v in fields.iteritems() if k in modelfields]  )
-        return matched
-      fields = dict([(k.replace('-','_'),self.headers[band][k]) for k in self.headers[band] if k]) 
-      fields = _match_db_fields(fields) #Need to remove the extraneous keys...Django blindly tries to copy all keys to models 
-      fields['PATH'] = self.images[band]
-      self.imageheaders[band] = ImageHeader(**fields)
-      self.imageheaders[band].save()
+    fields = {}
+    def _match_db_fields(fields):
+      #Match the FITS header keys with those defined in the database table
+      modelfields = ('PATH','NAXIS1', 'NAXIS2', 'RA', 'DEC', 'EXPTIME', 'MJD_OBS', 
+                     'DATE_OBS', 'CRVAL1', 'CRVAL2', 'NGR', 'NINT', 'NIZ', 'NMD', 
+                     'NTD', 'NTP', 'OBSEQNUM', 'OBSRUNID', 'TARGETID', 'FILTER', 'RON',
+                     'GAIN', 'MJD_MID', 'OBSERR', 'NCOMBINE', 'NIMGS', 'TDP_MID', 
+                     'INTERPSM', 'AIRMASS', 'IMGEXP','OBTYPEID')
+      matched = dict( [(k,v) for k,v in fields.iteritems() if k in modelfields]  )
+      return matched
+    fields = dict([(k.replace('-','_'),self.header[k]) for k in self.header if k]) 
+    fields = _match_db_fields(fields) #Need to remove the extraneous keys...Django blindly tries to copy all keys to models 
+    fields['PATH'] = self.image
+    try:
+      result = ImageHeader.objects.get(PATH=fields['PATH']) 
+      print "NOTE: This field already exists in the database. I will UPDATE the values for it instead of INSERT a new row"
+      fields['pk'] = result.pk
+    except ImageHeader.DoesNotExist:
+      pass
+    self.imageheader = ImageHeader(**fields)
+    self.imageheader.save()
 
   def _make_ImageProperties(self):
     translation = {'LIMITING_MAG_3S_ZP':'LIMITING_MAG_3SIG_ZP',
@@ -85,58 +83,57 @@ class GrondData:
                  'APP_SIZE':'APERTURE_SIZE_ARCSEC',
                  'CALIB_CHI2':'CALIB_CHI2',
                  'CALIB_RMS':'CALIB_RMS'}
-    self.imageproperties = {}
-    for band in self.bands:
-      fields = {}      
-      for k in translation:
-        fields[k] = self.resultfiles[band].header[translation[k]]
-      fields['imageheader'] = self.imageheaders[band]
-      self.imageproperties[band] = ImageProperties(**fields)
-      self.imageproperties[band].save()
+    fields = {}      
+    for k in translation:
+      fields[k] = self.resultfile.header[translation[k]]
+    fields['imageheader'] = self.imageheader
+    try:
+      result = ImageHeader.objects.get(PATH=fields['imageheader'].PATH)
+      fields['pk'] = result.pk
+    except ImageHeader.DoesNotExist:
+      pass
+    self.imageproperties = ImageProperties(**fields)
+    self.imageproperties.save()
 
   def _make_AstroSource(self):
-    #Find the union of unique sources (based on position) among all bands
-    all_sources = []
-    for band in self.bands:
-      for current_source in self.resultfiles[band].objects:
-        known = False
-        for source in all_sources:
-          if self._arclength(current_source['RA'],current_source['DEC'],source['RA'],source['DEC']) <= MATCH_TOLERANCE:
-            known = True
-            break
-        if not known:
-          current_source.update(ObjID=len(all_sources)+1) #Ensure unique sourceID among all bands
-          all_sources.append(current_source)
-    
-    print "     (detected %s unique sources among all bands)" % len(all_sources)
-
-    #Compare the sources detected in this OB with all previous OBs. If sourceID already exists, we shouldn't re-write it!
-    previously_detected_sources = AstroSource.objects.filter(imageheader__TARGETID__exact=self.imageheaders[self.bands[0]].TARGETID)
+    all_sources = self.resultfile.objects[:]
+    print "     (detected %s sources in this resultfile)" % len(all_sources)
+    #Compare the sources detected in this resultfile the database. If sourceID already exists, we shouldn't re-write it!
+    previously_detected_sources = AstroSource.objects.all()
+    self.old_sources = []
     for pds in previously_detected_sources:
       for source in all_sources:
-        if self._arclength(pds.RA,pds.DEC,source['RA'],source['DEC']) <= MATCH_TOLERANCE:        
+        if self._arclength(pds.RA,pds.DEC,source['RA'],source['DEC']) <= self.args['match_tolerance']:
+          #Even if this source already exists, this may be a new observation of it
+          #Therefore, we need to check also the ImageHeader(s) of this source, and
+          #Add this one in if it doesnt exist.
+          sexRa,sexDec = deg2sex.main(pds.RA,pds.DEC)
+          sourceID = 'GROND_J%s%s' % (sexRa,sexDec)
+          this_source = AstroSource.objects.get(sourceID=sourceID)    
+          ihs = [i.PATH for i in this_source.imageheader.all()]
+          if self.imageheader.PATH not in ihs:
+            this_source.imageheader.add(self.imageheader)
+            this_source.save(force_update=True)
+          self.old_sources.append(this_source)
           all_sources.remove(source)
-    print "     (after removal of sources from previous OBs of the same field, %s unique sources remain)" % len(all_sources)
+    print "     (after removal of sources already in the database, %s new sources remain)" % len(all_sources)
 
     #Finally, make the Django models and save to DB
-
-    self.sources = []
-    previous_IDs = [int(i.sourceID.split('-')[:-1]) for i in previously_detected_sources]
+    self.new_sources = []
     for source in all_sources:
       fields = {}
       fields['RA'] = source['RA']
-      fields['DEC'] = source['DEC']     
-      ID = 1
-      while ID in previous_IDs:
-        ID+=1
-      previous_IDs.append(ID)
-      fields['sourceID'] = '%s-%s' % (self.imageheaders[self.bands[0]].TARGETID,ID)
+      fields['DEC'] = source['DEC']
+      sexRa,sexDec = deg2sex.main(source['RA'],source['DEC'])
+      fields['sourceID'] = 'GROND_J%s%s' % (sexRa,sexDec)
       d = AstroSource(**fields)
       d.save()
-      for h in self.imageheaders.values():
-        d.imageheader.add(h)
-      self.sources.append(d)
-    [i.save() for i in self.sources]
+      d.imageheader.add(self.imageheader)
+      self.new_sources.append(d)
+    [i.save() for i in self.new_sources]
+    self.sources = []
+    self.sources.extend(self.old_sources)
+    self.sources.extend(self.new_sources)
 
   def _make_Photometry(self):
     translation = {'MAG_PSF':'MAG_PSF',
@@ -147,44 +144,38 @@ class GrondData:
                  'MAG_KRON_ERR':'MAG_KRON_ERR',
                  'ELONGATION':'ELONGATION',
                  'R_HALFLIGHT':'R_HALFLIGHT'}    
-    self.photometry = {}
-    for band in self.bands:
-      for source in self.sources:
-        matched = self.resultfiles[band].getNearbyObjs(source.RA,source.DEC,limit=1)
-        s = matched.keys()[0]
-        if matched[s]['DISTANCE'] > MATCH_TOLERANCE:
-          continue
-        fields = {}
-        for k in translation:
-          v = matched[s][translation[k]]
-          try:
-            fields[k] = float(v)
-          except ValueError:
-            fields[k] = -99
-        fields['BAND'] = band
-        fields['imageheader'] = self.imageheaders[band]
-        fields['astrosource'] = source
-        self.photometry[band] = Photometry(**fields)
-        self.photometry[band].save()
+    for source in self.sources:
+      matched = self.resultfile.getNearbyObjs(source.RA,source.DEC,limit=1)
+      s = matched.keys()[0]
+      if matched[s]['DISTANCE'] > self.args['match_tolerance']:
+        continue
+      fields = {}
+      for k in translation:
+        v = matched[s][translation[k]]
+        try:
+          fields[k] = float(v)
+        except ValueError:
+          fields[k] = -99
+      fields['BAND'] = self.resultfile.header['BAND']
+      fields['imageheader'] = self.imageheader
+      fields['astrosource'] = source
+      result = Photometry.objects.filter(astrosource__sourceID=source.sourceID).filter(imageheader__PATH=self.imageheader.PATH) 
+      if result:
+        fields['pk'] = result[0].pk
+      self.photometry = Photometry(**fields)
+      self.photometry.save()
 
-  def _make_Field(self):
-    fields = {}
-    fields['TARGETID'] = self.imageheaders[self.bands[0]].TARGETID
-    fields['OB'] = self.imageheaders[self.bands[0]].OB
-    self.field = Field(**fields)
-    self.field.save()
-    for h in self.imageheaders.values():
-      self.field.imageheader.add(h)
-    for s in self.sources:
-      self.field.astrosource.add(s)
-    self.field.save()
-
-def main():
-  for directory in os.listdir(DATADIR):
-    fullpath = os.path.abspath(os.path.join(DATADIR,directory))
-    f = GrondData(fullpath)
-    print "Adding data in %s to db" % fullpath
-    f.populateDB()
+def main(*args,**kwargs):
+  DATADIR = args[0]
+  FITS_REGEX = kwargs['fits_regex']
+  for path, dirs, files in os.walk(DATADIR):
+    for f in files:
+      if re.search(FITS_REGEX,f):
+        fullpath = os.path.abspath(path)
+        f = GrondData(fullpath,**kwargs)
+        print "Adding data in %s to db" % fullpath
+        f.populateDB()
+        break
   
 
 if __name__=="__main__":

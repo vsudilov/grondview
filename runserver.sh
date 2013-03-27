@@ -12,7 +12,7 @@ python manage.py collectstatic --noinput
 if [ ! -f .db_initialized ];
 then
   echo "Populating the database since this seems to be the initial run"
-  python manage.py populateDB && touch .db_initialized
+  python manage.py populateDB stubdata/ --traceback --fits-regex "._binned.fits" --results-regex "..result" && touch .db_initialized
 fi
 
 #Run dev server
