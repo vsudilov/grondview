@@ -1,10 +1,43 @@
 <div id="image-container">
   <script src="{{ STATIC_URL }}js/imagequery.js"></script>  <!--Load the images only when the server has created them--> 
+  <script type="text/javascript" src="{{ STATIC_URL }}js/lib/jquery.tablesorter.js"></script> 
   {% for target in targets %}
   <h2>Field TARGETID: {{ target.name }}</h2>
   <p>(Distance from center of image: {{target.distance|stringformat:"0.1f"}} arcseconds)</p>
   {% for OB in target.OBs %}
   <h3>Observation block: {{ OB.OBname }}</h3>
+
+  <table id="imagequery_results" class="tablesorter" cellspacing=10>
+  <thead>
+    <tr>
+      <th>Distance</th>
+      <th>FieldID</th>
+      <th>OB</th>
+      <th>Date-obs</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for target in targets %}
+  {% for OB in target.OBs %}
+    <tr>
+      <td>{{target.distance|stringformat:"0.1f"}}</td>
+      <td>{{target.name}}</td>
+      <td>{{ OB.OBname }}</td>
+      <td>{{ OB.date_obs}} </td>
+    </tr>
+  {% endfor %}
+  {% endfor %}
+  </tbody>
+  </table>
+
+  <script>
+    $(document).ready(function() { 
+          // call the tablesorter plugin, the magic happens in the markup 
+          $("#imagequery_results").tablesorter(); 
+          }); 
+  </script>
+
+
   <input class="spoilerbutton" type="button" value="Show" onclick="this.value=this.value=='Show'?'Hide':'Show';">
   <div class="spoiler">
       {% for imgdata in OB.data %}

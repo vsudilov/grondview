@@ -83,15 +83,16 @@ def get_images(cd,radius=10):
     targets.append(GenericDataContainer(name=targetID,distance=distances[targetID]))
     for source_data in grouped_targets[targetID]:
       OBname = source_data.OB
+      date_obs = source_data.DATE_OBS.replace('T',' ')
       D = source_data.__dict__
-      D['DATE_OBS'] = source_data.DATE_OBS.replace('T',' ')
+      D['DATE_OBS'] = date_obs
       D['BAND'] = D['FILTER'] #For sorting to work
       unique_filename = uuid.uuid4()
       fname = '%s.png' % unique_filename
       D['PATH_PNG'] = fname
       D['PATH_RAW'] = source_data.PATH
       tasks.makeImage.delay(D,area,ra,dec)
-      targets[-1].appendOB(OBname=OBname,data=D)
+      targets[-1].appendOB(OBname=OBname,date_obs=date_obs,data=D)
     targets[-1].sortOBs()
     targets[-1].sortBands()
   targets = sorted(targets,key=lambda k: k.distance)
