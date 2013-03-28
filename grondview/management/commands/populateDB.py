@@ -6,8 +6,8 @@ class Command(BaseCommand):
   option_list = BaseCommand.option_list + (
             make_option('--match-tolerance',
             dest='match_tolerance',
-            default=0.3,
-            help='Match tolerance in arcsec for resolving sources [0.3]'),
+            default=0.5,
+            help='Match tolerance in arcsec for resolving sources [0.5]'),
         )
   option_list += (
             make_option('--fits-regex',

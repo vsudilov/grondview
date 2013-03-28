@@ -1,0 +1,83 @@
+# GROND MANUAL ANALYSIS PIPELINE v1.8
+# GROND g-band observation of GRB110918A
+# Central poining Ra: 32.55312, Dec: -27.10552
+# PSF photometry used for calibration
+# Catalog used for astrometry: USNO
+# Catalog used for calibration: USNO
+# Photometric system for *catalog-calibrated* magnitudes: Vega
+# ***********************************************************
+# OB type: 8m4td
+# Observation run ID: 1
+# Observation block sequence number: 4
+# Midtime of the observation in MJD: 55825.266689
+# Midtime of the observation: 2011.722040
+# Midtime of the observation: September 21, 2011, 06:24:01.91 UTC
+# Start of the observation in MJD: 55825.262702
+# Start of the observation: 2011.722029
+# Start of the observation: September 21, 2011, 06:18:17.47 UTC
+# Error of the OB: 344.44 s
+# Total integration time of the image: 459.57 s, 7.66 min
+# Integration of the individual images: 114.85 s
+# Midtime of the TDP in MJD: 55825.263367
+# Error of the TDP: 57.42 s
+# Number of images combined: 4
+# Correction from Vega to AB magnitudes: -0.062
+# Aperture size is 8.41 pixel, which is 1.33"
+# 3.0s limiting magnitude using zeropoint 24.989: 24.358
+# 3.0s limiting magnitude against objects match proximity 0.6": 24.455
+# 3.0s limiting AB magnitude against objects match proximity 0.6": 24.393
+# 4.5s limiting magnitude using zeropoint 24.989: 23.918
+# 4.5s limiting magnitude against objects match proximity 0.6": 24.015
+# 4.5s limiting AB magnitude against objects match proximity 0.6": 23.953
+# Threshold for photometry: 4.5 sigma
+# Astrometric solution accuracy in RA 0.151" and DEC 0.176"
+# Mean fwhm of stars: 8.410 px, 1.33"
+# Mean airmass: 1.007
+# Extinction coefficient: 0.16
+# Calibration against xyxyobjects used 10 stars with red. chi2 = 7.37
+# Calibration against objects match proximity 0.6" used 13 stars with red. chi2 = 4.30
+# Zeropoint against objects match proximity 0.6" for airmass 1.007: 25.086 +/- 0.173
+# Zeropoint against objects match proximity 0.6" for airmass 1: 25.087 +/- 0.173
+# AB zeropoint calibrated against objects match proximity 0.6" for airmass 1: 25.025 +/- 0.173
+# Calibration rms scatter against objects match proximity 0.6":  0.598 mag
+# Output format new 
+# Kron magnitude correction to iraf: 0.124 +/- 0.008 
+# Columns: Ra [deg], Dec [deg],
+# PSF magnitude for zeropoint 24.989, PSF error,
+# APP magnitude for zeropoint 24.989, APP error,
+# Kron magnitude for zeropoint 24.989, Kron error,
+# Zero point offset using astrometric stars,
+# Zero point offset using all objects with proximity 0.6",
+# Standard deviation of zero point offset using astrometric stars,
+# Standard deviation of zero point offset using objects with proximity 0.6",
+# Calibrated magnitude against catalog objects with proximity 0.6",
+# Error calibrated magnitude
+# Elongation, Half Light Radius, Star Flag 
+32.51259 -27.13220 22.509 0.070 22.526 0.068 22.673 0.093 0.076 0.097 0.258 0.173 22.606 0.186 1.518 3.830 0.50 
+32.51711 -27.13780 21.017 0.042 20.888 0.017 20.627 0.023 0.076 0.097 0.258 0.173 21.114 0.177 1.096 6.328 0.07 
+32.51812 -27.11432 21.894 0.048 21.807 0.037 21.885 0.050 0.076 0.097 0.258 0.173 21.991 0.179 1.120 4.830 0.57 
+32.52512 -27.10230 21.736 0.040 21.660 0.033 21.777 0.051 0.076 0.097 0.258 0.173 21.833 0.177 1.401 4.579 0.70 
+32.53466 -27.07697 22.134 0.059 22.035 0.046 INDEF  INDEF 0.076 0.097 0.258 0.173 22.231 0.182 INDEF INDEF INDEF 
+32.53838 -27.07868 20.329 0.036 20.229 0.011 19.620 0.014 0.076 0.097 0.258 0.173 20.426 0.176 1.211 8.228 0.04 
+32.53892 -27.10543 20.500 0.015 20.469 0.013 20.442 0.017 0.076 0.097 0.258 0.173 20.597 0.173 1.141 4.523 0.98 
+32.54184 -27.13776 20.729 0.017 20.706 0.015 20.761 0.020 0.076 0.097 0.258 0.173 20.826 0.173 1.086 4.180 0.97 
+32.54542 -27.14365 21.385 0.039 21.300 0.024 21.250 0.035 0.076 0.097 0.258 0.173 21.482 0.177 1.046 5.187 0.18 
+32.54816 -27.08164 20.183 0.012 20.175 0.010 20.219 0.014 0.076 0.097 0.258 0.173 20.280 0.173 1.054 4.092 0.98 
+32.55161 -27.09857 20.522 0.064 INDEF  INDEF INDEF  INDEF 0.076 0.097 0.258 0.173 20.619 0.184 INDEF INDEF INDEF 
+32.55195 -27.09807 20.504 0.052 INDEF  INDEF 18.771 0.010 0.076 0.097 0.258 0.173 20.601 0.180 1.430 15.549 0.02 
+32.55261 -27.13662 20.767 0.017 20.767 0.015 20.800 0.021 0.076 0.097 0.258 0.173 20.864 0.173 1.067 4.135 0.97 
+32.55343 -27.07830 20.002 0.068 INDEF  INDEF INDEF  INDEF 0.076 0.097 0.258 0.173 20.099 0.186 INDEF INDEF INDEF 
+32.55377 -27.07914 19.988 0.070 19.740 0.009 INDEF  INDEF 0.076 0.097 0.258 0.173 20.085 0.186 INDEF INDEF INDEF 
+32.55419 -27.14263 20.147 0.011 20.135 0.010 20.149 0.013 0.076 0.097 0.258 0.173 20.244 0.173 1.083 4.233 0.98 
+32.55471 -27.07971 19.109 0.055 18.958 0.005 INDEF  INDEF 0.076 0.097 0.258 0.173 19.206 0.181 INDEF INDEF INDEF 
+32.55525 -27.11770 19.740 0.006 19.729 0.007 19.733 0.010 0.076 0.097 0.258 0.173 19.837 0.173 1.068 4.310 0.98 
+32.55534 -27.08589 20.125 0.033 20.030 0.009 19.498 0.012 0.076 0.097 0.258 0.173 20.222 0.176 1.211 7.728 0.08 
+32.55795 -27.10080 21.144 0.034 21.055 0.020 20.943 0.026 0.076 0.097 0.258 0.173 21.241 0.176 1.497 5.320 0.34 
+32.56136 -27.08616 24.281 0.325 24.117 0.302 INDEF  INDEF 0.076 0.097 0.258 0.173 24.378 0.368 INDEF INDEF INDEF 
+32.56594 -27.08051 20.385 0.054 20.224 0.011 19.626 0.013 0.076 0.097 0.258 0.173 20.482 0.181 2.028 8.252 0.02 
+32.56884 -27.08268 20.600 0.033 20.497 0.013 20.147 0.017 0.076 0.097 0.258 0.173 20.697 0.176 1.410 6.652 0.12 
+32.56903 -27.12193 21.139 0.025 21.120 0.020 21.191 0.027 0.076 0.097 0.258 0.173 21.236 0.174 1.040 4.170 0.96 
+32.56941 -27.10625 19.758 0.007 19.745 0.007 19.764 0.010 0.076 0.097 0.258 0.173 19.855 0.173 1.042 4.249 0.98 
+32.57510 -27.07772 21.547 0.043 21.420 0.027 21.111 0.038 0.076 0.097 0.258 0.173 21.644 0.178 1.254 6.409 0.17 
+32.58195 -27.08040 20.661 0.046 20.525 0.013 19.998 0.016 0.076 0.097 0.258 0.173 20.758 0.179 1.702 7.810 0.02 
+32.58209 -27.14830 19.024 0.003 19.017 0.004 19.014 0.007 0.076 0.097 0.258 0.173 19.121 0.173 1.057 4.249 0.98 
