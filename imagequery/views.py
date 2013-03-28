@@ -27,9 +27,9 @@ class CoordinateParseError(Exception):
   def __init__(self):
     self.msg = "Unable to parse coordinates"
 
-class AreaParseError(Exception):
+class RadiusParseError(Exception):
   def __init__(self):
-    self.msg = "Unable to parse area"
+    self.msg = "Unable to parse radius"
 class NoCoverageError(Exception):
   def __init__(self,radius):
     self.msg = "No GROND fields within %s degrees of given coordinates" % radius
@@ -37,10 +37,9 @@ class NoCoverageError(Exception):
 
 
 def get_images(cd,radius=10):
-  bands = cd['bands']
   coordstr = cd['coords'].replace(',',' ').strip()
-  area = cd['area']
-  unit_area = cd['unit_area']
+  radius = cd['radius']
+  unit_radius = "arcminutes"
   
   #-------------------------------------
   # User input data validation
@@ -60,16 +59,16 @@ def get_images(cd,radius=10):
       raise CoordinateParseError
   
   try:
-    area = float(area)
-    area *= constants.convert_arcmin_or_arcsec_to_degrees[unit_area]
+    radius = float(radius)
+    radius *= constants.convert_arcmin_or_arcsec_to_degrees[unit_radius]
   except:
-    raise AreaParseError
+    raise RadiusParseError
   #-------------------------------------
   
-  results = ImageHeader.objects.filter(FILTER__in=bands).imagePositionFilter(ra,dec,radius=radius,units='degrees')
+  results = ImageHeader.objects.imagePositionFilter(ra,dec,radius=radius,units='degrees')
   if not results:
     raise NoCoverageError(radius=radius)
-  distances = dict((i.TARGETID,i.distance*3600) for i in results) #Keep distance for later
+  distances = dict((i.TARGETID,i.distance*60.0) for i in results) #Keep distance for later
 
   #group results by targetID
   grouped_targets = dict((i.TARGETID,[]) for i in results)
@@ -91,7 +90,7 @@ def get_images(cd,radius=10):
       fname = '%s.png' % unique_filename
       D['PATH_PNG'] = fname
       D['PATH_RAW'] = source_data.PATH
-      tasks.makeImage.delay(D,area,ra,dec)
+      #tasks.makeImage.delay(D,area,ra,dec)
       targets[-1].appendOB(OBname=OBname,date_obs=date_obs,data=D)
     targets[-1].sortOBs()
     targets[-1].sortBands()
@@ -127,7 +126,7 @@ def home(request):
     try:
       targets=get_images(cd)
       return render(request,'content.html',{'form': form,'targets':targets,'request':request.POST})
-    except (AreaParseError,CoordinateParseError,NoCoverageError) as e:
+    except (RadiusParseError,CoordinateParseError,NoCoverageError) as e:
       return render(request,'content.html',{'form': form,'formerror':e.msg,'request':request.POST})    
   else:
     return render(request, 'content.html',{'form':ImageQueryForm})

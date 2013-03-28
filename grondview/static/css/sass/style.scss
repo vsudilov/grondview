@@ -10,15 +10,18 @@ margin: 0; padding: 0;
 $page-width: 1550px;
 $navbar-width: 190px;
 $navbar-height: 1080px;
-$banner-height: 90px;
+$banner-height: 205px;
 $navbar-offset: 25px;
 $content-bkg-color: #E6E6E6;
 $content-width: ($page-width)-($navbar-width)-($navbar-offset);
-
+$banner-bkg-color: #A7DDF2;
 
 #banner {
   height: $banner-height;
   width: ($page-width)-($navbar-width);
+  background: $banner-bkg-color;
+  margin-bottom: 3px;
+  margin-left: ($navbar-width)+($navbar_offset);
 }
 
 #navbar { 
@@ -121,7 +124,7 @@ $content-width: ($page-width)-($navbar-width)-($navbar-offset);
 
   }
 
-  #image-container {
+  #results-container {
     float: left;
     background: $content-bkg-color;
     width: ($content-width)*(0.70);
@@ -159,6 +162,49 @@ $content-width: ($page-width)-($navbar-width)-($navbar-offset);
  height: 3em;
  margin-top: -30-em;
 }
+
+/* tables- http://tablesorter.com */
+table.tablesorter {
+	font-family:arial;
+	background-color: #CDCDCD;
+	margin:10px 0pt 15px;
+	font-size: 8pt;
+	width: 100%;
+	text-align: left;
+}
+table.tablesorter thead tr th, table.tablesorter tfoot tr th {
+	background-color: #e6EEEE;
+	border: 1px solid #FFF;
+	font-size: 8pt;
+	padding: 4px;
+}
+table.tablesorter thead tr .header {
+	background-image: url(bg.gif);
+	background-repeat: no-repeat;
+	background-position: center right;
+	cursor: pointer;
+}
+table.tablesorter tbody td {
+	color: #3D3D3D;
+	padding: 4px;
+	background-color: #FFF;
+	vertical-align: top;
+}
+table.tablesorter tbody tr.odd td {
+	background-color:#F0F0F6;
+}
+table.tablesorter thead tr .headerSortUp {
+	background-image: url(asc.gif);
+}
+table.tablesorter thead tr .headerSortDown {
+	background-image: url(desc.gif);
+}
+table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
+background-color: #8dbdd8;
+}
+
+
+
 
 /* animated spoiler CSS by Bloggersentral.com */
 .spoilerbutton {display:block;margin:5px 0;}
