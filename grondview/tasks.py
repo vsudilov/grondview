@@ -17,13 +17,9 @@ from lib import img_scale
 from lib import astImages
 
 @celery.task
-def makeImage(image,area,ra,dec):
-  fname = image['PATH_PNG']
-  d = pyfits.open(image['PATH_RAW'])[0].data
-  wcs = astWCS.WCS(image['PATH_RAW'])
-  clipSizeDeg = area
-  
-  d = astImages.clipImageSectionWCS(d, wcs, ra, dec, clipSizeDeg, returnWCS = False)
-  astImages.saveBitmap(os.path.join(MEDIA_ROOT,fname),d['data'],cutLevels=["smart", 99.5],size=300,colorMapName='gray')
-
+def makeImage(ImageHeaderInstance,fname,clipSizeDeg,ra,dec):
+  d = pyfits.open(ImageHeaderInstance.PATH)[0].data
+  wcs = astWCS.WCS(ImageHeaderInstance.PATH)  
+  cutout = astImages.clipImageSectionWCS(d, wcs, ra, dec, clipSizeDeg, returnWCS = False)
+  astImages.saveBitmap(os.path.join(MEDIA_ROOT,fname),cutout['data'],cutLevels=["smart", 99.5],size=300,colorMapName='gray')
   return None

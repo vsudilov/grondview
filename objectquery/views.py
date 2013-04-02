@@ -100,7 +100,38 @@ def get_sources(cd):
 
 
 def view_source(request,sourceID):
+
   results = get_list_or_404(Photometry.objects.filter(astrosource__sourceID=sourceID))
+
+  #Make the image cut-outs
+  OBTYPEIDs = ['30m6td','20m4td','10m6td','8m4td','4m4td']
+  SEEING_LIMIT = 2.0
+  candidate_OBs = []
+  for OBTYPEID in OBTYPEIDs:
+    candidateOB = (Photometry.objects
+                .filter(astrosource__sourceID=sourceID)
+                .filter(imageheader__OBTYPEID=OBTYPEID)
+                .filter(imageheader__imageproperties__SEEING__lte=SEEING_LIMIT)
+                )
+    if not candidateOB:
+      continue
+    candidate_OBs.append(candidateOB)
+    break
+  nominalOB = max(candidate_OBs, key=len)
+  bands = 'grizJHK'
+  p = dict([(b,bands.index(b)+1) for b in bands])
+  nominalOB = sorted(nominalOB, key=lambda k: p[k.BAND])
+  clipSizeDeg = 0.002777 #10 arcseconds
+  clipSizeDeg = 0.002777*10 #for binned stubdata!
+  for photo_obj in nominalOB:
+    fname = '%s.png' % uuid.uuid4()
+    photo_obj.fname = fname #This attribute is expected by the template
+    ra = photo_obj.astrosource.RA
+    dec = photo_obj.astrosource.DEC
+    tasks.makeImage(photo_obj.imageheader,fname,clipSizeDeg,ra,dec)
+
+  
+  #Set up the data container that will be iterated/presented in the html template
   source = GenericDataContainer(name=sourceID)
   for r in results:
     OB = r.imageheader.OB
@@ -108,11 +139,12 @@ def view_source(request,sourceID):
     D = r.__dict__
     D['imageheader'] = r.imageheader #obj.__dict__ gives the ForeignKeys funny names
     D['astrosource'] = r.astrosource
+    ra = r.astrosource.RA
+    dec = r.astrosource.DEC
     source.appendOB(OBname=OB,data=D,OBtype=r.imageheader.OBTYPEID)
-
   source.sortOBs()
   source.sortBands()
-  
+
   for OB in source.OBs: #For SEDs
     x,y,yerr = [],[],[]
     for d in OB.data:
@@ -124,12 +156,12 @@ def view_source(request,sourceID):
 
   x,y,yerr = [],[],[] #For lightcurve
   for OB in source.OBs:
-    x.append(OB.data[0]['imageheader'].MJD_MID)
+    x.append(OB.data[0]['imageheader'].MJD_MID) # index [0] will give the bluest band in this framework
     y.append(OB.data[0]['MAG_PSF'])
     yerr.append(OB.data[0]['MAG_PSF_ERR'])
     
   lightcurve = [dict([('x',i),('y',j),('err',k)]) for i,j,k in zip(x,y,yerr)]
-  return render(request,'content.html',{'source':source,'request':request,'lightcurve':lightcurve})
+  return render(request,'content.html',{'source':source,'request':request,'lightcurve':lightcurve,'nominalOB':nominalOB})
 
 
 def home(request):

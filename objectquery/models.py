@@ -1,7 +1,6 @@
 from django.db import models
 from django.db.models.query import QuerySet
 from imagequery.models import ImageHeader
-from imagequery.models import ImageProperties
 import os
 import sys
 

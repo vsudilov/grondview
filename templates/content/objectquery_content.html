@@ -8,16 +8,13 @@
   </thead>
   <tbody>
   {% for target in sources %}
-  {% for OB in target.OBs %}
     <tr>
       <td>{{target.distance|stringformat:"0.1f"}}</td>
-      <td>{{target.name}}</td>
+      <td><a href="/sources/{{target.name}}">{{target.name}}</a></td>
     </tr>
-  {% endfor %}
   {% endfor %}
   </tbody>
   </table>
-
 
   <script>
     $(document).ready(function(){
