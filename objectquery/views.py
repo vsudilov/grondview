@@ -103,33 +103,48 @@ def view_source(request,sourceID):
 
   results = get_list_or_404(Photometry.objects.filter(astrosource__sourceID=sourceID))
 
-  #Make the image cut-outs
+  '''
+  Find the nominal OB with which to make image cutouts and SED. The nominal OB will 
+  be image with the most detections, followed by the longest exposure time. Additionally,
+  there is a seeing limit imposed on all OBs
+  '''
   OBTYPEIDs = ['30m6td','20m4td','10m6td','8m4td','4m4td']
+  OBs = [i.imageheader.OB for i in results]
   SEEING_LIMIT = 2.0
   candidate_OBs = []
   for OBTYPEID in OBTYPEIDs:
-    candidateOB = (Photometry.objects
-                .filter(astrosource__sourceID=sourceID)
-                .filter(imageheader__OBTYPEID=OBTYPEID)
-                .filter(imageheader__imageproperties__SEEING__lte=SEEING_LIMIT)
-                )
-    if not candidateOB:
-      continue
-    candidate_OBs.append(candidateOB)
-    break
+    for OB in OBs:
+      candidateOB = (Photometry.objects
+                  .filter(astrosource__sourceID=sourceID)
+                  .filter(imageheader__OBTYPEID=OBTYPEID)
+                  .filter(imageheader__imageproperties__SEEING__lte=SEEING_LIMIT)
+                  .filter(imageheader__OB=OB)
+                  )
+      if not candidateOB:
+        continue
+      candidate_OBs.append(candidateOB)
   nominalOB = max(candidate_OBs, key=len)
   bands = 'grizJHK'
   p = dict([(b,bands.index(b)+1) for b in bands])
   nominalOB = sorted(nominalOB, key=lambda k: p[k.BAND])
   clipSizeDeg = 0.002777 #10 arcseconds
   clipSizeDeg = 0.002777*10 #for binned stubdata!
+  x,y,yerr = [],[],[] #For SEDs
   for photo_obj in nominalOB:
+    x.append(constants.GrondFilters[photo_obj.BAND]['lambda_eff'])
+    if photo_obj.BAND in 'griz':
+      y.append(photo_obj.MAG_PSF)
+      yerr.append(photo_obj.MAG_PSF_ERR)
+    else:
+      y.append(photo_obj.MAG_APP)
+      yerr.append(photo_obj.MAG_APP_ERR)
     fname = '%s.png' % uuid.uuid4()
     photo_obj.fname = fname #This attribute is expected by the template
     ra = photo_obj.astrosource.RA
     dec = photo_obj.astrosource.DEC
     tasks.makeImage(photo_obj.imageheader,fname,clipSizeDeg,ra,dec)
-
+  SED = [dict([('x',i),('y',j),('err',k)]) for i,j,k in zip(x,y,yerr)]
+  
   
   #Set up the data container that will be iterated/presented in the html template
   source = GenericDataContainer(name=sourceID)
@@ -145,15 +160,6 @@ def view_source(request,sourceID):
   source.sortOBs()
   source.sortBands()
 
-  for OB in source.OBs: #For SEDs
-    x,y,yerr = [],[],[]
-    for d in OB.data:
-      x.append(constants.GrondFilters[d['BAND']]['lambda_eff'])
-      y.append(d['MAG_PSF'])
-      yerr.append(d['MAG_PSF_ERR'])
-    OB.SED = [dict([('x',i),('y',j),('err',k)]) for i,j,k in zip(x,y,yerr)]
-
-
   x,y,yerr = [],[],[] #For lightcurve
   for OB in source.OBs:
     x.append(OB.data[0]['imageheader'].MJD_MID) # index [0] will give the bluest band in this framework
@@ -161,7 +167,11 @@ def view_source(request,sourceID):
     yerr.append(OB.data[0]['MAG_PSF_ERR'])
     
   lightcurve = [dict([('x',i),('y',j),('err',k)]) for i,j,k in zip(x,y,yerr)]
-  return render(request,'content.html',{'source':source,'request':request,'lightcurve':lightcurve,'nominalOB':nominalOB})
+  
+  return render(request,'content.html',{'source':source,'request':request,
+                                        'lightcurve':lightcurve,'nominalOB':nominalOB,
+                                        'SED':SED,
+                                        })
 
 
 def home(request):

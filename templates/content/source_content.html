@@ -26,6 +26,39 @@
 
 <div id="lightcurve" style="width:30%;height:300px;font-size:0.8em;font-family:Century Gothic,sans-serif;"></div>
 <div id="results-container">
+ {% for photo_obj in nominalOB %}
+ <p>{{photo_obj.imageheader.FILTER}}</p>
+ <p>{{photo_obj.imageheader.OB}}</p>
+ <img src="{{MEDIA_URL}}{{photo_obj.fname}}" />
+ {% endfor %}
+ <script type="text/javascript">
+ $(document).ready(function(){
+   var d = "{{ SED|safe }}"
+   d = d.replace( / u'/g, " '" ).replace( /'/g, "\"" );
+   d = $.parseJSON(d)
+   // slowe.github.com/graph
+   // Data in the form [{x:x1,y:y1,err:err1},...{x:xn,y:yn,err:errn}]
+   // You could add in other variables here that you can
+   // then make use of when making labels.        
+   graph = $.graph('sed', {
+     data: d,
+     color: "#dd9901",
+     hoverable:true,
+     clickable:true,
+     points: {show:true,radius:5.5},
+     lines:{show:true,width:1}
+  }, {
+     xaxis: {log:false,label:'Wavelength (nm)'},
+     yaxis: {log:false,label:'Brightness (AB)'},
+     grid: {show:false,color:'rgb(255,0,0)',background:'rgb(255,255,255)'}
+  });
+  });
+ </script>
+ <div id="sed" style="width:40%;height:200px;font-size:0.8em;font-family:Century Gothic,sans-serif;"></div>
+ 
+ 
+ 
+
 {% for OB in source.OBs %}
   <h3>{{ OB.OBname }}</h3>
   {% for d in OB.data %}
@@ -36,30 +69,7 @@
     <li>Imageheader: {{ d.imageheader }}</li>
   </ul><br>
   {% endfor %}
+  
 
-  <script type="text/javascript">
-    $(document).ready(function(){
-        var d = "{{ OB.SED|safe }}"
-        d = d.replace( / u'/g, " '" ).replace( /'/g, "\"" );
-        d = $.parseJSON(d)
-        // slowe.github.com/graph
-        // Data in the form [{x:x1,y:y1,err:err1},...{x:xn,y:yn,err:errn}]
-        // You could add in other variables here that you can
-        // then make use of when making labels.        
-        graph = $.graph('sed_{{OB.OBname}}', {
-          data: d,
-          color: "#dd9901",
-          hoverable:true,
-          clickable:true,
-          points: {show:true,radius:5.5},
-          lines:{show:true,width:1}
-  }, {
-          xaxis: {log:false,label:'Wavelength (nm)'},
-          yaxis: {log:false,label:'Brightness (AB)'},
-          grid: {show:false,color:'rgb(255,0,0)',background:'rgb(255,255,255)'}
-  });
-    });
-  </script>
-  <div id="sed_{{OB.OBname}}" style="width:40%;height:200px;font-size:0.8em;font-family:Century Gothic,sans-serif;"></div>
 {% endfor %}
 </div>
