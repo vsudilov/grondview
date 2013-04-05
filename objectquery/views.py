@@ -1,10 +1,10 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
-from django.shortcuts import get_list_or_404
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
+from django.http import Http404
 
 from grondview.settings import PROJECT_ROOT
 from grondview.settings import MEDIA_ROOT
@@ -100,8 +100,9 @@ def get_sources(cd):
 
 
 def view_source(request,sourceID):
-
-  results = get_list_or_404(Photometry.objects.filter(astrosource__sourceID=sourceID))
+  results = Photometry.objects.filter(astrosource__sourceID=sourceID)
+  if not results:
+    raise Http404
 
   '''
   Find the nominal OB with which to make image cutouts and SED. The nominal OB will 
@@ -144,33 +145,64 @@ def view_source(request,sourceID):
     dec = photo_obj.astrosource.DEC
     tasks.makeImage(photo_obj.imageheader,fname,clipSizeDeg,ra,dec)
   SED = [dict([('x',i),('y',j),('err',k)]) for i,j,k in zip(x,y,yerr)]
-  
-  
-  #Set up the data container that will be iterated/presented in the html template
-  source = GenericDataContainer(name=sourceID)
-  for r in results:
-    OB = r.imageheader.OB
-    D = {}
-    D = r.__dict__
-    D['imageheader'] = r.imageheader #obj.__dict__ gives the ForeignKeys funny names
-    D['astrosource'] = r.astrosource
-    ra = r.astrosource.RA
-    dec = r.astrosource.DEC
-    source.appendOB(OBname=OB,data=D,OBtype=r.imageheader.OBTYPEID)
-  source.sortOBs()
-  source.sortBands()
 
-  x,y,yerr = [],[],[] #For lightcurve
-  for OB in source.OBs:
-    x.append(OB.data[0]['imageheader'].MJD_MID) # index [0] will give the bluest band in this framework
-    y.append(OB.data[0]['MAG_PSF'])
-    yerr.append(OB.data[0]['MAG_PSF_ERR'])
-    
-  lightcurve = [dict([('x',i),('y',j),('err',k)]) for i,j,k in zip(x,y,yerr)]
+  #Set up the data container that will be iterated/presented in the html template
+  userColumns = (
+          'OBtype',
+          'OBname',
+          'g','g_err',
+          'r','r_err',
+          'i','i_err',
+          'z','z_err',
+          'J','J_err',
+          'H','H_err', 
+          'K','K_err') #This should eventually be a user input
+          
+  magnitude_kws = (
+          'g','g_err',
+          'r','r_err',
+          'i','i_err',
+          'z','z_err',
+          'J','J_err',
+          'H','H_err', 
+          'K','K_err',
+          )
+
+  translation = {
+                'OBtype': lambda k: k.imageheader.OBTYPEID,
+                'OBname': lambda k: k.imageheader.OB,
+                'g': lambda k: k.MAG_PSF,
+                'r': lambda k: k.MAG_PSF,
+                'i': lambda k: k.MAG_PSF,
+                'z': lambda k: k.MAG_PSF,
+                'J': lambda k: k.MAG_APP,
+                'H': lambda k: k.MAG_APP,
+                'K': lambda k: k.MAG_APP,
+                }
+  source_data = []
+  for OB in set(OBs):
+    source_data.append( dict([(k,'') for k in userColumns]) )
+    for r in results.filter(imageheader__OB=OB):
+      D = {}
+      D['imageheader'] = r.imageheader
+      for column in userColumns:
+        if column not in magnitude_kws:
+          D[column] = translation[column](r)
+      if r.BAND in userColumns:
+        D[r.BAND] = translation[r.BAND](r)
+        #D[r.BAND+_"err"] = translation[r.BAND+"_err"](r)
+      source_data[-1].update(D)
   
-  return render(request,'content.html',{'source':source,'request':request,
+  x,y,yerr = [],[],[] #For lightcurve
+  #TODO: Allow user to choose which band is plotted in the LC
+  for OB in source_data:
+    x.append(OB['imageheader'].MJD_MID)
+    y.append(OB['r'])
+    yerr.append(OB['r_err'])
+  lightcurve = [dict([('x',i),('y',j),('err',k)]) for i,j,k in zip(x,y,yerr)]
+  return render(request,'content.html',{'source_data':source_data,'request':request,
                                         'lightcurve':lightcurve,'nominalOB':nominalOB,
-                                        'SED':SED,
+                                        'SED':SED,'userColumns':userColumns
                                         })
 
 

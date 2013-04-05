@@ -1,0 +1,28 @@
+TODO:
+
+/sources/
+-source table columns based on user input
+-ability to choose which OB's SED is plotted
+-ability to choose which OB's cutouts are plotted
+-ability to dump data to ascii
+-change SED/lightcurve y-axis direction
+
+
+/fields/
+-implement fields, fields/OB page
+
+/imagequery/
+-bulk download link
+
+/readme/impressum/contact/
+-write static pages
+
+models.py
+-calibration field ForeignKey in ImageProperties
+-low galactic latitude flag in AstroSource
+
+dataside
+-photometric calibration pipeline
+
+general
+-css!
