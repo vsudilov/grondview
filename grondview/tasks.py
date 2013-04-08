@@ -15,11 +15,14 @@ from grondview.settings import PROJECT_ROOT
 sys.path.insert(0,os.path.join(PROJECT_ROOT,'utils'))
 from lib import img_scale
 from lib import astImages
+from lib import constants
 
 @celery.task
-def makeImage(ImageHeaderInstance,fname,clipSizeDeg,ra,dec):
+def makeImage(ImageHeaderInstance,fname,clipSizeArcsec,ra,dec):
   d = pyfits.open(ImageHeaderInstance.PATH)[0].data
   wcs = astWCS.WCS(ImageHeaderInstance.PATH)  
+  clipSizeDeg = clipSizeArcsec * constants.convert_arcmin_or_arcsec_to_degrees['arcseconds']
   cutout = astImages.clipImageSectionWCS(d, wcs, ra, dec, clipSizeDeg, returnWCS = False)
-  astImages.saveBitmap(os.path.join(MEDIA_ROOT,fname),cutout['data'],cutLevels=["smart", 99.5],size=200,colorMapName='gray')
+  caption = ImageHeaderInstance.FILTER
+  astImages.saveBitmap(os.path.join(MEDIA_ROOT,fname),cutout['data'],cutLevels=["smart", 99.5],size=200,colorMapName='gray',caption=caption,clipSizeArcsec=clipSizeArcsec)
   return None

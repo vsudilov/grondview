@@ -122,6 +122,11 @@ body {
       width: auto;
       height: auto;
       max-width: 167.60563px; }
+  #content-container #source_title {
+    text-align: center;
+    font-size: 1.4em; }
+    #content-container #source_title .subtitle {
+      font-size: 0.6em; }
   #content-container #results-container {
     float: left;
     background: #e6e6e6;

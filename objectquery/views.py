@@ -128,8 +128,8 @@ def view_source(request,sourceID):
   bands = 'grizJHK'
   p = dict([(b,bands.index(b)+1) for b in bands])
   nominalOB = sorted(nominalOB, key=lambda k: p[k.BAND])
-  clipSizeDeg = 0.002777 #10 arcseconds
-  clipSizeDeg = 0.002777*10 #for binned stubdata!
+  clipSizeDeg = 10 #10 arcseconds
+  clipSizeDeg *= 10 #for binned stubdata!
   x,y,yerr = [],[],[] #For SEDs
   for photo_obj in nominalOB:
     x.append(constants.GrondFilters[photo_obj.BAND]['lambda_eff'])

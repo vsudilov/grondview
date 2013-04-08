@@ -51,7 +51,13 @@
 </script>
 
 
-<h2 style="text-align:center;">Target RA, Dec: {{nominalOB.0.astrosource.RA}}, {{nominalOB.0.astrosource.DEC}}</h2>
+<div id="source_title">
+  Target RA, Dec: {{nominalOB.0.astrosource.RA}}, {{nominalOB.0.astrosource.DEC}}
+  <div class="subtitle">
+    Image cutouts and SED derived from {{nominalOB.0.imageheader.OB}}. Lightcurve 
+  </div>
+</div>
+
 <!--Lightcurve, SED, cutouts-->
 <div id='image-cutout'>
   {% for photo_obj in nominalOB %}

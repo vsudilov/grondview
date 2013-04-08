@@ -170,6 +170,13 @@ $banner-bkg-color: #A7DDF2;
     }
   }
 
+  #source_title {
+    text-align:center;
+    font-size: 1.4em;
+    .subtitle {
+      font-size: 0.6em;
+    }
+  }
 
   #results-container {
     float: left;

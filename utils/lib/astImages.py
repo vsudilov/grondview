@@ -848,7 +848,7 @@ def generateContourOverlay(backgroundImageData, backgroundImageWCS, contourImage
     return {'scaledImage': scaledBack, 'contourLevels': cLevels}
     
 #---------------------------------------------------------------------------------------------------
-def saveBitmap(outputFileName, imageData, cutLevels, size, colorMapName):
+def saveBitmap(outputFileName, imageData, cutLevels, size, colorMapName, caption,clipSizeArcsec):
     """Makes a bitmap image from an image array; the image format is specified by the
     filename extension. (e.g. ".jpg" =JPEG, ".png"=PNG).
     
@@ -876,7 +876,6 @@ def saveBitmap(outputFileName, imageData, cutLevels, size, colorMapName):
     # Make plot
     aspectR=float(cut['image'].shape[0])/float(cut['image'].shape[1])
     fig = pylab.figure(figsize=(10,10*aspectR))
-
     xPix = size
     yPix = size
     dpi = 100
@@ -896,7 +895,11 @@ def saveBitmap(outputFileName, imageData, cutLevels, size, colorMapName):
     else:
         pylab.imshow(cut['image'],  interpolation="bilinear",  norm=cut['norm'], origin='lower',
             cmap=colorMap)
-
+    xmin,xmax = pylab.gca().get_xlim()
+    ymin,ymax = pylab.gca().get_ylim()
+    pylab.text(xmin+1,ymin+1,caption,color="red",fontsize=20,fontweight=500,backgroundcolor='white')
+    pylab.axhline(y=ymax*0.95, xmin=0.25, xmax=0.75,color='red',linewidth=2.4)
+    pylab.text(xmin+1,ymax*0.90,'%s"' % (clipSizeArcsec/2) ,color="red",fontsize=12,fontweight=500,backgroundcolor='white')
     pylab.axis("off")
     
     pylab.savefig(outputFileName,format="png",dpi=dpi)	
