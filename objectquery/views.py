@@ -201,16 +201,20 @@ def view_source(request,sourceID):
         D[r.BAND+"_err"] = '%0.2f' % translation[r.BAND+"_err"](r)
       source_data[-1].update(D)
   
-  x,y,yerr = [],[],[] #For lightcurve
-  #TODO: Allow user to choose which band is plotted in the LC
-  for OB in source_data:
-    x.append(round(OB['imageheader'].MJD_MID,2))
-    y.append(OB['r'])
-    yerr.append(OB['r_err'])
-  lightcurve = [dict([('x',i),('y',j),('err',k)]) for i,j,k in zip(x,y,yerr)]
+  lightcurve = {}
+  for band in bands:
+    x,y,yerr = [],[],[] #For lightcurve
+    #TODO: Allow user to choose which band is plotted in the LC
+    for OB in source_data:
+      if OB[band]:
+        x.append(round(OB['imageheader'].MJD_MID,2))
+        y.append(OB[band])
+        yerr.append(OB[band+'_err'])
+    lightcurve[band] = [dict([('x',i),('y',j),('err',k)]) for i,j,k in zip(x,y,yerr)]
+  bestBand = sorted(lightcurve.items(),key=lambda k: len(k[1]),reverse=True)[0][0]
   return render(request,'content.html',{'source_data':source_data,'request':request,
-                                        'lightcurve':lightcurve,'nominalOB':nominalOB,
-                                        'SED':SED,'userColumns':userColumns
+                                        'lightcurve':lightcurve[bestBand],'nominalOB':nominalOB,
+                                        'SED':SED,'userColumns':userColumns,'lc_band':bestBand,
                                         })
 
 

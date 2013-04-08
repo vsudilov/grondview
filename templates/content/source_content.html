@@ -1,4 +1,5 @@
 {% load hash %}
+{% load sorting %}
 
 <script type="text/javascript">
   $(document).ready(function(){
@@ -54,7 +55,7 @@
 <div id="source_title">
   Target RA, Dec: {{nominalOB.0.astrosource.RA}}, {{nominalOB.0.astrosource.DEC}}
   <div class="subtitle">
-    Image cutouts and SED derived from {{nominalOB.0.imageheader.OB}}. Lightcurve 
+    Image cutouts and SED derived from {{nominalOB.0.imageheader.OB}}. {{ lc_band }}-band lightcurve.
   </div>
 </div>
 

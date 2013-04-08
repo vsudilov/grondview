@@ -24,5 +24,5 @@ def makeImage(ImageHeaderInstance,fname,clipSizeArcsec,ra,dec):
   clipSizeDeg = clipSizeArcsec * constants.convert_arcmin_or_arcsec_to_degrees['arcseconds']
   cutout = astImages.clipImageSectionWCS(d, wcs, ra, dec, clipSizeDeg, returnWCS = False)
   caption = ImageHeaderInstance.FILTER
-  astImages.saveBitmap(os.path.join(MEDIA_ROOT,fname),cutout['data'],cutLevels=["smart", 99.5],size=200,colorMapName='gray',caption=caption,clipSizeArcsec=clipSizeArcsec)
+  astImages.saveBitmap(os.path.join(MEDIA_ROOT,fname),cutout['data'],cutLevels=["smart", 99.5],size=200,colorMapName='gray_r',caption=caption,clipSizeArcsec=clipSizeArcsec)
   return None

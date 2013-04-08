@@ -33,3 +33,12 @@ def sortListByOB(L):
     s = re.search('\d+_\d+',s).group()
     return map(int,s.split('_'))
   return sorted(L,key=lambda k: keyfunc(k))
+
+@register.filter
+def lc_sort(D):
+  '''
+  Sorts the lightcurve dict, returning only the json 
+  elements that correspond to the best sampled band
+  '''
+  bestBand = sorted(D.items(),key=lambda k: len(k[1]),reverse=True)[0][0]
+  return D[bestBand]
