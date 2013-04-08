@@ -10,10 +10,10 @@ class ObjectQueryForm(forms.Form):
               label="Coordinates"
               )
 
-  area = forms.FloatField(
+  radius = forms.FloatField(
               widget=forms.TextInput(
-                  attrs={'value':"1.0",'min': '1.0', 'max': '180','class':'area_input'}),
-              label="Area"
+                  attrs={'value':"1.0",'min': '1.0', 'max': '300','class':'radius_input'}),
+              label="Radius"
               ) 
 
   dates = forms.CharField(

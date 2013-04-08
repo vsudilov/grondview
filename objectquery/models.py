@@ -83,6 +83,8 @@ class Photometry(models.Model):
   MAG_APP_ERR = models.FloatField()
   MAG_KRON = models.FloatField()
   MAG_KRON_ERR = models.FloatField()
+  MAG_CALIB = models.FloatField()
+  MAG_CALIB_ERR = models.FloatField()
   ELONGATION = models.FloatField()
   R_HALFLIGHT = models.FloatField()
   BAND = models.CharField(max_length=1)  

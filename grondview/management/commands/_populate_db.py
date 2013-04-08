@@ -136,14 +136,18 @@ class GrondData:
     self.sources.extend(self.new_sources)
 
   def _make_Photometry(self):
-    translation = {'MAG_PSF':'MAG_PSF',
-                 'MAG_PSF_ERR':'MAG_PSF_ERR',
-                 'MAG_APP':'MAG_APP',
-                 'MAG_APP_ERR':'MAG_APP_ERR',
-                 'MAG_KRON':'MAG_KRON',
-                 'MAG_KRON_ERR':'MAG_KRON_ERR',
-                 'ELONGATION':'ELONGATION',
-                 'R_HALFLIGHT':'R_HALFLIGHT'}    
+    translation = {
+                  'MAG_PSF':'MAG_PSF',
+                  'MAG_PSF_ERR':'MAG_PSF_ERR',
+                  'MAG_APP':'MAG_APP',
+                  'MAG_APP_ERR':'MAG_APP_ERR',
+                  'MAG_KRON':'MAG_KRON',
+                  'MAG_KRON_ERR':'MAG_KRON_ERR',
+                  'MAG_CALIB':'MAG_CALIB',
+                  'MAG_CALIB_ERR':'MAG_CALIB_ERR',
+                  'ELONGATION':'ELONGATION',
+                  'R_HALFLIGHT':'R_HALFLIGHT',
+                  }    
     for source in self.sources:
       matched = self.resultfile.getNearbyObjs(source.RA,source.DEC,limit=1)
       s = matched.keys()[0]

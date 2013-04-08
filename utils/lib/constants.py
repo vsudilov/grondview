@@ -9,6 +9,18 @@ GrondFilters = {
   'H': {'lambda_eff': 1646.84},
   'K': {'lambda_eff': 2170.55},
   }
+
+convert_to_AB = {
+        'g': 0,
+        'r': 0,
+        'i': 0,
+        'z': 0,
+        'J': 0.929,
+        'H': 1.394,
+        'K': 1.859, 
+        }
+
+
 ''' Could add other characteristics, if they become important
 ||<tablewidth="769px" tableheight="300px"> ||g ||r ||i ||z ||J ||H ||K ||
 ||data used [nm] ||350-740 ||380-880 ||580-960 ||580-1100 ||1050-1750 ||1430-1950 ||1850-2500 ||

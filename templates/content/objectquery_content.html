@@ -1,24 +1,23 @@
-<div id="results-container">
-  <table id="objectquery_results" cellspacing=2>
-  <thead>
-    <tr>
-      <th>Distance (arcseconds) </th>
-      <th>SourceID</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for target in sources %}
-    <tr>
-      <td>{{target.distance|stringformat:"0.1f"}}</td>
-      <td><a href="/sources/{{target.name}}">{{target.name}}</a></td>
-    </tr>
-  {% endfor %}
-  </tbody>
-  </table>
+<table id="objectquery_results">
+<thead>
+  <tr>
+    <th>Distance (arcseconds) </th>
+    <th>SourceID</th>
+  </tr>
+</thead>
+<tbody>
+{% for target in sources %}
+  <tr>
+    <td>{{target.distance|stringformat:"0.1f"}}</td>
+    <td><a href="/sources/{{target.name}}">{{target.name}}</a></td>
+  </tr>
+{% endfor %}
+</tbody>
+</table>
 
-  <script>
-    $(document).ready(function(){
-        $('#objectquery_results').dataTable();
-        });
-  </script>
-</div>
+<script>
+  $(document).ready(function(){
+      $('#objectquery_results').dataTable();
+      });
+</script>
+

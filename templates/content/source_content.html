@@ -16,69 +16,72 @@
         clickable:true,
         points: {show:true,radius:5.5},
         lines:{show:true,width:1}
-}, {
+        }, {
         xaxis: {log:false,label:'MJD'},
         yaxis: {log:false,label:'Brightness (AB)'},
         grid: {show:false,color:'rgb(255,0,0)',background:'rgb(255,255,255)'}
-});
-  });
+        });
+    });
+
+  $(document).ready(function(){
+      $('#source_datatable').dataTable();
+      });
+
+  $(document).ready(function(){
+     var d = "{{ SED|safe }}"
+     d = d.replace( / u'/g, " '" ).replace( /'/g, "\"" );
+     d = $.parseJSON(d)
+     // slowe.github.com/graph
+     // Data in the form [{x:x1,y:y1,err:err1},...{x:xn,y:yn,err:errn}]
+     // You could add in other variables here that you can
+     // then make use of when making labels.        
+     graph = $.graph('sed', {
+       data: d,
+       color: "#dd9901",
+       hoverable:true,
+       clickable:true,
+       points: {show:true,radius:5.5},
+       lines:{show:true,width:1}
+       }, {
+       xaxis: {log:false,label:'Wavelength (nm)'},
+       yaxis: {log:false,label:'Brightness (AB)'},
+       grid: {show:false,color:'rgb(255,0,0)',background:'rgb(255,255,255)'}
+      });
+    });
 </script>
 
 
-<div id="lightcurve" style="width:30%;height:300px;font-size:0.8em;font-family:Century Gothic,sans-serif;"></div>
-<div id="results-container">
- {% for photo_obj in nominalOB %}
- <p>{{photo_obj.imageheader.FILTER}}</p>
- <p>{{photo_obj.imageheader.OB}}</p>
- <img src="{{MEDIA_URL}}{{photo_obj.fname}}" />
- {% endfor %}
- <script type="text/javascript">
- $(document).ready(function(){
-   var d = "{{ SED|safe }}"
-   d = d.replace( / u'/g, " '" ).replace( /'/g, "\"" );
-   d = $.parseJSON(d)
-   // slowe.github.com/graph
-   // Data in the form [{x:x1,y:y1,err:err1},...{x:xn,y:yn,err:errn}]
-   // You could add in other variables here that you can
-   // then make use of when making labels.        
-   graph = $.graph('sed', {
-     data: d,
-     color: "#dd9901",
-     hoverable:true,
-     clickable:true,
-     points: {show:true,radius:5.5},
-     lines:{show:true,width:1}
-  }, {
-     xaxis: {log:false,label:'Wavelength (nm)'},
-     yaxis: {log:false,label:'Brightness (AB)'},
-     grid: {show:false,color:'rgb(255,0,0)',background:'rgb(255,255,255)'}
-  });
-  });
- </script>
- <div id="sed" style="width:40%;height:200px;font-size:0.8em;font-family:Century Gothic,sans-serif;"></div>
- 
-  <table id="source_results" cellspacing=2>
-   <thead>
-     <tr>
-       {% for column in userColumns %}
-       <th>{{column}}</th>
-       {% endfor %}
-     </tr>
-   </thead>
-   <tbody>
-   {% for OB in source_data %}
-     <tr>
-       {% for column in userColumns %}
-       <td>{{OB | hash:column }}</td>
-       {% endfor %}
-     </tr>
-   {% endfor %}
-   </tbody>
-  </table>
-
-  <script>
-    $(document).ready(function(){
-        $('#source_results').dataTable();
-        });
-  </script>
+<h2 style="text-align:center;">Target RA, Dec: {{nominalOB.0.astrosource.RA}}, {{nominalOB.0.astrosource.DEC}}</h2>
+<!--Lightcurve, SED, cutouts-->
+<div id='image-cutout'>
+  {% for photo_obj in nominalOB %}
+  <img src="{{MEDIA_URL}}{{photo_obj.fname}}" />
+  {% endfor %}
 </div>
+<div id="lightcurve"></div>
+<div id="sed"></div>
+
+<!--Data table-->
+<table id="source_datatable">
+  <thead>
+    <tr>
+      {% for column in userColumns %}
+      <th>{{column}}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for OB in source_data %}
+      <tr>
+      {% for column in userColumns %}
+        {% if column == "OBname" %}
+        <td><a href='/fields/{{nominalOB.0.imageheader.TARGETID}}/{{OB.OBname}}'>{{OB | hash:column }}</a></td>
+        {% else %}
+        <td>{{OB | hash:column }}</td>
+        {% endif %}      
+      {% endfor %}
+      </tr>
+      {% endfor %}
+  </tbody>
+</table>
+

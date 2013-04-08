@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #compile js
-./coffeecompile.sh
+#./coffeecompile.sh
 
 #Create stubdata, load it, sync it
 python manage.py syncdb

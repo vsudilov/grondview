@@ -8,11 +8,20 @@ body {
   text-decoration: none; }
 
 #banner {
-  height: 205px;
-  width: 1360px;
+  height: 100px;
+  width: 1210px;
   background: #a7ddf2;
   margin-bottom: 3px;
-  margin-left: 215px; }
+  margin-left: 160px; }
+  #banner img {
+    width: auto;
+    height: auto;
+    max-height: 100px; }
+  #banner #banner-text {
+    line-height: 100px;
+    text-align: center;
+    font-size: 3.0em;
+    font-family: Lucida Console; }
 
 #navbar {
   background: white;
@@ -22,20 +31,20 @@ body {
   -webkit-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
   -moz-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
   box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
-  width: 190px;
+  width: 140px;
   height: 1080px;
   float: left;
   padding-right: 10px; }
   #navbar li {
     padding: 0 0 0 0px;
     list-style: none;
-    margin-top: 205px;
+    margin-top: 100px;
     background: transparent; }
     #navbar li a {
       float: left;
-      font: bold 120% Arial, Helvetica, sans-serif;
-      height: 24px;
-      padding-top: 10px;
+      font: bold 100% Arial, Helvetica, sans-serif;
+      height: 20px;
+      padding-top: 8px;
       padding-bottom: 0;
       padding-left: 15px;
       padding-right: 20px;
@@ -53,20 +62,20 @@ body {
 
 #content-container {
   position: absolute;
-  width: 1335px;
-  margin-left: 215px;
-  margin-right: 0px;
-  border: 1px solid green; }
+  width: 1190px;
+  margin-left: 160px;
+  margin-right: 0px; }
   #content-container #form-container {
     float: left;
-    width: 333.75px;
+    width: 297.5px;
     background: #e6e6e6;
     padding-top: 10px;
     padding-bottom: 10px;
     padding-left: 10px;
     padding-right: 10px;
     display: inline-block;
-    margin-right: 7.5px;
+    margin-right: 6px;
+    margin-bottom: 10px;
     -webkit-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
     -moz-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
     box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px; }
@@ -86,24 +95,44 @@ body {
       #content-container #form-container table .errorlist {
         font-size: 0.8em;
         color: red; }
+  #content-container #lightcurve {
+    margin-left: 8px;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    float: left;
+    font-size: 0.8em;
+    font-family: Century Gothic, sans-serif;
+    width: 566.66667px;
+    height: 270px; }
+  #content-container #sed {
+    margin-right: 8px;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    float: right;
+    font-size: 0.8em;
+    font-family: Century Gothic, sans-serif;
+    width: 566.66667px;
+    height: 270px; }
+  #content-container #image-cutout {
+    margin-top: 8px;
+    width: 1190px;
+    float: left; }
+    #content-container #image-cutout img {
+      float: left;
+      width: auto;
+      height: auto;
+      max-width: 167.60563px; }
   #content-container #results-container {
     float: left;
     background: #e6e6e6;
-    width: 934.5px;
+    width: 1190px;
     padding-top: 10px;
     padding-bottom: 10px;
     padding-left: 10px;
     padding-right: 10px;
     -webkit-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
     -moz-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
-    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
-    border: 2px solid green; }
-    #content-container #results-container .image {
-      float: left;
-      border: 2px solid blue; }
-    #content-container #results-container .image-info * {
-      text-decoration: none;
-      list-style: none; }
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px; }
 
 #footer {
   clear: both;
@@ -112,63 +141,3 @@ body {
   z-index: 10;
   height: 3em;
   margin-top: -30-em; }
-
-/* tables- http://tablesorter.com */
-table.tablesorter {
-  font-family: arial;
-  background-color: #CDCDCD;
-  margin: 10px 0pt 15px;
-  font-size: 8pt;
-  width: 100%;
-  text-align: left; }
-
-table.tablesorter thead tr th, table.tablesorter tfoot tr th {
-  background-color: #e6EEEE;
-  border: 1px solid white;
-  font-size: 8pt;
-  padding: 4px; }
-
-table.tablesorter thead tr .header {
-  background-image: url(bg.gif);
-  background-repeat: no-repeat;
-  background-position: center right;
-  cursor: pointer; }
-
-table.tablesorter tbody td {
-  color: #3D3D3D;
-  padding: 4px;
-  background-color: #FFF;
-  vertical-align: top; }
-
-table.tablesorter tbody tr.odd td {
-  background-color: #F0F0F6; }
-
-table.tablesorter thead tr .headerSortUp {
-  background-image: url(asc.gif); }
-
-table.tablesorter thead tr .headerSortDown {
-  background-image: url(desc.gif); }
-
-table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
-  background-color: #8dbdd8; }
-
-/* animated spoiler CSS by Bloggersentral.com */
-.spoilerbutton {
-  display: block;
-  margin: 5px 0; }
-
-.spoiler {
-  overflow: hidden;
-  background: #f5f5f5; }
-
-.spoiler > div {
-  -webkit-transition: all 0.2s ease;
-  -moz-transition: margin 0.2s ease;
-  -o-transition: all 0.2s ease;
-  transition: margin 0.2s ease; }
-
-.spoilerbutton[value="Show"] + .spoiler > div {
-  margin-top: -100%; }
-
-.spoilerbutton[value="Hide"] + .spoiler {
-  padding: 5px; }

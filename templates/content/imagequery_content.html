@@ -1,31 +1,30 @@
-<div id="results-container">
-  <table id="imagequery_results" cellspacing=2>
-  <thead>
-    <tr>
-      <th>Distance (arcminutes) </th>
-      <th>FieldID</th>
-      <th>OB</th>
-      <th>Date-obs</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for target in targets %}
-  {% for OB in target.OBs %}
-    <tr>
-      <td>{{target.distance|stringformat:"0.1f"}}</td>
-      <td><a href="/fields/{{target.name}}">{{target.name}}</a></td>
-      <td><a href="/fields/{{target.name}}/{{OB.OBname}}">{{OB.OBname}}</a></td>
-      <td>{{OB.date_obs}}</td>
-    </tr>
-  {% endfor %}
-  {% endfor %}
-  </tbody>
-  </table>
+<table id="imagequery_results">
+<thead>
+  <tr>
+    <th>Distance (arcminutes) </th>
+    <th>FieldID</th>
+    <th>OB</th>
+    <th>Date-obs</th>
+  </tr>
+</thead>
+<tbody>
+{% for target in targets %}
+{% for OB in target.OBs %}
+  <tr>
+    <td>{{target.distance|stringformat:"0.1f"}}</td>
+    <td><a href="/fields/{{target.name}}">{{target.name}}</a></td>
+    <td><a href="/fields/{{target.name}}/{{OB.OBname}}">{{OB.OBname}}</a></td>
+    <td>{{OB.date_obs}}</td>
+  </tr>
+{% endfor %}
+{% endfor %}
+</tbody>
+</table>
 
 
-  <script>
-    $(document).ready(function(){
-        $('#imagequery_results').dataTable();
-        });
-  </script>
-</div>
+<script>
+  $(document).ready(function(){
+      $('#imagequery_results').dataTable();
+      });
+</script>
+

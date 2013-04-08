@@ -43,7 +43,7 @@ class NoCoverageError(Exception):
 
 def get_sources(cd):
   coordstr = cd['coords'].replace(',',' ').strip()
-  area = cd['area']
+  radius = cd['radius']
 
   #-------------------------------------
   # User input data validation
@@ -63,7 +63,7 @@ def get_sources(cd):
       raise CoordinateParseError
   
   try:
-    radius = float(area)
+    radius = min(float(radius),300)
   except:
     raise AreaParseError
   #-------------------------------------
@@ -175,9 +175,17 @@ def view_source(request,sourceID):
                 'r': lambda k: k.MAG_PSF,
                 'i': lambda k: k.MAG_PSF,
                 'z': lambda k: k.MAG_PSF,
-                'J': lambda k: k.MAG_APP,
-                'H': lambda k: k.MAG_APP,
-                'K': lambda k: k.MAG_APP,
+                'J': lambda k: k.MAG_CALIB+constants.convert_to_AB['J'],
+                'H': lambda k: k.MAG_CALIB+constants.convert_to_AB['H'],
+                'K': lambda k: k.MAG_CALIB+constants.convert_to_AB['K'],
+
+                'g_err': lambda k: k.MAG_PSF_ERR,
+                'r_err': lambda k: k.MAG_PSF_ERR,
+                'i_err': lambda k: k.MAG_PSF_ERR,
+                'z_err': lambda k: k.MAG_PSF_ERR,
+                'J_err': lambda k: k.MAG_CALIB_ERR,
+                'H_err': lambda k: k.MAG_CALIB_ERR,
+                'K_err': lambda k: k.MAG_CALIB_ERR,
                 }
   source_data = []
   for OB in set(OBs):
@@ -189,14 +197,14 @@ def view_source(request,sourceID):
         if column not in magnitude_kws:
           D[column] = translation[column](r)
       if r.BAND in userColumns:
-        D[r.BAND] = translation[r.BAND](r)
-        #D[r.BAND+_"err"] = translation[r.BAND+"_err"](r)
+        D[r.BAND] = '%0.2f' % translation[r.BAND](r)
+        D[r.BAND+"_err"] = '%0.2f' % translation[r.BAND+"_err"](r)
       source_data[-1].update(D)
   
   x,y,yerr = [],[],[] #For lightcurve
   #TODO: Allow user to choose which band is plotted in the LC
   for OB in source_data:
-    x.append(OB['imageheader'].MJD_MID)
+    x.append(round(OB['imageheader'].MJD_MID,2))
     y.append(OB['r'])
     yerr.append(OB['r_err'])
   lightcurve = [dict([('x',i),('y',j),('err',k)]) for i,j,k in zip(x,y,yerr)]
