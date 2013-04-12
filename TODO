@@ -1,28 +1,41 @@
 TODO:
 
 /sources/
--source table columns based on user input
--ability to choose which OB's SED is plotted
--ability to choose which OB's cutouts are plotted
--ability to dump data to ascii
--change SED/lightcurve y-axis direction
+  -Image cutouts for all bands, even if no source is detected
+  -FORCE DETECTION link in table, force detect all OB link
+
+  -source table columns based on user input
+  -ability to choose which OB's SED is plotted
+  -ability to choose which OB's cutouts are plotted
+  -ability to dump data to ascii
+
+objectquery/
+  -image cutouts regardless
+  -circle sources in cutouts
+  -force detect flag
+    .Adds entry to dataTable or above, clicking entry produces /source/ page that will have force detect links
+    .Save in user database  
 
 
 /fields/
--implement fields, fields/OB page
+  -implement fields, fields/OB page
 
-/imagequery/
--bulk download link
+imagequery/
+  -bulk download link
 
-/readme/impressum/contact/
--write static pages
+readme/impressum/contact/
+  -write static pages
 
 models.py
--calibration field ForeignKey in ImageProperties
--low galactic latitude flag in AstroSource
+  -calibration field ForeignKey in ImageProperties
+  -low galactic latitude flag in AstroSource
 
 dataside
--photometric calibration pipeline
+  -photometric calibration pipeline:
+    .Progress indicator, jump-to
+    .No images-check
+    .Powers of 2 flagging per band
+    .SQL dump on save&exit; userbot.py upload      
 
 general
--css!
+  -css!
