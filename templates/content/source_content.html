@@ -1,54 +1,128 @@
 {% load hash %}
 {% load sorting %}
 
-<script type="text/javascript">
-  $(document).ready(function(){
-      // slowe.github.com/graph
-      var d = "{{ lightcurve|safe }}"
-      d = d.replace( / u'/g, " '" ).replace( /'/g, "\"" );
-      d = $.parseJSON(d)
-      // Data in the form [{x:x1,y:y1,err:err1},...{x:xn,y:yn,err:errn}]
-      // You could add in other variables here that you can
-      // then make use of when making labels.
-      graph = $.graph('lightcurve', {
-        data: d,
-        color: "#dd9901",
-        hoverable:true,
-        clickable:true,
-        points: {show:true,radius:5.5},
-        lines:{show:true,width:1}
-        }, {
-        xaxis: {log:false,label:'MJD'},
-        yaxis: {log:false,label:'Brightness (AB)'},
-        grid: {show:false,color:'rgb(255,0,0)',background:'rgb(255,255,255)'}
-        });
-    });
+<script>
 
-  $(document).ready(function(){
+$(function() {
+    $('#lightcurve').highcharts({
+        chart: {
+            zoomType: 'xy'
+        },
+        title: {
+            text: 'Lightcurve'
+        },
+        xAxis: [{
+            categories: {{lightcurve.x}},
+                        title: {
+                            text: 'MJD',
+                            style: {
+                                color: '#89A54E'
+                            }
+                        }
+        }],
+        yAxis: [{ // Primary yAxis
+            reversed:true,
+            labels: {
+                formatter: function() {
+                    return this.value;
+                },
+                style: {
+                    color: '#89A54E'
+                }
+            },
+            title: {
+                text: 'Magnitude (AB)',
+                style: {
+                    color: '#89A54E'
+                }
+            }
+        },],
+
+        tooltip: {
+            shared: true
+        },
+
+        series: [{
+            name: 'Magnitude',
+            color: '#89A54E',
+            type: 'spline',
+            data: {{lightcurve.y}},
+            tooltip: {
+                pointFormat: '<span style="font-weight: bold; color: {series.color}">{series.name}</span>: <b>{point.y:.1f}</b> '
+            }
+        }, {
+            name: 'Magnitude error',
+            type: 'errorbar',
+            data: {{lightcurve.yerr}},
+            tooltip: {
+                pointFormat: ''
+            }
+        }]
+    });
+});
+
+$(function() {
+    $('#sed').highcharts({
+        chart: {
+            zoomType: 'xy'
+        },
+        title: {
+            text: 'Spectral energy distribution'
+        },
+        xAxis: [{
+            categories: {{SED.x}},
+                        title: {
+                            text: 'Wavelength (nm)',
+                            style: {
+                                color: '#89A54E'
+                            }
+                        }
+        }],
+        yAxis: [{ // Primary yAxis
+            reversed:true,
+            labels: {
+                formatter: function() {
+                    return this.value;
+                },
+                style: {
+                    color: '#89A54E'
+                }
+            },
+            title: {
+                text: 'Magnitude (AB)',
+                style: {
+                    color: '#89A54E'
+                }
+            }
+        },],
+
+        tooltip: {
+            shared: true
+        },
+
+        series: [{
+            name: 'Magnitude',
+            color: '#89A54E',
+            type: 'spline',
+            data: {{SED.y}},
+            tooltip: {
+                pointFormat: '<span style="font-weight: bold; color: {series.color}">{series.name}</span>: <b>{point.y:.1f}</b> '
+            }
+        }, {
+            name: 'Magnitude error',
+            type: 'errorbar',
+            data: {{SED.yerr}},
+            tooltip: {
+                pointFormat: ''
+            }
+        }]
+    });
+});
+
+$(document).ready(function(){
       $('#source_datatable').dataTable();
       });
 
-  $(document).ready(function(){
-     var d = "{{ SED|safe }}"
-     d = d.replace( / u'/g, " '" ).replace( /'/g, "\"" );
-     d = $.parseJSON(d)
-     // slowe.github.com/graph
-     // Data in the form [{x:x1,y:y1,err:err1},...{x:xn,y:yn,err:errn}]
-     // You could add in other variables here that you can
-     // then make use of when making labels.        
-     graph = $.graph('sed', {
-       data: d,
-       color: "#dd9901",
-       hoverable:true,
-       clickable:true,
-       points: {show:true,radius:5.5},
-       lines:{show:true,width:1}
-       }, {
-       xaxis: {log:false,label:'Wavelength (nm)'},
-       yaxis: {log:false,label:'Brightness (AB)'},
-       grid: {show:false,color:'rgb(255,0,0)',background:'rgb(255,255,255)'}
-      });
-    });
 </script>
 
 
@@ -58,6 +132,7 @@
     Image cutouts and SED derived from {{nominalOB.0.imageheader.OB}}. {{ lc_band }}-band lightcurve.
   </div>
 </div>
+
 
 <!--Lightcurve, SED, cutouts-->
 <div id='image-cutout'>

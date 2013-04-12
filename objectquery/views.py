@@ -134,17 +134,19 @@ def view_source(request,sourceID):
   for photo_obj in nominalOB:
     x.append(constants.GrondFilters[photo_obj.BAND]['lambda_eff'])
     if photo_obj.BAND in 'griz':
-      y.append(photo_obj.MAG_PSF)
-      yerr.append(photo_obj.MAG_PSF_ERR)
+      mag = photo_obj.MAG_PSF
+      mag_err = photo_obj.MAG_PSF_ERR
     else:
-      y.append(photo_obj.MAG_APP)
-      yerr.append(photo_obj.MAG_APP_ERR)
+      mag = photo_obj.MAG_CALIB
+      mag_err = photo_obj.MAG_CALIB_ERR
+    y.append(mag)
+    yerr.append( [mag-mag_err,mag+mag_err] )
     fname = '%s.png' % uuid.uuid4()
     photo_obj.fname = fname #This attribute is expected by the template
     ra = photo_obj.astrosource.RA
     dec = photo_obj.astrosource.DEC
     tasks.makeImage(photo_obj.imageheader,fname,clipSizeDeg,ra,dec)
-  SED = [dict([('x',i),('y',j),('err',k)]) for i,j,k in zip(x,y,yerr)]
+  SED = dict(x=x,y=y,yerr=yerr)
 
   #Set up the data container that will be iterated/presented in the html template
   userColumns = (
@@ -207,11 +209,13 @@ def view_source(request,sourceID):
     #TODO: Allow user to choose which band is plotted in the LC
     for OB in source_data:
       if OB[band]:
+        mag = round(float(OB[band]),2) #Convert back to float from formatted string
+        mag_err = round(float(OB[band+"_err"]),2)
         x.append(round(OB['imageheader'].MJD_MID,2))
-        y.append(OB[band])
-        yerr.append(OB[band+'_err'])
-    lightcurve[band] = [dict([('x',i),('y',j),('err',k)]) for i,j,k in zip(x,y,yerr)]
-  bestBand = sorted(lightcurve.items(),key=lambda k: len(k[1]),reverse=True)[0][0]
+        y.append(mag)
+        yerr.append([ mag-mag_err,mag+mag_err ])
+    lightcurve[band] = {'x':x,'y':y,'yerr':yerr}
+  bestBand = sorted(lightcurve.items(),key=lambda k: len(k[1]['x']), reverse=True)[0][0]
   return render(request,'content.html',{'source_data':source_data,'request':request,
                                         'lightcurve':lightcurve[bestBand],'nominalOB':nominalOB,
                                         'SED':SED,'userColumns':userColumns,'lc_band':bestBand,
