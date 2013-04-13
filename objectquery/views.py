@@ -141,8 +141,8 @@ def view_source(request,sourceID):
     hdr.fname = fname #This attribute is expected by the template
     tasks.makeImage(hdr,fname,clipSizeDeg,ra,dec)
 
-
-  x,y,yerr = [],[],[] #For SEDs
+  #For SEDs
+  x,y,yerr = [],[],[]
   for photo_obj in nominalOB:
     x.append(constants.GrondFilters[photo_obj.BAND]['lambda_eff'])
     if photo_obj.BAND in 'griz':
