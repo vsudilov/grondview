@@ -13,6 +13,7 @@ from grondview.views import GenericDataContainer
 from objectquery.forms import ObjectQueryForm
 from objectquery.models import AstroSource
 from objectquery.models import Photometry
+from imagequery.models import ImageHeader
 
 import os, sys
 import operator
@@ -128,8 +129,19 @@ def view_source(request,sourceID):
   bands = 'grizJHK'
   p = dict([(b,bands.index(b)+1) for b in bands])
   nominalOB = sorted(nominalOB, key=lambda k: p[k.BAND])
+  #Create image cut-outs
   clipSizeDeg = 10 #10 arcseconds
   clipSizeDeg *= 10 #for binned stubdata!
+  imageheaders = ImageHeader.objects.filter(OB=nominalOB[0].imageheader.OB).filter(TARGETID=nominalOB[0].imageheader.TARGETID)
+  imageheaders = sorted(imageheaders, key=lambda k: p[k.FILTER])
+  ra = nominalOB[0].astrosource.RA
+  dec = nominalOB[0].astrosource.DEC
+  for hdr in imageheaders:
+    fname = '%s.png' % uuid.uuid4()
+    hdr.fname = fname #This attribute is expected by the template
+    tasks.makeImage(hdr,fname,clipSizeDeg,ra,dec)
+
+
   x,y,yerr = [],[],[] #For SEDs
   for photo_obj in nominalOB:
     x.append(constants.GrondFilters[photo_obj.BAND]['lambda_eff'])
@@ -141,11 +153,6 @@ def view_source(request,sourceID):
       mag_err = photo_obj.MAG_CALIB_ERR
     y.append(mag)
     yerr.append( [mag-mag_err,mag+mag_err] )
-    fname = '%s.png' % uuid.uuid4()
-    photo_obj.fname = fname #This attribute is expected by the template
-    ra = photo_obj.astrosource.RA
-    dec = photo_obj.astrosource.DEC
-    tasks.makeImage(photo_obj.imageheader,fname,clipSizeDeg,ra,dec)
   SED = dict(x=x,y=y,yerr=yerr)
 
   #Set up the data container that will be iterated/presented in the html template
@@ -219,6 +226,7 @@ def view_source(request,sourceID):
   return render(request,'content.html',{'source_data':source_data,'request':request,
                                         'lightcurve':lightcurve[bestBand],'nominalOB':nominalOB,
                                         'SED':SED,'userColumns':userColumns,'lc_band':bestBand,
+                                        'imageheaders':imageheaders,
                                         })
 
 

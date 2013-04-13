@@ -136,8 +136,8 @@ $(document).ready(function(){
 
 <!--Lightcurve, SED, cutouts-->
 <div id='image-cutout'>
-  {% for photo_obj in nominalOB %}
-  <img src="{{MEDIA_URL}}{{photo_obj.fname}}" />
+  {% for hdr in imageheaders %}
+  <img src="{{MEDIA_URL}}{{hdr.fname}}" />
   {% endfor %}
 </div>
 <div id="lightcurve"></div>
