@@ -5,6 +5,9 @@
 </div>
 
 
+{% if sources == "NO_SOURCES_DETECTED" %}
+<div class="hint">No sources detected at given radius<div>
+{% else %}
 <table id="objectquery_results">
 <thead>
   <tr>
@@ -27,4 +30,4 @@
       $('#objectquery_results').dataTable();
       });
 </script>
-
+{% endif %}

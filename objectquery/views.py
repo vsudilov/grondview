@@ -68,10 +68,12 @@ def get_sources(cd):
   except:
     raise AreaParseError
   #-------------------------------------
-  results = AstroSource.objects.sourcePositionFilter(ra,dec,radius=radius,units='arcseconds')
-    
+  imageheaders = getNominalOB(ra,dec,radius)
+
+  results = AstroSource.objects.sourcePositionFilter(ra,dec,radius=radius,units='arcseconds')    
   if not results:
-    raise NoCoverageError(radius=radius)
+    #raise NoCoverageError(radius=radius)
+    return "NO_SOURCES_DETECTED",imageheaders
   distances = dict((i.sourceID,i.distance*3600) for i in results) #Keep distance for later
 
   #Filter based on sourceID (chaining Q functions)
@@ -102,9 +104,20 @@ def get_sources(cd):
   #1. 7 filters (exact)
   #2. depth (30m,20m,10m,8m,4m)
   #3. seeing
-  SEEING_LIMIT = 2.0
+
+  return sources,imageheaders
+
+
+def getNominalOB(ra,dec,clipSizeArcsec=10,seeing_limit=2.0):
+  '''  
+  Find imageheaders that will be plotted. Find the "best", nominalOB, which has the following criteria:
+  1. most filters
+  2. depth (30m,20m,10m,8m,4m)
+  3. seeing <= seeing_limit
+  Returns a list of imageheader objects, sorted by band
+  '''
   candidateOBs = {}
-  results = ImageHeader.objects.filter(imageproperties__SEEING__lte=SEEING_LIMIT).imagePositionFilter(ra,dec,radius)
+  results = ImageHeader.objects.filter(imageproperties__SEEING__lte=seeing_limit).imagePositionFilter(ra,dec,clipSizeArcsec)
   for r in results:
     try:
       candidateOBs[r.TARGETID+r.OB].append(r)
@@ -114,15 +127,16 @@ def get_sources(cd):
   max_filters = len(max(sorted(candidateOBs.values(), key=len)))
   candidateOBs = [i for i in candidateOBs.values() if len(i)==max_filters]
   imageheaders = sorted(candidateOBs, key = lambda k: constants.obtypes_sequence[k[0].OBTYPEID])[0]
+  imageheaders = sorted(imageheaders,key = lambda k: constants.band_sequence[k.FILTER])
   #Create image cut-outs
-  clipSizeArcsec = radius
-  clipSizeArcsec *= 10 #for binned stubdata!
+  clipSizeArcsec*=10 #For stubdata only!
   for hdr in imageheaders:
     fname = '%s.png' % uuid.uuid4()
     hdr.fname = fname #This attribute is expected by the template
     tasks.makeImage(hdr,fname,clipSizeArcsec,ra,dec)
+  return imageheaders
 
-  return sources,imageheaders
+
 
 
 def view_source(request,sourceID):
@@ -159,16 +173,7 @@ def view_source(request,sourceID):
   nominalOB = sorted(nominalOB, key=lambda k: constants.band_sequence[k.BAND])
   
   #Create image cut-outs
-  clipSizeArcsec= 10 #10 arcseconds
-  clipSizeArcsec *= 10 #for binned stubdata!
-  imageheaders = ImageHeader.objects.filter(OB=nominalOB[0].imageheader.OB).filter(TARGETID=nominalOB[0].imageheader.TARGETID)
-  imageheaders = sorted(imageheaders, key=lambda k: constants.band_sequence[k.FILTER])
-  ra = nominalOB[0].astrosource.RA
-  dec = nominalOB[0].astrosource.DEC
-  for hdr in imageheaders:
-    fname = '%s.png' % uuid.uuid4()
-    hdr.fname = fname #This attribute is expected by the template
-    tasks.makeImage(hdr,fname,clipSizeArcsec,ra,dec)
+  imageheaders = getNominalOB(nominalOB[0].astrosource.RA,nominalOB[0].astrosource.DEC)
 
   #For SEDs
   x,y,yerr = [],[],[]
