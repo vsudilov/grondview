@@ -97,7 +97,32 @@ def get_sources(cd):
     sources[-1].sortOBs()
     sources[-1].sortBands()
   sources = sorted(sources,key=lambda k: k.distance)
-  return sources
+  
+  #Find imageheaders that will be plotted. Plot the "best", which has the following criteria:
+  #1. 7 filters (exact)
+  #2. depth (30m,20m,10m,8m,4m)
+  #3. seeing
+  SEEING_LIMIT = 2.0
+  candidateOBs = {}
+  results = ImageHeader.objects.filter(imageproperties__SEEING__lte=SEEING_LIMIT).imagePositionFilter(ra,dec,radius)
+  for r in results:
+    try:
+      candidateOBs[r.TARGETID+r.OB].append(r)
+    except KeyError:
+      candidateOBs[r.TARGETID+r.OB] = [r]
+
+  max_filters = len(max(sorted(candidateOBs.values(), key=len)))
+  candidateOBs = [i for i in candidateOBs.values() if len(i)==max_filters]
+  imageheaders = sorted(candidateOBs, key = lambda k: constants.obtypes_sequence[k[0].OBTYPEID])[0]
+  #Create image cut-outs
+  clipSizeArcsec = radius
+  clipSizeArcsec *= 10 #for binned stubdata!
+  for hdr in imageheaders:
+    fname = '%s.png' % uuid.uuid4()
+    hdr.fname = fname #This attribute is expected by the template
+    tasks.makeImage(hdr,fname,clipSizeArcsec,ra,dec)
+
+  return sources,imageheaders
 
 
 def view_source(request,sourceID):
@@ -110,36 +135,40 @@ def view_source(request,sourceID):
   be image with the most detections, followed by the longest exposure time. Additionally,
   there is a seeing limit imposed on all OBs
   '''
-  OBTYPEIDs = ['30m6td','20m4td','10m6td','8m4td','4m4td']
   OBs = [i.imageheader.OB for i in results]
+  TARGETIDs = [i.imageheader.TARGETID for i in results] #Necessary if there happen to be multiple IDs per field
   SEEING_LIMIT = 2.0
-  candidate_OBs = []
-  for OBTYPEID in OBTYPEIDs:
+  candidateOBs = {}
+  for TARGETID in TARGETIDs:
     for OB in OBs:
-      candidateOB = (Photometry.objects
+      photo_objs = (Photometry.objects
                   .filter(astrosource__sourceID=sourceID)
-                  .filter(imageheader__OBTYPEID=OBTYPEID)
                   .filter(imageheader__imageproperties__SEEING__lte=SEEING_LIMIT)
                   .filter(imageheader__OB=OB)
+                  .filter(imageheader__TARGETID=TARGETID)
                   )
-      if not candidateOB:
+      if not photo_objs:
         continue
-      candidate_OBs.append(candidateOB)
-  nominalOB = max(candidate_OBs, key=len)
-  bands = 'grizJHK'
-  p = dict([(b,bands.index(b)+1) for b in bands])
-  nominalOB = sorted(nominalOB, key=lambda k: p[k.BAND])
+      candidateOBs[TARGETID+OB] = photo_objs
+
+  max_filters = len(max(sorted(candidateOBs.values(), key=len)))
+  candidateOBs = [i for i in candidateOBs.values() if len(i)==max_filters]  
+  for i in candidateOBs:
+    print i
+  nominalOB = sorted(candidateOBs, key = lambda k: constants.obtypes_sequence[k[0].imageheader.OBTYPEID])[0]
+  nominalOB = sorted(nominalOB, key=lambda k: constants.band_sequence[k.BAND])
+  
   #Create image cut-outs
-  clipSizeDeg = 10 #10 arcseconds
-  clipSizeDeg *= 10 #for binned stubdata!
+  clipSizeArcsec= 10 #10 arcseconds
+  clipSizeArcsec *= 10 #for binned stubdata!
   imageheaders = ImageHeader.objects.filter(OB=nominalOB[0].imageheader.OB).filter(TARGETID=nominalOB[0].imageheader.TARGETID)
-  imageheaders = sorted(imageheaders, key=lambda k: p[k.FILTER])
+  imageheaders = sorted(imageheaders, key=lambda k: constants.band_sequence[k.FILTER])
   ra = nominalOB[0].astrosource.RA
   dec = nominalOB[0].astrosource.DEC
   for hdr in imageheaders:
     fname = '%s.png' % uuid.uuid4()
     hdr.fname = fname #This attribute is expected by the template
-    tasks.makeImage(hdr,fname,clipSizeDeg,ra,dec)
+    tasks.makeImage(hdr,fname,clipSizeArcsec,ra,dec)
 
   #For SEDs
   x,y,yerr = [],[],[]
@@ -211,7 +240,7 @@ def view_source(request,sourceID):
       source_data[-1].update(D)
   
   lightcurve = {}
-  for band in bands:
+  for band in constants.bands:
     x,y,yerr = [],[],[] #For lightcurve
     #TODO: Allow user to choose which band is plotted in the LC
     for OB in source_data:
@@ -237,8 +266,8 @@ def home(request):
       return render(request,'content.html',{'form': form})
     cd = form.cleaned_data
     try:
-      sources=get_sources(cd)
-      return render(request,'content.html',{'form': form,'sources':sources,'request':request.POST})
+      sources,imageheaders=get_sources(cd)
+      return render(request,'content.html',{'form': form,'sources':sources,'imageheaders':imageheaders,'request':request.POST})
     except (AreaParseError,CoordinateParseError,NoCoverageError) as e:
       return render(request,'content.html',{'form': form,'formerror':e.msg,'request':request.POST})    
   else:

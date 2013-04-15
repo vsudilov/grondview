@@ -1,3 +1,10 @@
+<div id='image-cutout'>
+  {% for hdr in imageheaders %}
+  <img src="{{MEDIA_URL}}{{hdr.fname}}" />
+  {% endfor %}
+</div>
+
+
 <table id="objectquery_results">
 <thead>
   <tr>
