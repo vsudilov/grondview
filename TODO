@@ -1,7 +1,6 @@
 TODO:
 
 /sources/
-  -Image cutouts for all bands, even if no source is detected
   -FORCE DETECTION link in table, force detect all OB link
 
   -source table columns based on user input
@@ -10,7 +9,6 @@ TODO:
   -ability to dump data to ascii
 
 objectquery/
-  -image cutouts regardless
   -circle sources in cutouts
   -force detect flag
     .Adds entry to dataTable or above, clicking entry produces /source/ page that will have force detect links
@@ -31,11 +29,6 @@ models.py
   -low galactic latitude flag in AstroSource
 
 dataside
-  -photometric calibration pipeline:
-    .Progress indicator, jump-to
-    .No images-check
-    .Powers of 2 flagging per band
-    .SQL dump on save&exit; userbot.py upload      
 
 general
   -css!

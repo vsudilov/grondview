@@ -150,6 +150,7 @@ INSTALLED_APPS = (
      'grondview',
      'imagequery',
      'objectquery',
+     'forcedetect',
      'djcelery',
 )
 
