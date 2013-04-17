@@ -167,8 +167,6 @@ def view_source(request,sourceID):
 
   max_filters = len(max(sorted(candidateOBs.values(), key=len)))
   candidateOBs = [i for i in candidateOBs.values() if len(i)==max_filters]  
-  for i in candidateOBs:
-    print i
   nominalOB = sorted(candidateOBs, key = lambda k: constants.obtypes_sequence[k[0].imageheader.OBTYPEID])[0]
   nominalOB = sorted(nominalOB, key=lambda k: constants.band_sequence[k.BAND])
   
