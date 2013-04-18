@@ -13,6 +13,7 @@ objectquery/
   -force detect flag
     .Adds entry to dataTable or above, clicking entry produces /source/ page that will have force detect links
     .Save in user database  
+  -search by source name (or coordinates)
 
 
 /fields/

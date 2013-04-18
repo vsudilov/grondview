@@ -64,6 +64,9 @@ class AstroSource(models.Model):
   def natural_key(self):
     return (self.sourceID,)
 
+  class Meta:
+    verbose_name = "AstroSource"
+
 class Photometry(models.Model):
   '''
   Photometric parameters
@@ -87,6 +90,7 @@ class Photometry(models.Model):
   R_HALFLIGHT = models.FloatField()
   BAND = models.CharField(max_length=1)  
 
-
+  class Meta:
+    verbose_name = "Photometry"
   
   

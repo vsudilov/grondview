@@ -1,5 +1,5 @@
 from django import forms
-from django.forms.widgets import RadioSelect, CheckboxSelectMultiple
+from django.forms.widgets import RadioSelect, CheckboxInput
 
 
 class ObjectQueryForm(forms.Form):
@@ -15,13 +15,8 @@ class ObjectQueryForm(forms.Form):
                   attrs={'value':"1.0",'min': '1.0', 'max': '300','class':'radius_input'}),
               label="Radius"
               ) 
-
-  dates = forms.CharField(
-              widget=forms.DateInput(
-                  attrs={'placeholder':"(Optional)",
-                          'class':'dates_input'},
-                  format="YYYY-MM-DD"),
-              label="Date range",
-              required=False,
-              )
   
+  include_user_detections = forms.FloatField( 
+              widget=CheckboxInput(
+                attrs={'checked':True}),
+              label = "Include user detections")

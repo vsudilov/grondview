@@ -1,4 +1,6 @@
 from django.contrib import admin
-from models import UserDetection
+from models import UserAstroSource
+from models import UserPhotometry
 
-admin.site.register(UserDetection)
+admin.site.register(UserAstroSource)
+admin.site.register(UserPhotometry)

@@ -14,6 +14,8 @@ from objectquery.forms import ObjectQueryForm
 from objectquery.models import AstroSource
 from objectquery.models import Photometry
 from imagequery.models import ImageHeader
+from forcedetect.models import UserAstroSource
+from forcedetect.models import UserPhotometry
 
 import os, sys
 import operator
@@ -45,6 +47,7 @@ class NoCoverageError(Exception):
 def get_sources(cd):
   coordstr = cd['coords'].replace(',',' ').strip()
   radius = cd['radius']
+  include_user_detections = cd['include_user_detections']
 
   #-------------------------------------
   # User input data validation
@@ -70,17 +73,20 @@ def get_sources(cd):
   #-------------------------------------
   imageheaders = getNominalOB(ra,dec,radius)
 
-  results = AstroSource.objects.sourcePositionFilter(ra,dec,radius=radius,units='arcseconds')    
+  results = AstroSource.objects.sourcePositionFilter(ra,dec,radius=radius,units='arcseconds')  
   if not results:
     #raise NoCoverageError(radius=radius)
     return "NO_SOURCES_DETECTED",imageheaders
   distances = dict((i.sourceID,i.distance*3600) for i in results) #Keep distance for later
+  DBtables = dict((i.sourceID,i._meta.verbose_name) for i in results)  
 
   #Filter based on sourceID (chaining Q functions)
   Qs = [Q(astrosource__sourceID=i.sourceID) for i in results]
   q = reduce(operator.or_, Qs)
   results = Photometry.objects.filter(q)
-  
+
+    
+
   #group results by sourceID
   grouped_sources = dict((i.astrosource.sourceID,[]) for i in results)
   for r in results:
@@ -89,21 +95,9 @@ def get_sources(cd):
 
   #Append GenericDataContainers to sources list
   for sourceID in grouped_sources:
-    sources.append(GenericDataContainer(name=sourceID,distance=distances[sourceID]))
-    for source_data in grouped_sources[sourceID]:
-      OBname = source_data.imageheader.OB
-      D = source_data.__dict__
-      D['imageheader'] = source_data.imageheader #obj.__dict__ gives the ForeignKeys funny names
-      D['astrosource'] = source_data.astrosource
-      sources[-1].appendOB(OBname=OBname,data=D)
-    sources[-1].sortOBs()
-    sources[-1].sortBands()
+    sources.append(GenericDataContainer(name=sourceID,distance=distances[sourceID],DBtable=DBtables[sourceID]))
+
   sources = sorted(sources,key=lambda k: k.distance)
-  
-  #Find imageheaders that will be plotted. Plot the "best", which has the following criteria:
-  #1. 7 filters (exact)
-  #2. depth (30m,20m,10m,8m,4m)
-  #3. seeing
 
   return sources,imageheaders
 
