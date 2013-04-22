@@ -19,7 +19,7 @@
 {% for target in sources %}
   <tr>
     <td {% if target.DBtable == "UserAstroSource" %} style="background-color:#19E2E6;" {% endif %}>{{target.distance|stringformat:"0.1f"}}</td>
-    <td><a href="/sources/{{target.name}}">{{target.name}}</a></td>
+    <td {% if target.DBtable == "UserAstroSource" %} style="background-color:#19E2E6;" {% endif %}><a href="/sources/{{target.name}}">{{target.name}}</a></td>
   </tr>
 {% endfor %}
 </tbody>

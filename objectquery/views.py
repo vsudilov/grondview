@@ -26,19 +26,35 @@ def get_sources(formdata):
   dec = formdata['dec']
   radius = formdata['radius']
   units = formdata['units']
-  results = AstroSource.objects.positionFilter(ra,dec,radius=radius)  
-  if not results:
+  results = AstroSource.objects.positionFilter(ra,dec,radius=radius)
+
+  u_results = None
+  if formdata['include_user_detections']:  
+    u_results = UserAstroSource.objects.positionFilter(ra,dec,radius=radius) 
+  if not results and not u_results:
     #raise NoCoverageError(radius=radius)
     return {'sources':'NO_SOURCES_DETECTED'}
+
   distances = dict((i.sourceID,i.distance*3600) for i in results) #Keep distance for later
   DBtables = dict((i.sourceID,i._meta.verbose_name) for i in results)  
+  if u_results:
+    distances.update(dict((i.sourceID,i.distance*3600) for i in u_results))
+    DBtables.update(dict((i.sourceID,i._meta.verbose_name) for i in u_results))
 
   #Filter based on sourceID (chaining Q functions)
-  Qs = [Q(astrosource__sourceID=i.sourceID) for i in results]
-  q = reduce(operator.or_, Qs)
-  results = Photometry.objects.filter(q)
+  if results:  
+    Qs = [Q(astrosource__sourceID=i.sourceID) for i in results]
+    q = reduce(operator.or_, Qs)
+    results = list(Photometry.objects.filter(q))
+  if u_results:
+    Qs = [Q(astrosource__sourceID=i.sourceID) for i in u_results]
+    q = reduce(operator.or_, Qs)
+    u_results = list(UserPhotometry.objects.filter(q))
+    
 
   #group results by sourceID
+  if u_results:
+    results.extend(u_results)
   grouped_sources = dict((i.astrosource.sourceID,[]) for i in results)
   for r in results:
     grouped_sources[r.astrosource.sourceID].append(r)

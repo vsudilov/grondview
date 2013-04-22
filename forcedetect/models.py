@@ -21,7 +21,7 @@ from astLib import astCoords
 #as well as model.objects.filter(FILTER__in=bands).positionFilter(ra,dec,radius)
 #http://zmsmith.com/2010/04/using-custom-django-querysets/
 class AstroSourceQuerySet(QuerySet):
-  def sourcePositionFilter(self,ra,dec,radius,units="arcseconds"):
+  def positionFilter(self,ra,dec,radius,units="arcseconds"):
     """
     Filters a queryset based on arclength. Returns a List of 
     database rows, therefore must be the last piece of a QuerySet chain.
@@ -49,14 +49,16 @@ class UserAstroSource(models.Model):
   Detected source
   '''
   def __unicode__(self):
-    return "%s" % (self.sourceID) 
+    return "%s-%s" % (self.user,self.sourceID) 
   
+  user = models.CharField(max_length=30,null=True) #User that created this source
+
   #one object should have 7 image headers, regardless if they are 99% redundant
   imageheader = models.ManyToManyField(ImageHeader,related_name="%(app_label)s_%(class)s_related") 
 
   sourceID = models.CharField(max_length=30) #Unique source ID, GROND_HHMMSS.S+/-DDMMSS.S
   name = models.CharField(max_length=30,null=True) #Optional name to add to the source
-
+  
   RA = models.FloatField() #Object (not field) wcs
   DEC = models.FloatField()
 
