@@ -18,11 +18,20 @@ from lib import astImages
 from lib import constants
 
 @celery.task
-def makeImage(ImageHeaderInstance,fname,clipSizeArcsec,ra,dec):
+def makeImage(ImageHeaderInstance,fname,clipSize,ra,dec,units='arcseconds'):
   d = pyfits.open(ImageHeaderInstance.PATH)[0].data
   wcs = astWCS.WCS(ImageHeaderInstance.PATH)  
-  clipSizeDeg = clipSizeArcsec * constants.convert_arcmin_or_arcsec_to_degrees['arcseconds']
+  clipSizeDeg = clipSize * constants.convert_arcmin_or_arcsec_to_degrees[units]
   cutout = astImages.clipImageSectionWCS(d, wcs, ra, dec, clipSizeDeg, returnWCS = False)
   caption = ImageHeaderInstance.FILTER
-  astImages.saveBitmap(os.path.join(MEDIA_ROOT,fname),cutout['data'],cutLevels=["smart", 99.5],size=200,colorMapName='gray_r',caption=caption,clipSizeArcsec=clipSizeArcsec)
+
+  astImages.saveBitmap(
+    os.path.join(MEDIA_ROOT,fname),
+    cutout['data'],
+    cutLevels=["smart", 99.5],
+    size=200,
+    colorMapName='gray_r',
+    caption=caption,
+    clipSizeDeg=clipSizeDeg,
+    )
   return None

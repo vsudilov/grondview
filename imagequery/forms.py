@@ -1,15 +1,6 @@
 from django import forms
 from django.forms.widgets import RadioSelect, CheckboxSelectMultiple
 
-BANDS = ( ('g', 'g'),
-          ('r', 'r'),
-          ('i', 'i'),
-          ('z', 'z'),
-          ('J', 'J'),
-          ('H', 'H'),
-          ('K', 'K'))
-
-
 class ImageQueryForm(forms.Form):
   coords = forms.CharField(
               widget=forms.TextInput(
@@ -19,9 +10,9 @@ class ImageQueryForm(forms.Form):
               )
 
 
-  radius = forms.FloatField(
+  radius_arcmin = forms.FloatField(
               widget=forms.TextInput(
-                  attrs={'value':"5.4",'min': '0.0167', 'max': '20','class':'radius_input'}),
+                  attrs={'value':"5.4"}),
               label="Search radius (arcminutes)"
               ) 
 

@@ -3,8 +3,11 @@ from django.db.models.query import QuerySet
 from django.db.models import F
 import os
 import sys
+import uuid
 
 from grondview.settings import PROJECT_ROOT
+from grondview.settings import DEBUG
+from grondview import tasks
 sys.path.insert(0,os.path.join(PROJECT_ROOT,'utils'))
 
 from lib import constants
@@ -18,7 +21,7 @@ from astLib import astCoords
 #as well as model.objects.filter(FILTER__in=bands).positionFilter(ra,dec,radius)
 #http://zmsmith.com/2010/04/using-custom-django-querysets/
 class ImageHeaderQuerySet(QuerySet):
-  def imagePositionFilter(self,ra,dec,radius,units="arcminutes"):
+  def positionFilter(self,ra,dec,radius,units="arcminutes"):
     """
     Filters a queryset based on arclength. Returns a List of 
     database rows, therefore must be the last piece of a QuerySet chain.
@@ -32,16 +35,52 @@ class ImageHeaderQuerySet(QuerySet):
         i.__setattr__("distance",distance)
         results.append(i)
     return results
+
+  def getBestImages(self,ra,dec,clipSize=10,seeing_limit=2.0,makeImages=True,forceOB=None,units='arcseconds'):
+    '''  
+    Find imageheaders that will be plotted. Find the "best", nominalOB, which has the following criteria:
+    1. most filters
+    2. depth (30m,20m,10m,8m,4m)
+    3. seeing <= seeing_limit
+    Returns a list of imageheader objects, sorted by band
+    '''
+    candidateOBs = {}
+    results = self.filter(imageproperties__SEEING__lte=seeing_limit).positionFilter(ra,dec,radius=10,units='arcminutes')
+    if not results:
+      return None
+    for r in results:
+      try:
+        candidateOBs[r.TARGETID+r.OB].append(r)
+      except KeyError:
+        candidateOBs[r.TARGETID+r.OB] = [r]
+    max_filters = max( [len(i) for i in candidateOBs.values()] )
+    candidateOBs = [i for i in candidateOBs.values() if len(i)==max_filters]
+    imageheaders = sorted(candidateOBs, key = lambda k: constants.obtypes_sequence[k[0].OBTYPEID])[0]
+    if forceOB:
+      imageheaders = self.filter(OB=forceOB).positionFilter(ra,dec,radius=10)
+    imageheaders = sorted(imageheaders,key = lambda k: constants.band_sequence[k.FILTER])
+    #Create image cut-outs
+    if DEBUG:
+      clipSize*=10 #For stubdata only!
+    for hdr in imageheaders:
+      fname = '%s.png' % uuid.uuid4()
+      hdr.fname = fname #This attribute links the filename to the <img src=''> tag
+      if makeImages:
+        tasks.makeImage(hdr,fname,clipSize,ra,dec,units=units)
+    return imageheaders
+
+
+
 class ImageHeaderManager(models.Manager):
   def get_query_set(self):
     return ImageHeaderQuerySet(self.model)
-
   def __getattr__(self, name):
     return getattr(self.get_query_set(), name)
-
   def get_by_natural_key(self, PATH):
     return self.get(PATH=PATH)
 #--------------------------------------------
+
+
 
 
 class ImageHeader(models.Model):
@@ -84,6 +123,7 @@ class ImageHeader(models.Model):
   IMGEXP = models.FloatField()
   OBTYPEID = models.CharField(max_length=10)
   OB = models.CharField(max_length=10,null=True)
+
 
   def save(self, *args, **kwargs):
     self.OB="OB%s_%s" % ( self.OBSRUNID, self.OBSEQNUM )

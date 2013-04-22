@@ -19,7 +19,7 @@ from astLib import astCoords
 #as well as model.objects.filter(FILTER__in=bands).positionFilter(ra,dec,radius)
 #http://zmsmith.com/2010/04/using-custom-django-querysets/
 class AstroSourceQuerySet(QuerySet):
-  def sourcePositionFilter(self,ra,dec,radius,units="arcseconds"):
+  def positionFilter(self,ra,dec,radius,units="arcseconds"):
     """
     Filters a queryset based on arclength. Returns a List of 
     database rows, therefore must be the last piece of a QuerySet chain.

@@ -1,138 +1,39 @@
 from django.shortcuts import render
-from django.shortcuts import get_object_or_404
 from django.contrib import auth
-from django.template import RequestContext
-from django.template import TemplateDoesNotExist
-from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.utils.importlib import import_module
+from django.views.generic import TemplateView
 
-from grondview.forms import LoginForm
+from .forms import LoginForm
+from .settings import PROJECT_ROOT
+from .settings import MEDIA_ROOT
+from . import tasks
+from .exceptions import *
 
+from imagequery.models import ImageHeader
 
+from imagequery.forms import ImageQueryForm
+from objectquery.forms import ObjectQueryForm
 
-#---------------------------------------------------------------
-class GenericDataContainer(object):
-  '''
-  Defines a generic data container that is expanded in templates.
-  This class is responsible for sorting and grouping results from
-  executed QuerySets.
+from objectquery.views import get_sources
+from imagequery.views import get_fields
 
-  Example usage in views.py:
+from astLib import astCoords
 
-  GenericDataContainer(name="target1")
-  d = {'BAND':'r','MAG_PSF':1}
-  data.appendOB("OB3_1",d)
-  d = {'BAND':'J','MAG_PSF':2}
-  data.appendOB("OB3_1",d)
-  d = {'BAND':'H','MAG_PSF':3}
-  data.appendOB("OB3_1",d)
-  d = {'BAND':'i','MAG_PSF':4}
-  data.appendOB("OB3_1",d)
-  d = {'BAND':'z','MAG_PSF':1.1}
-  data.appendOB("OB3_2",d)
-  d = {'BAND':'J','MAG_PSF':1.2}
-  data.appendOB("OB3_2",d)
-  d = {'BAND':'K','MAG_PSF':1.3}
-  data.appendOB("OB3_2",d)
-  d = {'BAND':'i','MAG_PSF':1.4}
-  data.appendOB("OB3_2",d)
-  d = {'BAND':'g','MAG_PSF':1.11}
-  data.appendOB("OB1_5",d)
-  d = {'BAND':'r','MAG_PSF':1.22}
-  data.appendOB("OB1_5",d)
-  d = {'BAND':'i','MAG_PSF':1.33}
-  data.appendOB("OB1_5",d)
-  d = {'BAND':'z','MAG_PSF':1.44}
-  data.appendOB("OB1_5",d)
-
-  data.sortOBs()
-  data.sortBands()
-
-  Example usage in template:
-  
-  <h1>SourceID: {{data.name}}</h1>
-  <p> Distance from input coordinates: {{data.distance}} </p>
-  <p> Another useful attribute: {{data.usefulAttribute}} </p>
-  {% for OB in data.OBs %}
-    <h2>OB: {{OB.OBname}}</h2>
-    <p>OB Type: {{OB.type}}</h2>
-    {% for d in OB %}
-    <ul>
-    <li>d.BAND</li>
-    <li>d.MAG_PSF</li>
-    <li>d.yetAnotherUsefulAttr</li>
-    </ul 
-  
-  The keys/values of the innermost dict (`d`) are completely arbitrary, 
-  thus enabling flexibility in how this class is used.
-  '''
-
-  def __init__(self,name,**kwargs):
-    self.name = name
-    self.OBs = []
-    for k in kwargs:
-        self.__setattr__(k,kwargs[k])
-  
-  def appendOB(self,OBname,data,**kwargs):
-    OBnames = [OB.OBname for OB in self.OBs]
-    if OBname not in OBnames:
-      self.OBs.append(self._OBContainer(OBname=OBname,**kwargs))
-    [OBContainer.data.append(data) for OBContainer in self.OBs if OBContainer.OBname==OBname]
-        
-
-  def sortOBs(self):
-    def _sortListByOB(L):
-      '''
-      Sorts a list by their OB, ie
-      L = ['OB1_2','OB1_1','OB1_5']
-      {{ L|sortListByBand }}
-        --> ['OB1_1','OB1_2','OB1_5']
-      '''
-      import re
-      def keyfunc(s):
-        s = re.search('\d+_\d+',s).group()
-        return map(int,s.split('_'))
-
-      return sorted(L,key=lambda k: keyfunc(k.OBname))
-    
-    self.OBs = _sortListByOB(self.OBs)
-
-
-  def sortBands(self):
-    def sortListDictByBand(L,band_kw='BAND'):
-      '''
-      Sorts a list of dicts by their band, ie
-      L = [{'BAND':'r'},{'BAND':'g'},{'BAND':'H'}}
-      {{ L|sortListDictByBand }}
-        --> [{'BAND':'g'},{'BAND':'r'},{'BAND':'H'}]
-      '''
-      pattern = {} #-- Order that the bands should be sorted
-      pattern['g'] = 1
-      pattern['r'] = 2
-      pattern['i'] = 3
-      pattern['z'] = 4
-      pattern['J'] = 5
-      pattern['H'] = 6
-      pattern['K'] = 7
-      return sorted(L,key=lambda k: pattern[k[band_kw]])
-
-    for OB in self.OBs:
-      OB.data = sortListDictByBand(OB.data)
-
-
-  class _OBContainer(object):
-    def __init__(self,OBname,**kwargs):
-      self.data = []
-      self.OBname = OBname
-      for k in kwargs:
-        self.__setattr__(k,kwargs[k])
+import sys,os
+sys.path.insert(0,os.path.join(PROJECT_ROOT,'utils'))
+from lib import constants
 
 
 
-def login(request):
-  if request.method == 'POST':
-    form = LoginForm(request.POST)
+
+class Authentication(TemplateView):
+  template_name = 'login.html'
+  form_class = LoginForm
+  method = None #Set in urls.py
+
+  def post(self, request, *args, **kwargs):
+    form = self.form_class(request.POST)
     if form.is_valid():
       cd = form.cleaned_data
       username = request.POST['username']
@@ -144,23 +45,99 @@ def login(request):
           # Redirect to a success page.
         return HttpResponseRedirect('/')
     return render(request,'login.html',{'form': form, 'invalid_login':True})
-  else:
-    form = LoginForm()
-    return render(request,'login.html',{'form': form})
-#---------------------------------------------------------------
+  def get(self, request, *args, **kwargs):
+      return render(request,'login.html',{'form': self.form_class})
+
+  def dispatch(self, request, *args, **kwargs):
+    if self.method == 'logout':
+      auth.logout(request)
+      return HttpResponseRedirect('/')
+    return super(Authentication, self).dispatch(request, *args, **kwargs)        
 
 
+class FormView(TemplateView):  
+  template_name= 'content.html'
+  form_class = None #Set in urls.py
+  translation = {
+    'ObjectQueryForm':get_sources,
+    'ImageQueryForm':get_fields,
+  } 
+  def get(self,request):
+    form = self.form_class
+    return render(request, self.template_name, {'form':form})
 
+  def post(self,request):
+    form = self.form_class(request.POST)
 
-
-def logout(request):
-  auth.logout(request)
-  return HttpResponseRedirect('/')
-
-def staticpage(request, page_name):
-    # Use some exception handling, just to be safe
+    if not form.is_valid():
+      return render(request,self.template_name,{'form': form})    
     try:
-        return direct_to_template(request, '%s.html' % (page_name, ))
-    except TemplateDoesNotExist:
-        raise Http404
+      cd = form.cleaned_data
+      formdata=parseForm(cd)
+      ra = formdata['ra']
+      dec = formdata['dec']
+      radius = formdata['radius']
+      units = formdata['units']
+      imageheaders = ImageHeader.objects.getBestImages(ra,dec,clipSize=radius,seeing_limit=2.0,units=units)
+      context=self.translation[form.__class__.__name__](formdata)
+    except (AreaParseError,CoordinateParseError,NoCoverageError) as e:
+      return render(request,'content.html',{'form': form,'formerror':e.msg,'request':request.POST})      
+    context.update( {'form':form,'imageheaders':imageheaders,'request':request.POST} )
+    return render(request,'content.html',context)
+
+
+
+class StaticView(TemplateView):
+  template_name= 'home.html'
+
+  def get(self,request, *args, **kwargs):
+    if 'page_name' in self.kwargs:
+      self.template_name = self.kwargs['page_name']
+    return render(request, self.template_name)
+
+
+def parseForm(cd):
+  coordstr = cd['coords'].replace(',',' ').strip()
+  try:  
+    radius = cd['radius_arcmin']
+    units = 'arcminutes'
+  except KeyError:
+    radius = cd['radius_arcsec']
+    units = 'arcseconds'
+  try:
+    include_user_detections = cd['include_user_detections']
+  except KeyError:
+    include_user_detections = None
+
+  # User input data validation
+  if ':' in coordstr:
+    # Remember to add sanity checks!    
+    try:
+      c = coordstr.split()
+      ra = astCoords.hms2decimal(c[0],':')
+      dec = astCoords.dms2decimal(c[1],':') 
+    except:
+      raise CoordinateParseError
+  else:
+    try:
+      c = coordstr.split()
+      ra,dec = map(float,c)
+    except:
+      raise CoordinateParseError  
+
+  try:
+    radius = min(float(radius),300)
+  except:
+    raise AreaParseError
+  
+
+  formdata = {
+    'radius':radius,
+    'ra':ra,
+    'dec':dec,
+    'units':units,
+    'include_user_detections': include_user_detections
+    }
+  return formdata
+
 

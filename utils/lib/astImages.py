@@ -848,7 +848,7 @@ def generateContourOverlay(backgroundImageData, backgroundImageWCS, contourImage
     return {'scaledImage': scaledBack, 'contourLevels': cLevels}
     
 #---------------------------------------------------------------------------------------------------
-def saveBitmap(outputFileName, imageData, cutLevels, size, colorMapName, caption,clipSizeArcsec):
+def saveBitmap(outputFileName, imageData, cutLevels, size, colorMapName, caption, clipSizeDeg):
     """Makes a bitmap image from an image array; the image format is specified by the
     filename extension. (e.g. ".jpg" =JPEG, ".png"=PNG).
     
@@ -870,7 +870,7 @@ def saveBitmap(outputFileName, imageData, cutLevels, size, colorMapName, caption
     etc. (do "help(pylab.colormaps)" in the Python interpreter to see available options)
     
     """		
-    
+    clipSizeArcsec = clipSizeDeg*60*60.
     cut=intensityCutImage(imageData, cutLevels)
     
     # Make plot

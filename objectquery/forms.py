@@ -10,10 +10,10 @@ class ObjectQueryForm(forms.Form):
               label="Coordinates"
               )
 
-  radius = forms.FloatField(
+  radius_arcsec = forms.FloatField(
               widget=forms.TextInput(
                   attrs={'value':"1.0",'min': '1.0', 'max': '300','class':'radius_input'}),
-              label="Radius"
+              label="Search radius (arcsec)"
               ) 
   
   include_user_detections = forms.FloatField( 
