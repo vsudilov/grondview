@@ -3,6 +3,7 @@
 import os
 USER_HOME = os.path.expanduser('~')
 PROJECT_ROOT = os.path.join(USER_HOME,'grondview')
+WORKDIR = '' #Path to ini files
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG

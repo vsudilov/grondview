@@ -1,11 +1,11 @@
 from django.conf.urls import patterns, include, url
-from django.views.generic import TemplateView
 from django.contrib import admin
 from grondview import settings
 
 import grondview.views
 import imagequery.views
 import objectquery.views
+import forcedetect.views
 
 from imagequery.forms import ImageQueryForm
 from objectquery.forms import ObjectQueryForm
@@ -25,5 +25,7 @@ urlpatterns = patterns('',
     url(r'^objectquery/$', grondview.views.FormView.as_view(form_class=ObjectQueryForm) ),
     url(r'^sources/(?P<sourceID>[\w:\.+-]+)/$',objectquery.views.ObjectView.as_view() ),
     url(r'^sources/(?P<user>[\w-]+)/(?P<sourceID>[\w:\.+-]+)/$',objectquery.views.ObjectView.as_view() ),
+    url(r'^forcedetect/$',forcedetect.views.ForceDetectView.as_view() ),
+
     url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
 )

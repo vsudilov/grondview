@@ -123,6 +123,45 @@ $(document).ready(function(){
       $('#source_datatable').dataTable();
       });
 
+
+$(document).ready(function() {
+    $('img.forcedetect').click(function() {
+        if ( $('img.busy').length > 3 ) {
+          alert('Only 4 active reductions are allowed!')
+          return
+        };
+
+        var target = this.className.split(" ")
+        var OB = target[1].split("?")[1]
+        var TARGETID = target[1].split("?")[0]
+        $.ajax({
+          type: 'HEAD',
+          data: { 
+            'ra': {{nominalOB.0.astrosource.RA}},
+            'dec': {{nominalOB.0.astrosource.DEC}},
+            'OB': OB,
+            'TARGETID': TARGETID,
+          },
+          dataType: 'json',
+          url: '/forcedetect/',
+          success: function(data, textStatus, jqXHR){
+            console.debug('success:');
+            console.debug(data);
+            console.debug(textStatus);
+            console.debug(jqXHR);
+            console.debug('end')
+          },
+        });
+        
+                
+        this.src = "{{STATIC_URL}}images/ajax-loader.gif"
+        this.className+= " busy"
+    });
+  });
+
+
+
+
 </script>
 
 
@@ -159,7 +198,15 @@ $(document).ready(function(){
         {% if column == "OBname" %}
         <td><a href='/fields/{{nominalOB.0.imageheader.TARGETID}}/{{OB.OBname}}'>{{OB | hash:column }}</a></td>
         {% else %}
-        <td>{{OB | hash:column }}</td>
+          {% if OB|hash:column %}
+        <td>{{OB|hash:column }}</td>
+          {% else %}
+            {% if "_err" not in column %}
+        <td> <img src="{{STATIC_URL}}images/plus_circle.png" class="forcedetect {{nominalOB.0.imageheader.TARGETID}}?{{OB.OBname}}" /> </td>
+            {% else %}
+            <td></td>
+            {% endif %}          
+          {% endif %}
         {% endif %}      
       {% endfor %}
       </tr>

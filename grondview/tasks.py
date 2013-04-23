@@ -35,3 +35,8 @@ def makeImage(ImageHeaderInstance,fname,clipSize,ra,dec,units='arcseconds'):
     clipSizeDeg=clipSizeDeg,
     )
   return None
+
+@celery.task
+def gr_astrphot(path,iniFile,logger):
+  print "celery is working on task gr_astrphot with input params %s,%s,%s" % (path,iniFile,logger)
+  return None
