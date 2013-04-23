@@ -1,0 +1,55 @@
+# GROND MANUAL ANALYSIS PIPELINE v1.8
+# GROND i-band observation of GRB110918A
+# Central poining Ra: 32.55257, Dec: -27.09850
+# PSF photometry used for calibration
+# Catalog used for astrometry: USNO
+# Catalog used for calibration: USNO
+# Photometric system for *catalog-calibrated* magnitudes: Vega
+# ***********************************************************
+# OB type: 8m4td
+# Observation run ID: 2
+# Observation block sequence number: 1
+# Midtime of the observation in MJD: 55826.259174
+# Midtime of the observation: 2011.724752
+# Midtime of the observation: September 22, 2011, 06:13:12.63 UTC
+# Start of the observation in MJD: 55826.250384
+# Start of the observation: 2011.724728
+# Start of the observation: September 22, 2011, 06:00:33.21 UTC
+# Error of the OB: 759.42 s
+# Total integration time of the image: 919.17 s, 15.32 min
+# Integration of the individual images: 114.92 s
+# Midtime of the TDP in MJD: 55826.251049
+# Error of the TDP: 57.46 s
+# Number of images combined: 8
+# Correction from Vega to AB magnitudes: 0.410
+# Aperture size is 5.13 pixel, which is 0.81"
+# 3.0s limiting magnitude using zeropoint 24.200: 24.356
+# 3.0s limiting magnitude against objects match proximity 0.6": 23.032
+# 3.0s limiting AB magnitude against objects match proximity 0.6": 23.442
+# 4.5s limiting magnitude using zeropoint 24.200: 23.915
+# 4.5s limiting magnitude against objects match proximity 0.6": 22.591
+# 4.5s limiting AB magnitude against objects match proximity 0.6": 23.001
+# Threshold for photometry: 4.5 sigma
+# Astrometric solution accuracy in RA 0.261" and DEC 0.163"
+# Mean fwhm of stars: 5.130 px, 0.81"
+# Mean airmass: 1.011
+# Extinction coefficient: 0.04
+# Calibration against xyxyobjects used 12 stars with red. chi2 = 10.05
+# Calibration against objects match proximity 0.6" used 18 stars with red. chi2 = 1.42
+# Zeropoint against objects match proximity 0.6" for airmass 1.011: 22.875 +/- 0.084
+# Zeropoint against objects match proximity 0.6" for airmass 1: 22.876 +/- 0.084
+# AB zeropoint calibrated against objects match proximity 0.6" for airmass 1: 23.286 +/- 0.084
+# Calibration rms scatter against objects match proximity 0.6":  0.347 mag
+# Output format new 
+# Kron magnitude correction to iraf: 0.236 +/- 0.012 
+# Columns: Ra [deg], Dec [deg],
+# PSF magnitude for zeropoint 24.200, PSF error,
+# APP magnitude for zeropoint 24.200, APP error,
+# Kron magnitude for zeropoint 24.200, Kron error,
+# Zero point offset using astrometric stars,
+# Zero point offset using all objects with proximity 0.6",
+# Standard deviation of zero point offset using astrometric stars,
+# Standard deviation of zero point offset using objects with proximity 0.6",
+# Calibrated magnitude against catalog objects with proximity 0.6",
+# Error calibrated magnitude
+# Elongation, Half Light Radius, Star Flag 

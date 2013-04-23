@@ -29,7 +29,6 @@ def get_fields(formdata,request):
   grouped_fields = []
   for i in fields:
     testcase = [ (j['targetID'],j['OB']) for j in grouped_fields]
-    print testcase
     if (i['targetID'],i['OB']) not in testcase:
       grouped_fields.append(i)
 

@@ -73,7 +73,7 @@ class FormView(TemplateView):
       return render(request,self.template_name,{'form': form})    
     try:
       cd = form.cleaned_data
-      formdata=parseForm(cd)
+      formdata=self.parseForm(cd)
       ra = formdata['ra']
       dec = formdata['dec']
       radius = formdata['radius']
@@ -85,6 +85,49 @@ class FormView(TemplateView):
     context.update( {'form':form,'imageheaders':imageheaders,'request':request.POST} )
     return render(request,'content.html',context)
 
+  def parseForm(self,cd):
+    coordstr = cd['coords'].replace(',',' ').strip()
+    try:  
+      radius = cd['radius_arcmin']
+      units = 'arcminutes'
+    except KeyError:
+      radius = cd['radius_arcsec']
+      units = 'arcseconds'
+    try:
+      include_user_detections = cd['include_user_detections']
+    except KeyError:
+      include_user_detections = None
+
+    # User input data validation
+    if ':' in coordstr:
+      # Remember to add sanity checks!    
+      try:
+        c = coordstr.split()
+        ra = astCoords.hms2decimal(c[0],':')
+        dec = astCoords.dms2decimal(c[1],':') 
+      except:
+        raise CoordinateParseError
+    else:
+      try:
+        c = coordstr.split()
+        ra,dec = map(float,c)
+      except:
+        raise CoordinateParseError  
+
+    try:
+      radius = min(float(radius),300)
+    except:
+      raise AreaParseError
+
+    formdata = {
+      'radius':radius,
+      'ra':ra,
+      'dec':dec,
+      'units':units,
+      'include_user_detections': include_user_detections
+      }
+    return formdata
+
 
 
 class StaticView(TemplateView):
@@ -94,50 +137,4 @@ class StaticView(TemplateView):
     if 'page_name' in self.kwargs:
       self.template_name = self.kwargs['page_name']
     return render(request, self.template_name)
-
-
-def parseForm(cd):
-  coordstr = cd['coords'].replace(',',' ').strip()
-  try:  
-    radius = cd['radius_arcmin']
-    units = 'arcminutes'
-  except KeyError:
-    radius = cd['radius_arcsec']
-    units = 'arcseconds'
-  try:
-    include_user_detections = cd['include_user_detections']
-  except KeyError:
-    include_user_detections = None
-
-  # User input data validation
-  if ':' in coordstr:
-    # Remember to add sanity checks!    
-    try:
-      c = coordstr.split()
-      ra = astCoords.hms2decimal(c[0],':')
-      dec = astCoords.dms2decimal(c[1],':') 
-    except:
-      raise CoordinateParseError
-  else:
-    try:
-      c = coordstr.split()
-      ra,dec = map(float,c)
-    except:
-      raise CoordinateParseError  
-
-  try:
-    radius = min(float(radius),300)
-  except:
-    raise AreaParseError
-  
-
-  formdata = {
-    'radius':radius,
-    'ra':ra,
-    'dec':dec,
-    'units':units,
-    'include_user_detections': include_user_detections
-    }
-  return formdata
-
 

@@ -91,6 +91,9 @@ class ObjectView(TemplateView):
     '''
     OBs = [i.imageheader.OB for i in results]
     TARGETIDs = [i.imageheader.TARGETID for i in results] #Necessary if there happen to be multiple IDs per field
+    ra = results[0].astrosource.RA
+    dec = results[0].astrosource.DEC
+    
     SEEING_LIMIT = 2.0
     candidateOBs = {}
     for TARGETID in TARGETIDs:
@@ -105,7 +108,7 @@ class ObjectView(TemplateView):
           continue
         candidateOBs[TARGETID+OB] = photo_objs
 
-    max_filters = len(max(sorted(candidateOBs.values(), key=len)))
+    max_filters = max( [len(i) for i in candidateOBs.values()] )
     candidateOBs = [i for i in candidateOBs.values() if len(i)==max_filters]  
     nominalOB = sorted(candidateOBs, key = lambda k: constants.obtypes_sequence[k[0].imageheader.OBTYPEID])[0]
     nominalOB = sorted(nominalOB, key=lambda k: constants.band_sequence[k.BAND])
@@ -147,6 +150,7 @@ class ObjectView(TemplateView):
             )
 
     translation = {
+                  'targetID': lambda k: k.imageheader.TARGETID,
                   'OBtype': lambda k: k.imageheader.OBTYPEID,
                   'OBname': lambda k: k.imageheader.OB,
                   'g': lambda k: k.MAG_PSF,
@@ -177,6 +181,17 @@ class ObjectView(TemplateView):
         if r.BAND in userColumns:
           D[r.BAND] = '%0.2f' % translation[r.BAND](r)
           D[r.BAND+"_err"] = '%0.2f' % translation[r.BAND+"_err"](r)
+        source_data[-1].update(D)
+
+    #Take care of the possibilty that an imageheader exists where there are no detections of this source 
+    allImages = ImageHeader.objects.positionFilter(r.astrosource.RA,r.astrosource.DEC,radius=10,units="arcminutes")
+    for (TARGETID,OB,OBTYPEID) in set(zip([i.TARGETID for i in allImages],[i.OB for i in allImages],[i.OBTYPEID for i in allImages])):
+      if (TARGETID,OB) not in zip(TARGETIDs,OBs):
+        source_data.append( dict([(k,'') for k in userColumns]) )
+        D = {}
+        D['targetID'] = TARGETID
+        D['OBname'] = OB
+        D['OBtype'] = OBTYPEID
         source_data[-1].update(D)
     
     lightcurve = {}
