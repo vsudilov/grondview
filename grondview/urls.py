@@ -23,6 +23,7 @@ urlpatterns = patterns('',
     url(r'^(?P<page_name>contact|impressum|readme)/$', grondview.views.StaticView.as_view() ),
     url(r'^imagequery/$', grondview.views.FormView.as_view(form_class=ImageQueryForm) ),
     url(r'^objectquery/$', grondview.views.FormView.as_view(form_class=ObjectQueryForm) ),
-    url(r'^sources/(?P<sourceID>.*)$',objectquery.views.ObjectView.as_view() ),
+    url(r'^sources/(?P<sourceID>[\w:\.+-]+)/$',objectquery.views.ObjectView.as_view() ),
+    url(r'^sources/(?P<user>[\w-]+)/(?P<sourceID>[\w:\.+-]+)/$',objectquery.views.ObjectView.as_view() ),
     url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
 )

@@ -1,7 +1,9 @@
 from django.shortcuts import render
 from django.db.models import Q
 from django.http import Http404
+from django.core.exceptions import PermissionDenied
 from django.views.generic import TemplateView
+
 
 from grondview.settings import PROJECT_ROOT
 from grondview import tasks
@@ -21,7 +23,7 @@ from astLib import astCoords
 sys.path.insert(0,os.path.join(PROJECT_ROOT,'utils'))
 from lib import constants
 
-def get_sources(formdata):
+def get_sources(formdata,request):
   ra = formdata['ra']
   dec = formdata['dec']
   radius = formdata['radius']
@@ -30,7 +32,7 @@ def get_sources(formdata):
 
   u_results = None
   if formdata['include_user_detections']:  
-    u_results = UserAstroSource.objects.positionFilter(ra,dec,radius=radius) 
+    u_results = UserAstroSource.objects.filter(user=request.user).positionFilter(ra,dec,radius=radius) 
   if not results and not u_results:
     #raise NoCoverageError(radius=radius)
     return {'sources':'NO_SOURCES_DETECTED'}
@@ -70,10 +72,15 @@ def get_sources(formdata):
 class ObjectView(TemplateView):
   template_name = 'content.html'
   sourceID = None #Set in urls.py
+  photometry = Photometry
   
   def get(self,request,*args,**kwargs):
     sourceID = self.kwargs['sourceID']
-    results = Photometry.objects.filter(astrosource__sourceID=sourceID)
+    if 'user' in self.kwargs:
+      self.photometry = UserPhotometry
+      if self.photometry.objects.get(astrosource__sourceID=sourceID).astrosource.user != request.user:
+        raise PermissionDenied
+    results = self.photometry.objects.filter(astrosource__sourceID=sourceID)
     if not results:
       raise Http404
 
@@ -88,7 +95,7 @@ class ObjectView(TemplateView):
     candidateOBs = {}
     for TARGETID in TARGETIDs:
       for OB in OBs:
-        photo_objs = (Photometry.objects
+        photo_objs = (self.photometry.objects
                     .filter(astrosource__sourceID=sourceID)
                     .filter(imageheader__imageproperties__SEEING__lte=SEEING_LIMIT)
                     .filter(imageheader__OB=OB)

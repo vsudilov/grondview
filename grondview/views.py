@@ -79,7 +79,7 @@ class FormView(TemplateView):
       radius = formdata['radius']
       units = formdata['units']
       imageheaders = ImageHeader.objects.getBestImages(ra,dec,clipSize=radius,seeing_limit=2.0,units=units)
-      context=self.translation[form.__class__.__name__](formdata)
+      context=self.translation[form.__class__.__name__](formdata,request)
     except (AreaParseError,CoordinateParseError,NoCoverageError) as e:
       return render(request,'content.html',{'form': form,'formerror':e.msg,'request':request.POST})      
     context.update( {'form':form,'imageheaders':imageheaders,'request':request.POST} )

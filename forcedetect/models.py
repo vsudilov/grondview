@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 from django.db.models.query import QuerySet
 from grondview.settings import PROJECT_ROOT
 from imagequery.models import ImageHeader
@@ -51,7 +52,7 @@ class UserAstroSource(models.Model):
   def __unicode__(self):
     return "%s-%s" % (self.user,self.sourceID) 
   
-  user = models.CharField(max_length=30,null=True) #User that created this source
+  user = models.ForeignKey(User) #User that created this source
 
   #one object should have 7 image headers, regardless if they are 99% redundant
   imageheader = models.ManyToManyField(ImageHeader,related_name="%(app_label)s_%(class)s_related") 

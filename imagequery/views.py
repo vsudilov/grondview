@@ -10,7 +10,7 @@ sys.path.insert(0,os.path.join(PROJECT_ROOT,'utils'))
 from lib import constants
 
 
-def get_fields(formdata):
+def get_fields(formdata,request):
   ra = formdata['ra']
   dec = formdata['dec']
   radius = formdata['radius']
