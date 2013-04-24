@@ -2,12 +2,14 @@ from __future__ import absolute_import
 
 from grondview.celery import celery
 from astLib import astWCS
+import random
 
 import matplotlib
 from matplotlib import pyplot as plt
 import pyfits
 import os
 import sys
+import time
 
 from grondview.settings import MEDIA_ROOT
 from grondview.settings import PROJECT_ROOT
@@ -38,5 +40,8 @@ def makeImage(ImageHeaderInstance,fname,clipSize,ra,dec,units='arcseconds'):
 
 @celery.task
 def gr_astrphot(path,iniFile,logger):
-  print "celery is working on task gr_astrphot with input params %s,%s,%s" % (path,iniFile,logger)
+  for i in range(100):
+    time.sleep(0.2)
+    with open(os.path.join(MEDIA_ROOT,'logfile.log'),'a') as fp:
+      fp.write('%s: %s\n' % (i,i*random.random()) )
   return None

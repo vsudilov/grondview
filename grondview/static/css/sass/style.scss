@@ -94,6 +94,8 @@ $banner-bkg-color: #A7DDF2;
   margin-left: ($navbar-width)+($navbar_offset);
   margin-right: 0px;
 
+
+
   #form-container {
     float:left;
     width: ($content-width)*(0.25);
@@ -177,19 +179,30 @@ $banner-bkg-color: #A7DDF2;
       font-size: 0.6em;
     }
   }
-
-  #results-container {
-    float: left;
-    background: $content-bkg-color;
-    width: $content-width;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    padding-left: 10px;
-    padding-right: 10px;
-    -webkit-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
-    -moz-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
-    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px; 
+  
+  #logfile-container {
+    position:fixed;
+    top:75%;
+    height:150px;
+    width:$content-width;
+    z-index:100;
+    
+    #logfile {
+      background-color: #c0c0c0;
+      position:relative;
+      color:red;
+      overflow:scroll;
+      float: left;
+      font-size: 0.8em;
+      width: 33%;
+      height:100%;
+    }
   }
+
+  .userdetection {
+    color: #B0B0B0;
+  }
+
 }
 
 
@@ -200,5 +213,5 @@ $banner-bkg-color: #A7DDF2;
  margin-left: 50%;
  z-index: 10;
  height: 3em;
- margin-top: -30-em;
+ margin-top: -30em;
 }

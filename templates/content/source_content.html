@@ -4,52 +4,38 @@
 <script>
 
 $(function() {
-
   function getCookie(name) {
-      var cookieValue = null;
-      if (document.cookie && document.cookie != '') {
-          var cookies = document.cookie.split(';');
-          for (var i = 0; i < cookies.length; i++) {
-              var cookie = jQuery.trim(cookies[i]);
-              // Does this cookie string begin with the name we want?
-              if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                  break;
-              }
-          }
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+      var cookies = document.cookie.split(';');
+      for (var i = 0; i < cookies.length; i++) {
+        var cookie = jQuery.trim(cookies[i]);
+        // Does this cookie string begin with the name we want?
+        if (cookie.substring(0, name.length + 1) == (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
       }
-      return cookieValue;
+    }
+    return cookieValue;
   }
   var csrftoken = getCookie('csrftoken');
 
   function csrfSafeMethod(method) {
-      // these HTTP methods do not require CSRF protection
-      return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-  };
-
-  function sameOrigin(url) {
-      // test that a given url is a same-origin URL
-      // url could be relative or scheme relative or absolute
-      var host = document.location.host; // host + port
-      var protocol = document.location.protocol;
-      var sr_origin = '//' + host;
-      var origin = protocol + sr_origin;
-      // Allow absolute or scheme relative URLs to same origin
-      return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
-          (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
-          // or any other URL that isn't scheme relative or absolute i.e relative.
-          !(/^(\/\/|http:|https:).*/.test(url));
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
   };
 
   $.ajaxSetup({
-      beforeSend: function(xhr, settings) {
-          if (!csrfSafeMethod(settings.type) && sameOrigin(settings.url)) {
-              // Send the token to same-origin, relative URLs only.
-              // Send the token only if the method warrants CSRF protection
-              // Using the CSRFToken value acquired earlier
-              xhr.setRequestHeader("X-CSRFToken", csrftoken);
-          }
+    crossDomain: false, // obviates need for sameOrigin test
+    beforeSend: function(xhr, settings) {
+      if ( !csrfSafeMethod(settings.type) ) {
+        // Send the token to same-origin, relative URLs only.
+        // Send the token only if the method warrants CSRF protection
+        // Using the CSRFToken value acquired earlier
+        xhr.setRequestHeader("X-CSRFToken", csrftoken);
       }
+    }
   });
 
   $('#lightcurve').highcharts({
@@ -177,10 +163,10 @@ $(function() {
         alert('Only 4 active reductions are allowed!')
         return
       };
-
       var target = this.className.split(" ");
+      var targetID = target[1].split("?")[0];
       var OB = target[1].split("?")[1];
-      var TARGETID = target[1].split("?")[0];
+      var band = target[1].split("?")[2];
       var ra = {{nominalOB.0.astrosource.RA}};
       var dec = {{nominalOB.0.astrosource.DEC}};
       var thisButton = this;
@@ -190,18 +176,52 @@ $(function() {
           'ra': ra,
           'dec': dec,
           'OB': OB,
-          'TARGETID': TARGETID,
+          'targetID': targetID,
+          'band': band
         },
         dataType: 'json',
         url: '/forcedetect/',
         success: function(data, textStatus, jqXHR){
-          console.debug('success:');
-          console.debug(data['jobid']);
           thisButton.src = '{{STATIC_URL}}images/ajax-loader.gif';
-          thisButton.className += ' busy';
+          thisButton.className += ' busy ' + data['jobid'];
+          $('#logfile-container').append('<div id="logfile" class="'+data['jobid']+'">test</div>');
+          pollWrapper(thisButton, data['jobid'], targetID, OB, band, ra, dec, data['logfile'], data['resultfile']);
         },
       });
   });
+
+  function pollWrapper(thisButton, jobid, targetID, OB, band, ra, dec, logfile, resultfile) {
+    var pollID=setInterval(function() { poll(thisButton, jobid, targetID, OB, band, ra, dec, logfile, resultfile) }, 1000);
+    function poll(thisButton, jobid, targetID, OB, band, ra, dec, logfile, resultfile) {
+      $.ajax({
+        type: 'GET',
+        data: { 
+          'ra': ra,
+          'dec': dec,
+          'OB': OB,
+          'targetID': targetID,
+          'band': band,
+          'logfile': logfile,
+          'resultfile': resultfile,
+        },
+        dataType: 'json',
+        url: '/forcedetect/'+jobid,
+        success: function(data, textStatus, jqXHR){
+          console.debug('polled '+jobid);
+          if ( data['completed'] ) {
+            console.debug(data['completed'])
+            clearInterval(pollID)
+            $('img.'+jobid).parent().next().html('<div class="userdetection">'+data['result_err']+'</div>')
+            $('img.'+jobid).replaceWith('<div class="userdetection">'+data['result']+'</div>')
+          }
+          else {
+            $('#logfile.'+jobid).append(data['result']+'<br>')
+            $('#logfile.'+jobid).animate({scrollTop:$('#logfile.'+jobid)[0].scrollHeight}, 1000);
+          }; 
+        },
+      });
+    }; 
+  };
 
 });
 
@@ -248,7 +268,7 @@ $(function() {
         <td>{{OB|hash:column }}</td>
           {% else %}
             {% if "_err" not in column %}
-        <td> <img src="{{STATIC_URL}}images/plus_circle.png" class="forcedetect {{nominalOB.0.imageheader.TARGETID}}?{{OB.OBname}}" /> </td>
+        <td> <img src="{{STATIC_URL}}images/plus_circle.png" class="forcedetect {{nominalOB.0.imageheader.TARGETID}}?{{OB.OBname}}?{{column}}" /> </td>
             {% else %}
             <td></td>
             {% endif %}          
@@ -259,4 +279,4 @@ $(function() {
       {% endfor %}
   </tbody>
 </table>
-
+<div id="logfile-container"></div>

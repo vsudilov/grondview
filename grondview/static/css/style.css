@@ -127,17 +127,23 @@ body {
     font-size: 1.4em; }
     #content-container #source_title .subtitle {
       font-size: 0.6em; }
-  #content-container #results-container {
-    float: left;
-    background: #e6e6e6;
+  #content-container #logfile-container {
+    position: fixed;
+    top: 75%;
+    height: 150px;
     width: 1190px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    padding-left: 10px;
-    padding-right: 10px;
-    -webkit-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
-    -moz-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
-    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px; }
+    z-index: 100; }
+    #content-container #logfile-container #logfile {
+      background-color: #c0c0c0;
+      position: relative;
+      color: red;
+      overflow: scroll;
+      float: left;
+      font-size: 0.8em;
+      width: 33%;
+      height: 100%; }
+  #content-container .userdetection {
+    color: #B0B0B0; }
 
 #footer {
   clear: both;
@@ -145,4 +151,4 @@ body {
   margin-left: 50%;
   z-index: 10;
   height: 3em;
-  margin-top: -30-em; }
+  margin-top: -30em; }
