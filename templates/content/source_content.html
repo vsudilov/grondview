@@ -4,160 +4,206 @@
 <script>
 
 $(function() {
-    $('#lightcurve').highcharts({
-        chart: {
-            zoomType: 'xy'
-        },
-        title: {
-            text: 'Lightcurve'
-        },
-        xAxis: [{
-            categories: {{lightcurve.x}},
-                        title: {
-                            text: 'MJD',
-                            style: {
-                                color: '#89A54E'
-                            }
-                        }
-        }],
-        yAxis: [{ // Primary yAxis
-            reversed:true,
-            labels: {
-                formatter: function() {
-                    return this.value;
-                },
-                style: {
-                    color: '#89A54E'
-                }
-            },
-            title: {
-                text: 'Magnitude (AB)',
-                style: {
-                    color: '#89A54E'
-                }
-            }
-        },],
 
-        tooltip: {
-            shared: true
-        },
+  function getCookie(name) {
+      var cookieValue = null;
+      if (document.cookie && document.cookie != '') {
+          var cookies = document.cookie.split(';');
+          for (var i = 0; i < cookies.length; i++) {
+              var cookie = jQuery.trim(cookies[i]);
+              // Does this cookie string begin with the name we want?
+              if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                  break;
+              }
+          }
+      }
+      return cookieValue;
+  }
+  var csrftoken = getCookie('csrftoken');
 
-        series: [{
-            name: '{{lc_band}}',
-            color: '#89A54E',
-            type: 'spline',
-            data: {{lightcurve.y}},
-            tooltip: {
-                pointFormat: '<span style="font-weight: bold; color: {series.color}">{series.name}</span>: <b>{point.y:.1f}</b> '
-            }
-        }, {
-            name: 'Magnitude error',
-            type: 'errorbar',
-            data: {{lightcurve.yerr}},
-            tooltip: {
-                pointFormat: ''
-            }
-        }]
-    });
-});
+  function csrfSafeMethod(method) {
+      // these HTTP methods do not require CSRF protection
+      return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+  };
 
-$(function() {
-    $('#sed').highcharts({
-        chart: {
-            zoomType: 'xy'
-        },
-        title: {
-            text: 'Spectral energy distribution'
-        },
-        xAxis: [{
-            categories: {{SED.x}},
-                        title: {
-                            text: 'Wavelength (nm)',
-                            style: {
-                                color: '#89A54E'
-                            }
-                        }
-        }],
-        yAxis: [{ // Primary yAxis
-            reversed:true,
-            labels: {
-                formatter: function() {
-                    return this.value;
-                },
-                style: {
-                    color: '#89A54E'
-                }
-            },
-            title: {
-                text: 'Magnitude (AB)',
-                style: {
-                    color: '#89A54E'
-                }
-            }
-        },],
+  function sameOrigin(url) {
+      // test that a given url is a same-origin URL
+      // url could be relative or scheme relative or absolute
+      var host = document.location.host; // host + port
+      var protocol = document.location.protocol;
+      var sr_origin = '//' + host;
+      var origin = protocol + sr_origin;
+      // Allow absolute or scheme relative URLs to same origin
+      return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
+          (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
+          // or any other URL that isn't scheme relative or absolute i.e relative.
+          !(/^(\/\/|http:|https:).*/.test(url));
+  };
 
-        tooltip: {
-            shared: true
-        },
-
-        series: [{
-            name: 'Magnitude',
-            color: '#89A54E',
-            type: 'spline',
-            data: {{SED.y}},
-            tooltip: {
-                pointFormat: '<span style="font-weight: bold; color: {series.color}">{series.name}</span>: <b>{point.y:.1f}</b> '
-            }
-        }, {
-            name: 'Magnitude error',
-            type: 'errorbar',
-            data: {{SED.yerr}},
-            tooltip: {
-                pointFormat: ''
-            }
-        }]
-    });
-});
-
-$(document).ready(function(){
-      $('#source_datatable').dataTable();
-      });
-
-
-$(document).ready(function() {
-    $('img.forcedetect').click(function() {
-        if ( $('img.busy').length > 3 ) {
-          alert('Only 4 active reductions are allowed!')
-          return
-        };
-
-        var target = this.className.split(" ")
-        var OB = target[1].split("?")[1]
-        var TARGETID = target[1].split("?")[0]
-        $.ajax({
-          type: 'HEAD',
-          data: { 
-            'ra': {{nominalOB.0.astrosource.RA}},
-            'dec': {{nominalOB.0.astrosource.DEC}},
-            'OB': OB,
-            'TARGETID': TARGETID,
-          },
-          dataType: 'json',
-          url: '/forcedetect/',
-          success: function(data, textStatus, jqXHR){
-            console.debug('success:');
-            console.debug(data);
-            console.debug(textStatus);
-            console.debug(jqXHR);
-            console.debug('end')
-          },
-        });
-        
-                
-        this.src = "{{STATIC_URL}}images/ajax-loader.gif"
-        this.className+= " busy"
-    });
+  $.ajaxSetup({
+      beforeSend: function(xhr, settings) {
+          if (!csrfSafeMethod(settings.type) && sameOrigin(settings.url)) {
+              // Send the token to same-origin, relative URLs only.
+              // Send the token only if the method warrants CSRF protection
+              // Using the CSRFToken value acquired earlier
+              xhr.setRequestHeader("X-CSRFToken", csrftoken);
+          }
+      }
   });
+
+  $('#lightcurve').highcharts({
+    chart: {
+        zoomType: 'xy'
+    },
+    title: {
+        text: 'Lightcurve'
+    },
+    xAxis: [{
+        categories: {{lightcurve.x}},
+                    title: {
+                        text: 'MJD',
+                        style: {
+                            color: '#89A54E'
+                        }
+                    }
+    }],
+    yAxis: [{ // Primary yAxis
+        reversed:true,
+        labels: {
+            formatter: function() {
+                return this.value;
+            },
+            style: {
+                color: '#89A54E'
+            }
+        },
+        title: {
+            text: 'Magnitude (AB)',
+            style: {
+                color: '#89A54E'
+            }
+        }
+    },],
+
+    tooltip: {
+        shared: true
+    },
+
+    series: [{
+        name: '{{lc_band}}',
+        color: '#89A54E',
+        type: 'spline',
+        data: {{lightcurve.y}},
+        tooltip: {
+            pointFormat: '<span style="font-weight: bold; color: {series.color}">{series.name}</span>: <b>{point.y:.1f}</b> '
+        }
+    }, {
+        name: 'Magnitude error',
+        type: 'errorbar',
+        data: {{lightcurve.yerr}},
+        tooltip: {
+            pointFormat: ''
+        }
+    }]
+  });
+
+
+
+  $('#sed').highcharts({
+    chart: {
+        zoomType: 'xy'
+    },
+    title: {
+        text: 'Spectral energy distribution'
+    },
+    xAxis: [{
+        categories: {{SED.x}},
+                    title: {
+                        text: 'Wavelength (nm)',
+                        style: {
+                            color: '#89A54E'
+                        }
+                    }
+    }],
+    yAxis: [{ // Primary yAxis
+        reversed:true,
+        labels: {
+            formatter: function() {
+                return this.value;
+            },
+            style: {
+                color: '#89A54E'
+            }
+        },
+        title: {
+            text: 'Magnitude (AB)',
+            style: {
+                color: '#89A54E'
+            }
+        }
+    },],
+
+    tooltip: {
+        shared: true
+    },
+
+    series: [{
+        name: 'Magnitude',
+        color: '#89A54E',
+        type: 'spline',
+        data: {{SED.y}},
+        tooltip: {
+            pointFormat: '<span style="font-weight: bold; color: {series.color}">{series.name}</span>: <b>{point.y:.1f}</b> '
+        }
+    }, {
+        name: 'Magnitude error',
+        type: 'errorbar',
+        data: {{SED.yerr}},
+        tooltip: {
+            pointFormat: ''
+        }
+    }]
+  });
+
+  $('#source_datatable').dataTable();
+
+  $('img.forcedetect').click(function() {
+      if ( this.className.indexOf('busy') > 0 ) {
+        return
+      };
+
+      if ( $('img.busy').length > 3 ) {
+        alert('Only 4 active reductions are allowed!')
+        return
+      };
+
+      var target = this.className.split(" ");
+      var OB = target[1].split("?")[1];
+      var TARGETID = target[1].split("?")[0];
+      var ra = {{nominalOB.0.astrosource.RA}};
+      var dec = {{nominalOB.0.astrosource.DEC}};
+      var thisButton = this;
+      $.ajax({
+        type: 'POST',
+        data: { 
+          'ra': ra,
+          'dec': dec,
+          'OB': OB,
+          'TARGETID': TARGETID,
+        },
+        dataType: 'json',
+        url: '/forcedetect/',
+        success: function(data, textStatus, jqXHR){
+          console.debug('success:');
+          console.debug(data['jobid']);
+          thisButton.src = '{{STATIC_URL}}images/ajax-loader.gif';
+          thisButton.className += ' busy';
+        },
+      });
+  });
+
+});
 
 
 

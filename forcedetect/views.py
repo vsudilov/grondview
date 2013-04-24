@@ -22,10 +22,11 @@ class JSONResponseMixin(object):
         return self.get_json_response(self.convert_context_to_json(context))  
   
     def get_json_response(self, content, **httpresponse_kwargs):  
-        "Construct an `HttpResponse` object."  
-        return HttpResponse(content,  
-                                 content_type='application/json',  
-                                 **httpresponse_kwargs)  
+        "Construct an `HttpResponse` object."
+        r = HttpResponse(mimetype='application/json',**httpresponse_kwargs)
+        r.write(content)
+        print r  
+        return r
   
     def convert_context_to_json(self, context):  
         "Convert the context dictionary into a JSON object"  
@@ -36,21 +37,20 @@ class JSONResponseMixin(object):
         return json.dumps(context)  
 
 class ForceDetectView(JSONResponseMixin,TemplateView):
-  def head(self, request, *args, **kwargs):
+  def post(self, request, *args, **kwargs):
     try:
-      ra = float(request.GET['ra'])
-      dec = float(request.GET['dec'])
-      targetID = request.GET['TARGETID']
-      OB = request.GET['OB']
+      ra = float(request.POST['ra'])
+      dec = float(request.POST['dec'])
+      targetID = request.POST['TARGETID']
+      OB = request.POST['OB']
     except:
-      raise
       return HttpResponseBadRequest()
     asyncResult = tasks.gr_astrphot.delay('path','iniFile','logger')
     context = {'jobid':asyncResult.id}
-    return self.render_to_response(context) 
+    return self.render_to_response(context)
   
-  def get(self, request, *args, **kwargs):
+  def head(self, request, *args, **kwargs):
     pass
 
-  def post(self, request, *args, **kwargs):
+  def get(self, request, *args, **kwargs):
     pass
