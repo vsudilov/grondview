@@ -29,12 +29,16 @@ class Command(BaseCommand):
         )
 
 
-  help = '''
-            Populate the database. Adds data from GROND_?_OB_ana.fits and GROND_?_OB_ana.result found recursively from DATADIR.
+  help = '''USAGE: manage.py populateDB path
+            Populate the database. Adds data from GROND_?_OB_ana.fits and GROND_?_OB_ana.result found recursively from path.
             Will not override/duplicate sources or fields already present in the database.  
           '''
   help = help.strip()
 
   def handle(self,*args,**kwargs):
     import _populate_db
-    _populate_db.main(*args,**kwargs)
+    try:
+      _populate_db.main(*args,**kwargs)
+    except:
+      print self.help
+      raise

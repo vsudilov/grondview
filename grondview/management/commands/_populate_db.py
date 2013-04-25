@@ -9,6 +9,7 @@ from astLib import astCoords
 
 from imagequery.models import ImageHeader,ImageProperties
 from objectquery.models import AstroSource,Photometry
+from django.contrib.auth.models import User
 from grondview.settings import PROJECT_ROOT
 
 sys.path.insert(0,os.path.join(PROJECT_ROOT,'utils'))
@@ -19,9 +20,10 @@ class GrondData:
   def __repr__(self):
     return self.path
 
-  def __init__(self,path,**kwargs):
+  def __init__(self,path,user,**kwargs):
     self.args = kwargs
     self.path = path
+    self.user = user
     self.resultfile = None
     for f in os.listdir(path):
       if re.search(kwargs['fits_regex'],f):
@@ -122,6 +124,7 @@ class GrondData:
     self.new_sources = []
     for source in all_sources:
       fields = {}
+      fields['user'] = self.user
       fields['RA'] = source['RA']
       fields['DEC'] = source['DEC']
       sexRa,sexDec = deg2sex.main(source['RA'],source['DEC'])
@@ -160,6 +163,7 @@ class GrondData:
           fields[k] = float(v)
         except ValueError:
           fields[k] = -99
+      fields['user'] = self.user
       fields['BAND'] = self.resultfile.header['BAND']
       fields['imageheader'] = self.imageheader
       fields['astrosource'] = source
@@ -169,14 +173,26 @@ class GrondData:
       self.photometry = Photometry(**fields)
       self.photometry.save()
 
+def getPipelineUser():
+  try:
+    user = User.objects.get(username='pipeline')
+  except User.DoesNotExist:
+    print "Creating user 'pipeline' since it does not yet exist. All of the automatically analyzed data will be attributed to this account"
+    user = User.objects.create_user(username='pipeline',email=None,password='.5arcsec')
+    user.is_staff = False
+    user.is_superuser = False
+    user.save()
+  return user
+
 def main(*args,**kwargs):
   DATADIR = args[0]
   FITS_REGEX = kwargs['fits_regex']
+  user = getPipelineUser()
   for path, dirs, files in os.walk(DATADIR):
     for f in files:
       if re.search(FITS_REGEX,f):
         fullpath = os.path.abspath(path)
-        f = GrondData(fullpath,**kwargs)
+        f = GrondData(fullpath,user,**kwargs)
         print "Adding data in %s to db" % fullpath
         f.populateDB()
         break

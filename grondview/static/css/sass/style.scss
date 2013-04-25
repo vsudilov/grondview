@@ -185,6 +185,7 @@ $banner-bkg-color: #A7DDF2;
     top:75%;
     height:150px;
     width:$content-width;
+    overflow-y: auto;
     z-index:100;
     
     #logfile {

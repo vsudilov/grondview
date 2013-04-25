@@ -12,8 +12,6 @@ from objectquery.forms import ObjectQueryForm
 from objectquery.models import AstroSource
 from objectquery.models import Photometry
 from imagequery.models import ImageHeader
-from forcedetect.models import UserAstroSource
-from forcedetect.models import UserPhotometry
 
 import os, sys
 import operator
@@ -28,42 +26,29 @@ def get_sources(formdata,request):
   dec = formdata['dec']
   radius = formdata['radius']
   units = formdata['units']
-  results = AstroSource.objects.positionFilter(ra,dec,radius=radius)
+  Qs = [Q(user=request.user), Q(user__username='pipeline')] 
+  q = reduce(operator.or_, Qs)
+  results = AstroSource.objects.filter(q).positionFilter(ra,dec,radius=radius)   
 
-  u_results = None
-  if formdata['include_user_detections']:  
-    u_results = UserAstroSource.objects.filter(user=request.user).positionFilter(ra,dec,radius=radius) 
-  if not results and not u_results:
+  if not results:
     #raise NoCoverageError(radius=radius)
     return {'sources':'NO_SOURCES_DETECTED'}
 
   distances = dict((i.sourceID,i.distance*3600) for i in results) #Keep distance for later
-  DBtables = dict((i.sourceID,i._meta.verbose_name) for i in results)  
-  if u_results:
-    distances.update(dict((i.sourceID,i.distance*3600) for i in u_results))
-    DBtables.update(dict((i.sourceID,i._meta.verbose_name) for i in u_results))
+  ownership = dict((i.sourceID,i.user.username) for i in results)  
 
   #Filter based on sourceID (chaining Q functions)
-  if results:  
-    Qs = [Q(astrosource__sourceID=i.sourceID) for i in results]
-    q = reduce(operator.or_, Qs)
-    results = list(Photometry.objects.filter(q))
-  if u_results:
-    Qs = [Q(astrosource__sourceID=i.sourceID) for i in u_results]
-    q = reduce(operator.or_, Qs)
-    u_results = list(UserPhotometry.objects.filter(q))
+#  if results:  
+#    Qs = [Q(astrosource__sourceID=i.sourceID) for i in results]
+#    q = reduce(operator.or_, Qs)
+#    results = list(Photometry.objects.filter(q))
     
 
   #group results by sourceID
-  if u_results:
-    results.extend(u_results)
-  grouped_sources = dict((i.astrosource.sourceID,[]) for i in results)
-  for r in results:
-    grouped_sources[r.astrosource.sourceID].append(r)
-  sources = []
 
-  for sourceID in grouped_sources:
-    sources.append( {'name':sourceID,'distance':distances[sourceID],'DBtable':DBtables[sourceID]} )
+  sources = []
+  for r in results:
+    sources.append( {'name':r.sourceID,'distance':distances[r.sourceID],'ownership':ownership[r.sourceID]} )
   sources = sorted(sources,key=lambda k: k['distance'])
   return {'sources':sources}
 
@@ -72,15 +57,13 @@ def get_sources(formdata,request):
 class ObjectView(TemplateView):
   template_name = 'content.html'
   sourceID = None #Set in urls.py
-  photometry = Photometry
-  
+
   def get(self,request,*args,**kwargs):
     sourceID = self.kwargs['sourceID']
     if 'user' in self.kwargs:
-      self.photometry = UserPhotometry
-      if self.photometry.objects.get(astrosource__sourceID=sourceID).astrosource.user != request.user:
+      if AstroSource.objects.get(sourceID=sourceID).user != request.user:
         raise PermissionDenied
-    results = self.photometry.objects.filter(astrosource__sourceID=sourceID)
+    results = Photometry.objects.filter(astrosource__sourceID=sourceID)
     if not results:
       raise Http404
 
@@ -98,7 +81,7 @@ class ObjectView(TemplateView):
     candidateOBs = {}
     for TARGETID in TARGETIDs:
       for OB in OBs:
-        photo_objs = (self.photometry.objects
+        photo_objs = (Photometry.objects
                     .filter(astrosource__sourceID=sourceID)
                     .filter(imageheader__imageproperties__SEEING__lte=SEEING_LIMIT)
                     .filter(imageheader__OB=OB)

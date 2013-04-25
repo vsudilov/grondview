@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models.query import QuerySet
+from django.contrib.auth.models import User
 from imagequery.models import ImageHeader
 import os
 import sys
@@ -49,6 +50,8 @@ class AstroSource(models.Model):
   def __unicode__(self):
     return "%s" % (self.sourceID) 
   
+  user = models.ForeignKey(User)
+
   #one object should have 7 image headers, regardless if they are 99% redundant
   imageheader = models.ManyToManyField(ImageHeader,related_name="%(app_label)s_%(class)s_related") 
 
@@ -74,7 +77,8 @@ class Photometry(models.Model):
 
   def __unicode__(self):
     return '%s: %s-%s' % (self.astrosource,self.imageheader.OB,self.BAND)
-  
+  user = models.ForeignKey(User)  
+
   astrosource = models.ForeignKey(AstroSource)
   imageheader = models.ForeignKey('imagequery.ImageHeader',related_name="%(app_label)s_%(class)s_related")
 

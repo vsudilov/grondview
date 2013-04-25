@@ -132,6 +132,7 @@ body {
     top: 75%;
     height: 150px;
     width: 1190px;
+    overflow-y: auto;
     z-index: 100; }
     #content-container #logfile-container #logfile {
       background-color: #c0c0c0;

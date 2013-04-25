@@ -83,7 +83,7 @@ class FormView(TemplateView):
     except (AreaParseError,CoordinateParseError,NoCoverageError) as e:
       return render(request,'content.html',{'form': form,'formerror':e.msg,'request':request.POST})      
     context.update( {'form':form,'imageheaders':imageheaders,'request':request.POST} )
-    return render(request,'content.html',context)
+    return render(request,self.template_name,context)
 
   def parseForm(self,cd):
     coordstr = cd['coords'].replace(',',' ').strip()
