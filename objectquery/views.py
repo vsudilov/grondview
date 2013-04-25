@@ -158,6 +158,7 @@ class ObjectView(TemplateView):
       for r in results.filter(imageheader__OB=OB):
         D = {}
         D['imageheader'] = r.imageheader
+        D['ownership'] = r.user.username
         for column in userColumns:
           if column not in magnitude_kws:
             D[column] = translation[column](r)

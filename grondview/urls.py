@@ -19,6 +19,7 @@ urlpatterns = patterns('',
 
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^admin/', include(admin.site.urls)),
+    #url(r'^grappelli/', include('grappelli.urls')),
 
     url(r'^(?P<page_name>contact|impressum|readme)/$', grondview.views.StaticView.as_view() ),
     url(r'^imagequery/$', grondview.views.FormView.as_view(form_class=ImageQueryForm) ),

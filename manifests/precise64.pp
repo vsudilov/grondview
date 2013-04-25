@@ -116,10 +116,9 @@ class post_python_modules{
           ensure => installed,
           provider => pip;
 
-#     "django-dajaxice":
-#          ensure => "0.5.5",
-#          provider => pip;
-
+     "django-grappelli":
+         ensure => installed,
+         provider => pip;
         }
   
 

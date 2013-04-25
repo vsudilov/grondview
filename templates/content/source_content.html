@@ -211,7 +211,7 @@ $(function() {
           if ( data['completed'] ) {
             console.debug(data['completed'])
             clearInterval(pollID)
-            $('img.'+jobid).parent().next().html('<div class="userdetection">'+data['result_err']+'</div>')
+            $('img.'+jobid).parent().parent().next().children('div').html('<div class="userdetection">'+data['result_err']+'</div>')
             $('img.'+jobid).replaceWith('<div class="userdetection">'+data['result']+'</div>')
           }
           else {
@@ -262,15 +262,15 @@ $(function() {
       <tr>
       {% for column in userColumns %}
         {% if column == "OBname" %}
-        <td><a href='/fields/{{nominalOB.0.imageheader.TARGETID}}/{{OB.OBname}}'>{{OB | hash:column }}</a></td>
+        <td><div><a href='/fields/{{nominalOB.0.imageheader.TARGETID}}/{{OB.OBname}}'>{{OB | hash:column }}</a></div></td>
         {% else %}
           {% if OB|hash:column %}
-        <td>{{OB|hash:column }}</td>
+        <td><div {% if OB.ownership != "pipeline" and column != "OBtype" %}class="userdetection" {% endif %}>{{OB|hash:column }}</div></td>
           {% else %}
             {% if "_err" not in column %}
-        <td> <img src="{{STATIC_URL}}images/plus_circle.png" class="forcedetect {{nominalOB.0.imageheader.TARGETID}}?{{OB.OBname}}?{{column}}" /> </td>
+        <td><div><img src="{{STATIC_URL}}images/plus_circle.png" class="forcedetect {{nominalOB.0.imageheader.TARGETID}}?{{OB.OBname}}?{{column}}" /></div></td>
             {% else %}
-            <td></td>
+            <td><div></div></td>
             {% endif %}          
           {% endif %}
         {% endif %}      
