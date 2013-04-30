@@ -15,8 +15,3 @@ class ObjectQueryForm(forms.Form):
                   attrs={'value':"1.0",'min': '1.0', 'max': '300','class':'radius_input'}),
               label="Search radius (arcsec)"
               ) 
-  
-  include_user_detections = forms.FloatField( 
-              widget=CheckboxInput(
-                attrs={'checked':True}),
-              label = "Include user detections")

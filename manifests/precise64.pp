@@ -119,6 +119,14 @@ class post_python_modules{
      "django-grappelli":
          ensure => installed,
          provider => pip;
+
+#     "pyraf2":
+#         ensure => installed,
+#         provider => pip;
+
+#     "stsci.distutils":
+#         ensure => installed,
+#         provider => pip;
         }
   
 

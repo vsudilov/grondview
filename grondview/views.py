@@ -93,10 +93,6 @@ class FormView(TemplateView):
     except KeyError:
       radius = cd['radius_arcsec']
       units = 'arcseconds'
-    try:
-      include_user_detections = cd['include_user_detections']
-    except KeyError:
-      include_user_detections = None
 
     # User input data validation
     if ':' in coordstr:
@@ -124,7 +120,6 @@ class FormView(TemplateView):
       'ra':ra,
       'dec':dec,
       'units':units,
-      'include_user_detections': include_user_detections
       }
     return formdata
 
