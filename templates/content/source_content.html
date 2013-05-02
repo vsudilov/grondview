@@ -185,24 +185,17 @@ $(function() {
           thisButton.src = '{{STATIC_URL}}images/ajax-loader.gif';
           thisButton.className += ' busy ' + data['jobid'];
           $('#logfile-container').append('<div id="logfile" class="'+data['jobid']+'">test</div>');
-          pollWrapper(thisButton, data['jobid'], targetID, OB, band, ra, dec, data['logfile'], data['resultfile']);
+          pollWrapper(thisButton, data['jobid']);
         },
       });
   });
 
-  function pollWrapper(thisButton, jobid, targetID, OB, band, ra, dec, logfile, resultfile) {
-    var pollID=setInterval(function() { poll(thisButton, jobid, targetID, OB, band, ra, dec, logfile, resultfile) }, 1000);
-    function poll(thisButton, jobid, targetID, OB, band, ra, dec, logfile, resultfile) {
+  function pollWrapper(thisButton, jobid) {
+    function poll(thisButton, jobid) {
       $.ajax({
         type: 'GET',
         data: { 
-          'ra': ra,
-          'dec': dec,
-          'OB': OB,
-          'targetID': targetID,
-          'band': band,
-          'logfile': logfile,
-          'resultfile': resultfile,
+          'jobid':jobid,
         },
         dataType: 'json',
         url: '/forcedetect/'+jobid,
@@ -211,16 +204,17 @@ $(function() {
           if ( data['completed'] ) {
             console.debug(data['completed'])
             clearInterval(pollID)
-            $('img.'+jobid).parent().parent().next().children('div').html('<div class="userdetection">'+data['result_err']+'</div>')
-            $('img.'+jobid).replaceWith('<div class="userdetection">'+data['result']+'</div>')
+            $('img.'+jobid).parent().parent().next().children('div').html('<div class="userdetection">'+data['mag_err']+'</div>')
+            $('img.'+jobid).replaceWith('<div class="userdetection">'+data['mag']+'</div>')
           }
           else {
-            $('#logfile.'+jobid).append(data['result']+'<br>')
+            $('#logfile.'+jobid).append(data['log']+'<br>')
             $('#logfile.'+jobid).animate({scrollTop:$('#logfile.'+jobid)[0].scrollHeight}, 1000);
           }; 
         },
       });
-    }; 
+    };
+    var pollID=setInterval(function() { poll(thisButton, jobid) }, 1000);
   };
 
 });

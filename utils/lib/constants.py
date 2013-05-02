@@ -52,6 +52,9 @@ extinction_coefficients = {
 
 def arclength(ra1,dec1,ra2,dec2):
   from math import cos, sin, acos, degrees, radians, pi
+  if ra1==ra2 and dec1==dec2:
+    return 0
+
   def cosd(degs):
     return cos(degs*pi/180)
   return (    (    (ra1-ra2)*cosd(  (dec1+dec2)/2.0  )  )**2 + (dec1-dec2)**2)**(1/2.)*60.*60.

@@ -1,13 +1,17 @@
 # Django settings for grondview project.
 
 import os
+
+
+
 USER_HOME = os.path.expanduser('~')
 PROJECT_ROOT = os.path.join(USER_HOME,'grondview')
-WORKDIR = '' #Path to ini files
+GP_INIDIR = os.path.join(PROJECT_ROOT,'work/ini') #Path to ini files
 
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
 
+
+TEMPLATE_DEBUG = DEBUG
 import djcelery
 djcelery.setup_loader()
 BROKER_URL = 'redis://localhost/'

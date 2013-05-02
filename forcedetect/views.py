@@ -5,11 +5,13 @@ import json
 from celery.result import AsyncResult
 
 from grondview.exceptions import *
-from grondview.settings import WORKDIR
+from grondview.settings import GP_INIDIR
 from grondview.settings import MEDIA_ROOT
 from grondview import tasks
 
 from imagequery.views import ImageHeader
+
+from forcedetect.models import UserTask_photometry
 
 import os,sys
 import ConfigParser
@@ -44,8 +46,20 @@ class ForceDetectView(JSONResponseMixin,TemplateView):
       band = request.POST['band']
     except:
       return HttpResponseBadRequest()
-    task = tasks.gr_astrphot.delay('path','iniFile','logger')
-    context = {'jobid':task.id,'logfile':'logfile.log','resultfile':'rf.result'}
+    #Find path, iniFile, logger
+    iniFile = os.path.join(GP_INIDIR,targetID,OB,'%sana.ini' % band)
+    objwcs = (ra,dec)
+
+    task = tasks.photometry.delay(iniFile, objwcs)
+    context = {'jobid':task.id}
+    #Make a database entry for the current task.
+    fields = {}
+    fields['user'] = request.user
+    fields['jobid'] = task.id
+    fields['working_directory'] = '/some/long/path/to/the/ini/files.ini'
+    fields['logfile_line_number'] = 0
+    task = UserTask_photometry(**fields)
+    task.save()
     return self.render_to_response(context)
   
   def head(self, request, *args, **kwargs):
@@ -54,12 +68,23 @@ class ForceDetectView(JSONResponseMixin,TemplateView):
   def get(self, request, *args, **kwargs):
     jobid = self.kwargs['jobid']
     job = AsyncResult(jobid)
-    job = job.ready()
-    result,result_err=5,None
-    if not job:
-      with open(os.path.join(MEDIA_ROOT,request.GET['logfile']),'r') as f:
-        result = f.readlines()[-1]
-    context = {'completed':job,'jobid':jobid,'result':result,'result_err':result_err}
+    completed = job.ready()
+    db_entry = UserTask_photometry.objects.get(jobid=jobid)
+    if not completed:
+      lastline = int(db_entry.logfile_line_number)
+      with open(os.path.join(MEDIA_ROOT,jobid,'logfile'),'r') as f:
+        lines = f.readlines()
+        loglines = ''.join(lines[lastline:]).strip()
+        loglines = loglines.replace('\n','<BR>')
+        db_entry.logfile_line_number = len(lines)
+        db_entry.save()
+        context = {'completed':False,'log':loglines}
+    else:
+      result = job.get()
+      print result
+      mag = result['PSF'][2]
+      mag_err = result['PSF'][3]
+      context = {'completed':True,'jobid':jobid,'mag':mag,'mag_err':mag_err}
     return self.render_to_response(context)
 
 

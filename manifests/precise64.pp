@@ -75,6 +75,9 @@ class system{
       "coffeescript":
           ensure => installed,
           provider => apt;
+      "libx11-dev":
+          ensure => installed,
+          provider => apt;
   }
 }
 
@@ -127,6 +130,11 @@ class post_python_modules{
 #     "stsci.distutils":
 #         ensure => installed,
 #         provider => pip;
+
+#      "stscipython":
+#          ensure => installed,
+#          provider => pip;
+
         }
   
 

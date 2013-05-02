@@ -15,8 +15,12 @@ from lib import constants
 from astLib import astCoords
 
 
-class UserAstrphot(models.Model):
-  jobid = models.CharField(max_length=30)
-  logfile_path = models.CharField(max_length=50)
-  image_path = models.CharField(max_length=50)
+class UserTask_photometry(models.Model):
   user = models.ForeignKey(User)
+
+  jobid = models.CharField(max_length=40)
+  working_directory = models.CharField(max_length=50)
+  logfile_line_number = models.IntegerField()
+
+  def __unicode__(self):
+    return self.jobid

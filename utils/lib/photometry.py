@@ -12,8 +12,8 @@ try:
   from grondview.settings import PROJECT_ROOT
   from grondview.settings import MEDIA_ROOT
 except ImportError:
-  PROJECT_ROOT = '/diska/home/vsudilov/grondview/' #For running seperately on sauron (not precise64.box), debug ONLY
-  MEDIA_ROOT = '/diska/home/vsudilov/grondview/media/'
+  PROJECT_ROOT = '/home/vagrant/grondview/' #For running seperately on sauron (not precise64.box), debug ONLY
+  MEDIA_ROOT = '/home/vagrant/grondview/media/'
 import constants
 
 import sextractor
@@ -24,7 +24,10 @@ import numpy as np
 import ConfigParser
 import logging
 
-PLOT=False
+PLOT=True
+
+PHOTO_TOLERANCE = dict( (b,0.2) for b in 'griz' )
+PHOTO_TOLERANCE.update( dict( (b,0.3) for b in 'JHK'))
 
 if PLOT:
   import matplotlib
@@ -73,9 +76,9 @@ def makeSexConfig(sex, task, **kwargs):
 
 
 def performPhotometry(task, logger):
-  iraf.prcacheOff()
+  #iraf.prcacheOff()
   iraf.set(imtype="fits,noinherit")   # set image output format
-  hdu=pyfits.open(task['images'], mode='update')[0] 
+  hdu=pyfits.open(task['images'])[0] 
   hdr = hdu.header
   imdata = hdu.data  
   for key,value in task['fits'].iteritems():
@@ -250,6 +253,7 @@ def performPhotometry(task, logger):
   photometry['PSF'] = iraf.txdump(textfiles=task['allstarfile'].name,
                         fields='XCENTER,YCENTER,MAG,MERR',expr='yes',
                         headers='no',Stdout=1)
+
   for phototype in photometry:
     kwargs = dict(input='STDIN',
                   output='STDOUT',
@@ -266,13 +270,7 @@ def performPhotometry(task, logger):
                   Stdin=photometry[phototype],Stdout=1)
     photometry[phototype] = [i.split() for i in iraf.skyctran(**kwargs) if i and not i.startswith('#') and 'INDEF' not in i]
     photometry[phototype] = [map(float,(i[4],i[5],i[2],i[3])) for i in photometry[phototype] ] #Now we have [(ra,dec,'mag','mageerr'),...]
-    distances = [(obj,constants.arclength(obj[0],obj[1],task['objwcs'][0],task['objwcs'][1])) for obj in photometry[phototype]]
-    distances = sorted([i for i in distances if i[1]<task['match_proximity']],key=lambda k: k[1])
-    if len(distances) > 1:
-      logger.warning('--> %s objects found within %0.2f" of the force detect position.' % (len(distances),task['match_proximity'],))
-      logger.warning('--> Assuming the object at D=%0.2f" from the user specified position is correct' % distances[0][1])
-    usersource = distances[0][0]
-  results = calibrate(usersource,task,photometry,logger)
+  results = calibrate((task['objwcs'][0],task['objwcs'][1]),task,photometry,logger)
   return results
 
 def calibrate(usersource,task,photometry,logger):
@@ -313,12 +311,14 @@ def calibrate(usersource,task,photometry,logger):
   fitfunc = lambda p, x: p[0] + p[1] * x #linear fit
   errfunc = lambda p, x, y, err: (y - fitfunc(p, x)) / err
   pinit = [0.0, 1.0]
-  data = []
   results = {}
   for phototype in photometry:
+    data = []
     for source in photometry[phototype]:
       matchedsource = matchsource(source[0],source[1],calcat)
       if not matchedsource:
+        continue
+      if abs(matchedsource[2]-source[2]) > PHOTO_TOLERANCE[task['band']]:
         continue
       data.append( [source[2],matchedsource[2],np.sqrt(source[3]**2+matchedsource[3]**2) ] )
     x = np.array([i[0] for i in data])
@@ -372,11 +372,11 @@ def parseIni(iniFile,task):
 
 
 def main(iniFile, logger, objwcs, jobid):
+  print "Entered photometry, logger [%s]" % logger
   task = {}
   task['output_directory'] = os.path.join(MEDIA_ROOT,jobid)
   if not os.path.isdir(task['output_directory']):
     os.mkdir(task['output_directory'])
-  task['logfile'] = open(os.path.join(task['output_directory'],'logfile.log'),'a')
   if not logger:
     logfmt = '%(levelname)s: (%(asctime)s) %(message)s'
     datefmt= '%m/%d/%Y %I:%M:%S %p'
@@ -385,7 +385,7 @@ def main(iniFile, logger, objwcs, jobid):
     logging.root.setLevel(logging.DEBUG)
     ch = logging.StreamHandler() #console handler
     ch.setFormatter(formatter)
-    fh = logging.FileHandler(filename=task['logfile'].name,mode='a') #file handler
+    fh = logging.FileHandler(filename=open(os.path.join(task['output_directory'],'logfile'),'a').name,mode='a') #file handler
     fh.setFormatter(formatter)
     logger.addHandler(ch)
     logger.addHandler(fh)
@@ -400,8 +400,5 @@ def main(iniFile, logger, objwcs, jobid):
   return results
 
 if __name__=="__main__":
-  #fk5; circle(150.15745,2.35413,0.000290) # text={19.73 +/- 0.01}
-  #fk5; circle(150.17313,2.40424,0.000290) # text={20.18 +/- 0.04}
-  #fk5; circle(150.19588,2.35110,0.000290) # text={22.28 +/- 0.04}
-  r = main('/diska/home/vsudilov/work/ini/COSMOS08/OB1_1/rana.ini',None,(150.19588,2.35110),'123j-sa3-ad3-a3sd')
+  r = main('/home/vagrant/grondview/work/ini/COSMOS03/OB1_1/rana.ini',None,(150.02838, 2.27318),'223j-sa3-ad3-a3sd')
   print r

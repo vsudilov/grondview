@@ -17,3 +17,7 @@ static/*
 *nnw
 *conv
 *param
+deps/
+iraf/
+work/
+red/
