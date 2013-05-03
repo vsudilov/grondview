@@ -24,7 +24,7 @@ import numpy as np
 import ConfigParser
 import logging
 
-PLOT=True
+PLOT=False
 
 PHOTO_TOLERANCE = dict( (b,0.2) for b in 'griz' )
 PHOTO_TOLERANCE.update( dict( (b,0.3) for b in 'JHK'))
@@ -372,14 +372,13 @@ def parseIni(iniFile,task):
 
 
 def main(iniFile, logger, objwcs, jobid):
-  print "Entered photometry, logger [%s]" % logger
   task = {}
   task['output_directory'] = os.path.join(MEDIA_ROOT,jobid)
   if not os.path.isdir(task['output_directory']):
     os.mkdir(task['output_directory'])
   if not logger:
     logfmt = '%(levelname)s: (%(asctime)s) %(message)s'
-    datefmt= '%m/%d/%Y %I:%M:%S %p'
+    datefmt= '%I:%M:%S %p'
     formatter = logging.Formatter(fmt=logfmt,datefmt=datefmt)
     logger = logging.getLogger('__main__')
     logging.root.setLevel(logging.DEBUG)
@@ -395,10 +394,22 @@ def main(iniFile, logger, objwcs, jobid):
   task['objwcs'] = objwcs
   task['jobid'] = jobid
   results = performPhotometry(task,logger)
+  if task['band'] in constants.optical:
+    if not results['PSF']:
+      logger.warning('PSF photometry failed, reporting APP photometry instead')
+      result = results['APP']
+    else:
+      result = results['PSF']
+      logger.info('Reporting results from PSF photometry')
+  else:
+    result = results['APP']
+    logger.info('Reporting results from APP photometry')
+  logger.info('Successfully performed photometry for object at ra,dec %0.4f,%0.4f' % (result[0],result[1]))
   end = time.time()
   logger.info("Photometry completed in %0.1f seconds" % (end-start) ) 
-  return results
+  return result
 
 if __name__=="__main__":
+  #For test purposes
   r = main('/home/vagrant/grondview/work/ini/COSMOS03/OB1_1/rana.ini',None,(150.02838, 2.27318),'223j-sa3-ad3-a3sd')
   print r

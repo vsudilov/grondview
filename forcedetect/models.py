@@ -14,10 +14,9 @@ from lib import constants
 
 from astLib import astCoords
 
-
+#This should eventually be done with celery/redis !
 class UserTask_photometry(models.Model):
   user = models.ForeignKey(User)
-
   jobid = models.CharField(max_length=40)
   working_directory = models.CharField(max_length=50)
   logfile_line_number = models.IntegerField()

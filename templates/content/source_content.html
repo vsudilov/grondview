@@ -184,7 +184,7 @@ $(function() {
         success: function(data, textStatus, jqXHR){
           thisButton.src = '{{STATIC_URL}}images/ajax-loader.gif';
           thisButton.className += ' busy ' + data['jobid'];
-          $('#logfile-container').append('<div id="logfile" class="'+data['jobid']+'">test</div>');
+          $('#logfile-container').append('<div id="logfile" class="'+data['jobid']+'"></div>');
           pollWrapper(thisButton, data['jobid']);
         },
       });
@@ -208,8 +208,10 @@ $(function() {
             $('img.'+jobid).replaceWith('<div class="userdetection">'+data['mag']+'</div>')
           }
           else {
-            $('#logfile.'+jobid).append(data['log']+'<br>')
-            $('#logfile.'+jobid).animate({scrollTop:$('#logfile.'+jobid)[0].scrollHeight}, 1000);
+            if ( data['log'] ) {
+              $('#logfile.'+jobid).append(data['log']+'<br>')
+              $('#logfile.'+jobid).animate({scrollTop:$('#logfile.'+jobid)[0].scrollHeight}, 1000);
+            };
           }; 
         },
       });

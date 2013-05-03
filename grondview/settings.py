@@ -9,7 +9,7 @@ PROJECT_ROOT = os.path.join(USER_HOME,'grondview')
 GP_INIDIR = os.path.join(PROJECT_ROOT,'work/ini') #Path to ini files
 
 DEBUG = True
-
+ALLOWED_HOSTS = ['localhost']
 
 TEMPLATE_DEBUG = DEBUG
 import djcelery

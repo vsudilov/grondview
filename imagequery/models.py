@@ -60,8 +60,8 @@ class ImageHeaderQuerySet(QuerySet):
       imageheaders = self.filter(OB=forceOB).positionFilter(ra,dec,radius=10)
     imageheaders = sorted(imageheaders,key = lambda k: constants.band_sequence[k.FILTER])
     #Create image cut-outs
-    if DEBUG:
-      clipSize*=10 #For stubdata only!
+    #if DEBUG:
+      #clipSize*=10 #For stubdata only!
     for hdr in imageheaders:
       fname = '%s.png' % uuid.uuid4()
       hdr.fname = fname #This attribute links the filename to the <img src=''> tag

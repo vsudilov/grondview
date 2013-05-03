@@ -49,7 +49,7 @@ def photometry(iniFile, objwcs, **kwargs):
     os.mkdir(os.path.join(MEDIA_ROOT,jobid))
   
   logfmt = '%(levelname)s: (%(asctime)s) %(message)s'
-  datefmt= '%m/%d/%Y %I:%M:%S %p'
+  datefmt= '%I:%M:%S %p'
   formatter = logging.Formatter(fmt=logfmt,datefmt=datefmt)
   logger = logging.getLogger('photometry')
   logging.root.setLevel(logging.DEBUG)
