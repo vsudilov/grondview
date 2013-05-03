@@ -148,6 +148,14 @@ class post_python_modules{
         user => vagrant;
        }
 
+
+  file { 
+    "/etc/profile.d/setenv.sh":
+      source => "/home/vagrant/grondview/manifests/setenv.sh",
+      owner => root,
+      group => root,
+      ensure => present;
+        }
 }
 
 

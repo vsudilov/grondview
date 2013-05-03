@@ -154,7 +154,7 @@ $(function() {
 
   $('#source_datatable').dataTable();
 
-  $('img.forcedetect').click(function() {
+  $( document ).on('click','img.forcedetect',function() {
       if ( this.className.indexOf('busy') > 0 ) {
         return
       };
