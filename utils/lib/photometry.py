@@ -77,7 +77,9 @@ def makeSexConfig(sex, task, **kwargs):
 
 def performPhotometry(task, logger):
   #iraf.prcacheOff()
+  [iraf.unlearn(t) for t in ('phot','pstselect','psf','allstar')]
   iraf.set(imtype="fits,noinherit")   # set image output format
+  iraf.set(clobber="yes")
   hdu=pyfits.open(task['images'])[0] 
   hdr = hdu.header
   imdata = hdu.data  
@@ -160,7 +162,6 @@ def performPhotometry(task, logger):
     cbox = 1.5*task['seeing'],
     maxshift=15,
     mode="h",Stdout=1,verify=0)
-  iraf.unlearn('phot')
   iraf.phot(**kwargs)
 
   #iraf.pstselect to choose objects for PSF modelling
@@ -179,7 +180,6 @@ def performPhotometry(task, logger):
                    recente='yes',
                    nclean=task['nclean'],
                    mode="h",Stdout=1)
-  iraf.unlearn('pstselect')
   iraf.pstselect(**kwargs)
 
   #iraf.psf to model PSF
@@ -240,7 +240,6 @@ def performPhotometry(task, logger):
                 recenter='yes',
                 mergerad=1.5*task['seeing'],
                 mode='h',Stdout=1)
-  iraf.unlearn('allstar')
   iraf.allstar(**kwargs)
   
 

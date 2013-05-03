@@ -8,6 +8,7 @@ class {
       'python_modules': stage => main;
       'ruby_modules':   stage => main;
       'post_python_modules': stage => last;
+      'iraf': stage => last;
       'cronjobs':	stage => last;
       'sass-watch':	stage => last;
 #      'coffee-watch': stage => last; #Doesnt work, bug in coffee --watch
@@ -79,6 +80,8 @@ class system{
           ensure => installed,
           provider => apt;
   }
+
+
 }
 
 # Python modules via pip
@@ -122,21 +125,17 @@ class post_python_modules{
           ensure => installed,
           provider => pip;
 
-     "django-grappelli":
-         ensure => installed,
-         provider => pip;
+#     "django-grappelli":
+#         ensure => installed,
+#         provider => pip;
 
      "pyraf":
          ensure => installed,
          provider => pip;
 
-#     "stsci.distutils":
-#         ensure => installed,
-#         provider => pip;
-
-#      "stscipython":
-#          ensure => installed,
-#          provider => pip;
+     "stsci.numdisplay":
+        ensure => installed,
+        provider => pip;
 
         }
   
@@ -148,16 +147,87 @@ class post_python_modules{
         user => vagrant;
        }
 
-
-  file { 
-    "/etc/profile.d/setenv.sh":
-      source => "/home/vagrant/grondview/manifests/setenv.sh",
-      owner => root,
-      group => root,
-      ensure => present;
-        }
 }
 
+
+class iraf {
+    file { 
+      "/etc/profile.d/setenv.sh": #Defines iraf, IRAFARCH environmental variables
+        source => "/home/vagrant/grondview/manifests/setenv.sh",
+        owner => root,
+        group => root,
+        ensure => present;
+        }
+    
+    exec {
+      "mkdir_iraf":
+        command => '/bin/mkdir -p /usr/local/iraf/ && /usr/bin/touch /usr/local/iraf/.touch',
+        creates => '/usr/local/iraf/.touch',
+        user => root;
+        }
+
+    exec {
+      "download_iraf":
+        command => '/usr/bin/wget ftp://iraf.noao.edu/iraf/v216/PCIX/iraf.lnux.x86_64.tar.gz -O /usr/local/iraf/iraf.tar.gz',
+        creates => '/usr/local/iraf/iraf.tar.gz',
+        user => root,
+        timeout => 3000,
+        require => Exec['mkdir_iraf'];
+        }
+
+    exec {
+      "untar_iraf":
+        command => '/bin/tar -xvf /usr/local/iraf/iraf.tar.gz -C /usr/local/iraf/ && /usr/bin/touch /usr/local/iraf/.untar_complete',
+        creates => '/usr/local/iraf/.untar_complete',
+        user => root,
+        timeout => 3000,
+        require => Exec['download_iraf'];
+         }
+
+    exec {
+      "link_irafh":
+        command => '/bin/ln -s /usr/local/iraf/unix/hlib/libc/iraf.h /usr/include/iraf.h',
+        creates => '/usr/include/iraf.h',
+        user => root,
+        require => Exec['untar_iraf'];
+        }
+
+    exec {
+      "link_irafbin":
+        command => '/bin/ln -s /usr/local/iraf/bin.linux64 /usr/local/iraf/bin.linux',
+        creates => '/usr/local/iraf/bin.linux',
+        user => root,
+        require => Exec['untar_iraf'];
+        }
+
+     exec {
+     "link_irafbin_noao":
+        command => '/bin/ln -s /usr/local/iraf/noao/bin.linux64 /usr/local/iraf/noao/bin.linux',
+        creates => '/usr/local/iraf/noao/bin.linux',
+        user => root,
+        require => Exec['untar_iraf'];
+        }
+
+     exec {
+       "mkiraf_dir":
+          command => '/bin/mkdir /home/vagrant/iraf',
+          creates => '/home/vagrant/iraf',
+          user => vagrant;
+        }
+
+     file {
+      "/home/vagrant/iraf/login.cl": #Defines iraf, IRAFARCH environmental variables
+        source => "/home/vagrant/grondview/etc/login.cl",
+        owner => vagrant,
+        group => vagrant,
+        ensure => present,
+        require => Exec['mkiraf_dir'];
+        }
+      
+
+    
+
+  }
 
 
 # cron jobs
