@@ -22,10 +22,13 @@ from lib import astImages
 from lib import constants
 from lib import photometry as phot
 
+from stsci.numdisplay import zscale
+
 @celery.task
 def makeImage(ImageHeaderInstance,fname,clipSize,ra,dec,units='arcseconds', **kwargs):
   d = pyfits.open(ImageHeaderInstance.PATH)[0].data
   wcs = astWCS.WCS(ImageHeaderInstance.PATH)  
+  scale=zscale.zscale(d)
   clipSizeDeg = clipSize * constants.convert_arcmin_or_arcsec_to_degrees[units]
   cutout = astImages.clipImageSectionWCS(d, wcs, ra, dec, clipSizeDeg, returnWCS = False)
   caption = ImageHeaderInstance.FILTER
@@ -38,6 +41,7 @@ def makeImage(ImageHeaderInstance,fname,clipSize,ra,dec,units='arcseconds', **kw
     colorMapName='gray',
     caption=caption,
     clipSizeDeg=clipSizeDeg,
+    scale=scale,
     )
   return None
 

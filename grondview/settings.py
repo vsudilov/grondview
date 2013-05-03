@@ -2,8 +2,6 @@
 
 import os
 
-
-
 USER_HOME = os.path.expanduser('~')
 PROJECT_ROOT = os.path.join(USER_HOME,'grondview')
 GP_INIDIR = os.path.join(PROJECT_ROOT,'work/ini') #Path to ini files
@@ -140,7 +138,7 @@ TEMPLATE_DIRS = (
 
 LOGIN_URL = "/login/"
 LOGOUT_URL = "/logout/"
-
+  
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -158,7 +156,7 @@ INSTALLED_APPS = (
      'objectquery',
      'forcedetect',
      'djcelery',
-)
+  )
 
 #DAJAXICE_MEDIA_PREFIX="dajaxice"
 

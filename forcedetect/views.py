@@ -70,12 +70,12 @@ class ForceDetectView(JSONResponseMixin,TemplateView):
     job = AsyncResult(jobid)
     completed = job.ready()
     db_entry = UserTask_photometry.objects.get(jobid=jobid)
-    lastline = int(db_entry.logfile_line_number)
+    lastline = db_entry.logfile_line_number
     with open(os.path.join(MEDIA_ROOT,jobid,'logfile'),'r') as f:
       lines = f.readlines()
     if not completed or lastline < len(lines):
         loglines = ''.join(lines[lastline:]).strip()
-        loglines = loglines.replace('\n','<BR>')
+        loglines = loglines.replace('\n','<br />')
         db_entry.logfile_line_number = len(lines)
         db_entry.save()
         context = {'completed':False,'log':loglines}

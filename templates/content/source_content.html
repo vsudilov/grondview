@@ -190,6 +190,12 @@ $(function() {
       });
   });
 
+  $( document ).on('click','img.close_dialog',function() {
+   console.debug('clicked close_dialog');
+   $(this).parent().remove();
+   $(this).remove();
+  });
+
   function pollWrapper(thisButton, jobid) {
     function poll(thisButton, jobid) {
       $.ajax({
@@ -200,19 +206,25 @@ $(function() {
         dataType: 'json',
         url: '/forcedetect/'+jobid,
         success: function(data, textStatus, jqXHR){
-          console.debug('polled '+jobid);
           if ( data['completed'] ) {
-            console.debug(data['completed'])
             clearInterval(pollID)
             $('img.'+jobid).parent().parent().next().children('div').html('<div class="userdetection">'+data['mag_err']+'</div>')
             $('img.'+jobid).replaceWith('<div class="userdetection">'+data['mag']+'</div>')
+            $('#logfile.'+jobid).append('<img style="float:right;" src={{STATIC_URL}}images/dialog_close.png class="close_dialog"/>');
+            $('#logfile.'+jobid).animate({scrollTop:$('#logfile.'+jobid)[0].scrollHeight}, 500);
           }
           else {
             if ( data['log'] ) {
               $('#logfile.'+jobid).append(data['log']+'<br>')
-              $('#logfile.'+jobid).animate({scrollTop:$('#logfile.'+jobid)[0].scrollHeight}, 1000);
+              $('#logfile.'+jobid).animate({scrollTop:$('#logfile.'+jobid)[0].scrollHeight}, 500);
             };
           }; 
+        },
+        error: function(jqXHR,textStatus,errorThrown) {
+          $('img.'+jobid).parent().parent().next().children('div').html('<div>'+'ERROR'+'</div>')
+          $('#logfile.'+jobid).append('<img style="float:right;" src={{STATIC_URL}}images/dialog_close.png class="close_dialog"/>');
+          $('#logfile.'+jobid).animate({scrollTop:$('#logfile.'+jobid)[0].scrollHeight}, 500);
+          clearInterval(pollID)
         },
       });
     };

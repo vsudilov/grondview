@@ -848,7 +848,7 @@ def generateContourOverlay(backgroundImageData, backgroundImageWCS, contourImage
     return {'scaledImage': scaledBack, 'contourLevels': cLevels}
     
 #---------------------------------------------------------------------------------------------------
-def saveBitmap(outputFileName, imageData, cutLevels, size, colorMapName, caption, clipSizeDeg):
+def saveBitmap(outputFileName, imageData, cutLevels, size, colorMapName, caption, clipSizeDeg, scale=None):
     """Makes a bitmap image from an image array; the image format is specified by the
     filename extension. (e.g. ".jpg" =JPEG, ".png"=PNG).
     
@@ -871,8 +871,11 @@ def saveBitmap(outputFileName, imageData, cutLevels, size, colorMapName, caption
     
     """		
     clipSizeArcsec = clipSizeDeg*60*60.
-    cut=intensityCutImage(imageData, cutLevels)
-    
+    if not scale:
+      cut=intensityCutImage(imageData, cutLevels)
+    else:
+      anorm = pylab.normalize(scale[0],scale[1])
+      cut = {'image': imageData.copy(), 'norm': anorm}  
     # Make plot
     aspectR=float(cut['image'].shape[0])/float(cut['image'].shape[1])
     fig = pylab.figure(figsize=(10,10*aspectR))

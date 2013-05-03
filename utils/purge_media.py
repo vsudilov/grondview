@@ -4,7 +4,7 @@ Designed to be run via cron.
 '''
 import os
 import time
-
+import shutil
 
 
 #---------------------------------------
@@ -43,11 +43,17 @@ def main():
   for f in [os.path.join(MEDIA_DIR,i) for i in os.listdir(MEDIA_DIR) if not i.startswith('.')]:  
     (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(f)
     now = time.time()
-    if now-atime > 60:
-      os.remove(f)    
-      deleted_MB += size/1048576.0
+    if os.path.isfile(f):
+      if now-atime > 60:
+        os.remove(f)    
+        deleted_MB += size/1048576.0
+    elif os.path.isdir(f):
+      if now-atime > 120:
+        shutil.rmtree(f)
+        deleted_MB += size/1048576.0
+
   if round(deleted_MB) > 0:
-    logger.info('Deleted %0.2f MB from media/' % deleted_MB)
+    logger.info('Deleted %0.2f MB of data from media/' % deleted_MB)
 
 if __name__ == "__main__":
   try:
