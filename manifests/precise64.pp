@@ -94,6 +94,9 @@ class python_modules{
       "django":
           ensure => "1.5",
           provider => pip;
+      "d2to1":
+          ensure => installed,
+          provider => pip;
 
   }
 }
@@ -123,9 +126,9 @@ class post_python_modules{
          ensure => installed,
          provider => pip;
 
-#     "pyraf2":
-#         ensure => installed,
-#         provider => pip;
+     "pyraf":
+         ensure => installed,
+         provider => pip;
 
 #     "stsci.distutils":
 #         ensure => installed,
