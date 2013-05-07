@@ -9,6 +9,7 @@ class {
       'ruby_modules':   stage => main;
       'post_python_modules': stage => last;
       'iraf': stage => last;
+      'sextractor': stage => last;
       'cronjobs':	stage => last;
       'sass-watch':	stage => last;
 #      'coffee-watch': stage => last; #Doesnt work, bug in coffee --watch
@@ -79,6 +80,9 @@ class system{
       "libx11-dev":
           ensure => installed,
           provider => apt;
+      "alien":
+          ensure => installed,
+          provider => alt;
   }
 
 
@@ -229,6 +233,22 @@ class iraf {
 
   }
 
+
+class sextractor {
+  exec {
+      "wget_sex_rpm":
+        command => "/usr/bin/wget http://www.astromatic.net/download/sextractor/sextractor-2.8.6-1.x86_64.rpm -O /home/vagrant/sextractor_x64.rpm",
+        user => vagrant,
+        creates => "/home/vagrant/sextractor_x64.rpm";
+    }
+
+  exec {
+      "alien_install":
+        command => "/usr/bin/alien -di /home/vagrant/sextractor_x64.rpm",
+        user => root,
+        creates => "/usr/bin/sex",
+        require => Exec['wget_sex_rpm'];
+}
 
 # cron jobs
 #----------------------------
