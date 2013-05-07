@@ -82,7 +82,7 @@ class system{
           provider => apt;
       "alien":
           ensure => installed,
-          provider => alt;
+          provider => apt;
   }
 
 
@@ -248,6 +248,7 @@ class sextractor {
         user => root,
         creates => "/usr/bin/sex",
         require => Exec['wget_sex_rpm'];
+  }
 }
 
 # cron jobs

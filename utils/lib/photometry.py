@@ -90,7 +90,7 @@ def performPhotometry(task, logger):
   logger.info('Running SExtractor on [%s]' % os.path.basename(task['images']))
   sex = sextractor.SExtractor()
   makeSexConfig(sex,task)
-  sex.run(task['images'],path=task['sexpath'])
+  sex.run(task['images'])
   catalog = sex.catalog()
 
   #Set up image parameters
@@ -369,7 +369,6 @@ def parseIni(iniFile,task):
   for param in ('ra','dec','numpixx','numpixy','exposure','dateobs','ron','gain'):
     task[s][param] = cp.get(s,param)
 
-  task['sexpath'] = os.path.join(PROJECT_ROOT,'utils/bin/sex')
   return task
 
 
