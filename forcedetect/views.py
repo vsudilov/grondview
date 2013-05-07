@@ -54,7 +54,7 @@ class ForceDetectView(JSONResponseMixin,TemplateView):
 
     current_user_tasks = UserTask_photometry.objects.filter(user=request.user)
     if len(current_user_tasks) > 3:
-      return HttpResponseBadRequest()
+      return HttpResponseBadRequest("Too many requests from user [%s]" % request.user.username)
 
     #Find path, iniFile, logger; create task
     iniFile = os.path.join(GP_INIDIR,targetID,OB,'%sana.ini' % band)
@@ -92,31 +92,27 @@ class ForceDetectView(JSONResponseMixin,TemplateView):
         db_entry.save()
         context = {'completed':False,'log':loglines}
     else:
-      result, results = job.get()
-      mag = round(result[2],2)
-      mag_err = round(result[3],2)
+      results = job.get()
+      mag = round(results['APP'][2],2)
+      mag_err = round(results['APP'][3],2)
       context = {'completed':True,'jobid':jobid,'mag':mag,'mag_err':mag_err}
 
       hashtable = {
             'MAG_APP': lambda d: d['APP'][2] if d['APP'] else None,
             'MAG_APP_ERR': lambda d: d['APP'][3] if d['APP'] else None,
-            'MAG_KRON': lambda d: None,
-            'MAG_KRON_ERR': lambda d: None,
             'MAG_PSF': lambda d: d['PSF'][2] if d['PSF'] else None,
             'MAG_PSF_ERR': lambda d: d['PSF'][3] if d['PSF'] else None,
       }
       fields = {}
       fields['user'] = request.user
       fields['BAND'] = db_entry.band
-      o = Photometry.objects.get(astrosource__sourceID=db_entry.sourceID)
+      o = Photometry.objects.filter(astrosource__sourceID=db_entry.sourceID)[0]
       fields['imageheader'] = o.imageheader
       fields['astrosource'] = o.astrosource
       [fields.update( {k:hashtable[k](results)} ) for k in hashtable.keys()]
-      fields['MAG_CALIB'] = mag
-      fields['MAG_CALIB_ERR'] = mag_err
       p = Photometry(**fields)
       p.save()
-      db_entry.delete() #Delete database entry, this should eventually tied to the redis backend!
+      db_entry.delete() #Delete database entry, this should eventually be tied to the redis backend!
     return self.render_to_response(context)
 
 

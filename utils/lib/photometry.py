@@ -280,17 +280,21 @@ def calibrate(usersource,task,photometry,logger):
   #  1. calcat=<file> in ?ana.ini
   #  2. 2MASS (JHK), SDSS (griz)
   #  3. No catalog, no calibration (use zeropoints)
+  results['CALIB_SCHEMA'] = 'user'
   if not os.path.isfile(task['calcat']):
     if task['band'] in constants.infrared:
       task['calcat'] = os.path.join(task['workdir'],'GROND_%s_OB_cat_2MASS.tsv' % task['band'])
+      results['CALIB_SCHEMA'] = '2MASS'
     elif task['band'] in constants.optical:
       c = os.path.join(task['workdir'],'GROND_%s_OB_cat_SDSS.tsv' % task['band'])
+      results['CALIB_SCHEMA'] = 'SDSS'
       if os.path.isfile(c):
         task['calcat'] = c
       else:
-        task['calcat'] = 'instrumental zeropoints'
+        task['calcat'] = 'ZP'
+        results['CALIB_SCHEMA'] = 'ZP'
   logger.info('--> Calibrating against [%s]' % os.path.basename(task['calcat']))
-  
+  results['CALIB_FILE'] = task['calcat']
   def matchsource(ra,dec,catalog):
     #Return catalog [ra,dec,mag,magerr] for the matched source
     distances = [[catsource,constants.arclength(ra,dec,catsource[0],catsource[1])] for catsource in catalog]
@@ -300,7 +304,7 @@ def calibrate(usersource,task,photometry,logger):
     distances = sorted(distances,key=lambda k: k[1])[0]
     return distances[0]
 
-  if task['calcat'] == 'instrumental zeropoints':
+  if task['calcat'] == 'ZP':
     for phototype in photometry:
       results[phototype] = matchsource(usersource[0],usersource[1],photometry[phototype])
     return results
@@ -324,16 +328,17 @@ def calibrate(usersource,task,photometry,logger):
     x = np.array([i[0] for i in data])
     y = np.array([i[1] for i in data])
     yerr = np.array([i[2] for i in data])
-    out, covar, inf, mesg, ier = optimize.leastsq(errfunc, pinit, args=(x, y, yerr), full_output=1)
+    out = optimize.leastsq(errfunc, pinit, args=(x, y, yerr))
+    pfinal = out[0]
     chi2 = 0
-    med = out[0]
-    mult = out[1]
+    scatter = []
     for (xval,yval,yvalerr) in zip(x,y,yerr):
-        chi2+=((med+mult*xval-yval)/yvalerr)**2
+        chi2+=((pfinal[0]+pfinal[1]*xval-yval)/yvalerr)**2
+        scatter.append(pfinal[0]+pfinal[1]*xval-yval)
+    std = np.std(scatter)
     dof = len(y)-1
-    redchi2 = chi2/dof
-    pfinal = out
-    logger.info('--> %5.2f reduced chi2 for %s photometry using %s objects' % (redchi2,phototype,len(y)) )    
+    logger.info('--> %5.2f reduced chi2 for %s photometry using %s objects' % (chi2/dof,phototype,len(y)) )    
+    logger.info('--> %5.2f std (mags) of residuals' % std)
     if PLOT:
       fig = plt.figure()
       ax = fig.gca()    
@@ -344,12 +349,8 @@ def calibrate(usersource,task,photometry,logger):
       plt.savefig('calib-%s.png' % phototype,format='png')
       logger.info('--> Calibration plot [%s] saved' % phototype)
     #Find the user source again, apply calibration
-    calibrated_data = [ [i[0],i[1],i[2]*pfinal[1]+pfinal[0],i[3] ] for i in photometry[phototype] ]
+    calibrated_data = [ [i[0],i[1],i[2]*pfinal[1]+pfinal[0],np.sqrt(i[3]**2+std**2) ] for i in photometry[phototype] ]
     results[phototype] = matchsource(usersource[0],usersource[1],calibrated_data)
-  results['ZP'] = matchsource(usersource[0],usersource[1],photometry['PSF'])
-  if not results['ZP']:
-    results['ZP'] = matchsource(usersource[0],usersource[1],photometry['APP'])
-  #end product: {'APP':[ra,dec,mag,magerr],'PSF':[...],'zeropoints':[...]}
   return results         
 
 def parseIni(iniFile,task):
@@ -394,28 +395,16 @@ def main(iniFile, logger, objwcs, jobid):
   parseIni(iniFile,task)
   task['objwcs'] = objwcs
   task['jobid'] = jobid
-  results = performPhotometry(task,logger)    
-  if task['band'] in constants.optical:
-    if not results['PSF']:
-      logger.warning('PSF photometry failed, reporting APP photometry instead')
-      result = results['APP']
-    else:
-      result = results['PSF']
-      logger.info('Reporting results from PSF photometry')
-  else:
-    result = results['APP']
-  if not result:
+  results = performPhotometry(task,logger)
+  if not results:
     logger.critical('Unable to compute photometry for this position!')
     raise Exception, 'No results from photometry'
-  logger.info('Reporting results from APP photometry')
-  logger.info('Successfully performed photometry for object at ra,dec %0.4f,%0.4f' % (result[0],result[1]))
-  print results
   for k,v in results.iteritems():
     if v:
       logger.info("--> [%s]: %5.2f +- %2.2f" % (k,v[2],v[3]))
   end = time.time()
   logger.info("Photometry completed in %0.1f seconds" % (end-start) ) 
-  return result, results
+  return results
 
 if __name__=="__main__":
   #For test purposes

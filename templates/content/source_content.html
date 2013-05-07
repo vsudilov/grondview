@@ -184,9 +184,9 @@ $(function() {
         url: '/forcedetect/',
         success: function(data, textStatus, jqXHR){
           thisButton.src = '{{STATIC_URL}}images/ajax-loader.gif';
-          thisButton.className += ' busy ' + data['jobid'];
-          $('#logfile-container').append('<div id="logfile" class="'+data['jobid']+'"></div>');
-          pollWrapper(thisButton, data['jobid']);
+          thisButton.className += ' busy ' + data.jobid;
+          $('#logfile-container').append('<div id="logfile" class="'+data.jobid+'"></div>');
+          pollWrapper(thisButton, data.jobid);
         },
       });
   });
@@ -207,26 +207,26 @@ $(function() {
         dataType: 'json',
         url: '/forcedetect/'+jobid,
         success: function(data, textStatus, jqXHR){
-          if ( data['completed'] ) {
+          if ( data.completed ) {
             clearInterval(pollID)
-            $('img.'+jobid).parent().parent().next().children('div').html('<div class="userdetection">'+data['mag_err']+'</div>')
-            $('img.'+jobid).replaceWith('<div class="userdetection">'+data['mag']+'</div>')
+            $('img.'+jobid).parent().parent().next().children('div').html('<div class="userdetection">'+data.mag_err+'</div>')
+            $('img.'+jobid).replaceWith('<div class="userdetection">'+data.mag+'</div>')
             $('#logfile.'+jobid).append('<img style="float:right;" src={{STATIC_URL}}images/dialog_close.png class="close_dialog"/>');
             $('#logfile.'+jobid).animate({scrollTop:$('#logfile.'+jobid)[0].scrollHeight}, 500);
           }
           else {
-            if ( data['log'] ) {
-              $('#logfile.'+jobid).append(data['log']+'<br>')
+            if ( data.log ) {
+              $('#logfile.'+jobid).append(data.log+'<br>')
               $('#logfile.'+jobid).animate({scrollTop:$('#logfile.'+jobid)[0].scrollHeight}, 500);
             };
           }; 
         },
         error: function(jqXHR,textStatus,errorThrown) {
+          clearInterval(pollID)
           $('img.'+jobid).parent().parent().next().children('div').html('<div class="userdetection">ERR</div>')
           $('img.'+jobid).replaceWith('<div class="userdetection">ERR</div>')
           $('#logfile.'+jobid).append('<img style="float:right;" src={{STATIC_URL}}images/dialog_close.png class="close_dialog"/>');
           $('#logfile.'+jobid).animate({scrollTop:$('#logfile.'+jobid)[0].scrollHeight}, 500);
-          clearInterval(pollID)
         },
       });
     };

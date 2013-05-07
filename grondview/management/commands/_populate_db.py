@@ -70,7 +70,7 @@ class GrondData:
     fields = _match_db_fields(fields) #Need to remove the extraneous keys...Django blindly tries to copy all keys to models 
     fields['PATH'] = self.image
     try:
-      result = ImageHeader.objects.get(PATH=fields['PATH']) 
+      result = ImageHeader.objects.get(PATH=fields['PATH'])
       print "NOTE: This field already exists in the database. I will UPDATE the values for it instead of INSERT a new row"
       fields['pk'] = result.pk
     except ImageHeader.DoesNotExist:
@@ -159,8 +159,11 @@ class GrondData:
       #Set up magnitudes from resultfiles      
       if fields['BAND'] in constants.infrared:
         #If JHK, take MAG_APP=MAG_CALIB, point to downloaded 2MASS catalog
-        fields['MAG_APP'] = matched[s]['MAG_CALIB']+constants.convert_to_AB[fields['BAND']]
-        fields['MAG_APP_ERR'] = matched[s]['MAG_CALIB_ERR']
+        try:
+          fields['MAG_APP'] = matched[s]['MAG_CALIB']+constants.convert_to_AB[fields['BAND']]
+          fields['MAG_APP_ERR'] = matched[s]['MAG_CALIB_ERR']
+        except TypeError:
+          pass #Default None is already set
         fields['CALIB_FILE'] = os.path.join(os.path.dirname(self.imageheader.PATH),'GROND_%s_OB_cat_2MASS.tsv' % fields['BAND'])
       else:
         #if griz, take either CALIB is sdss/user catalog, else take zeropoints
@@ -171,8 +174,7 @@ class GrondData:
             fields['MAG_APP'] = matched[s]['MAG_APP']+matched[s]['OFFSET_ALL']
             fields['MAG_APP_ERR'] = ( matched[s]['MAG_APP_ERR']**2 + matched[s]['OFFSET_ALL_ERR']**2 ) ** (1/2.)
           except TypeError: #In case of value=INDEF from iraf
-            fields['MAG_APP'] = None
-            fields['MAG_APP_ERR'] = None
+            pass #default None is already set
           if fields['CALIB_SCHEME'].lower() == 'sdss':
             fields['CALIB_FILE'] = os.path.join(os.path.dirname(self.imageheader.PATH),'GROND_%s_OB_cat_SDSS.tsv' % fields['BAND'])
           else:

@@ -60,5 +60,5 @@ def photometry(iniFile, objwcs, **kwargs):
   fh = logging.FileHandler(filename=os.path.join(MEDIA_ROOT,jobid,'logfile'),mode='a') #file handler
   fh.setFormatter(formatter)
   logger.addHandler(fh)
-  result, results = phot.main(iniFile, logger, objwcs, jobid)
-  return result, results
+  results = phot.main(iniFile, logger, objwcs, jobid)
+  return results

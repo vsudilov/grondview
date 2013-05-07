@@ -197,7 +197,6 @@ class ObjectView(TemplateView):
         results[0].astrosource.DEC,
         forceOB=nominalOB[0].imageheader.OB,
         )
-    print source_data
     return render(request,self.template_name,{'source_data':source_data,'request':request,
                                           'lightcurve':lightcurve[bestBand],'nominalOB':nominalOB,
                                           'SED':SED,'userColumns':userColumns,'lc_band':bestBand,

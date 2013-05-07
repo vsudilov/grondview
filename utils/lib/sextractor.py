@@ -401,7 +401,7 @@ class SExtractor:
         self.version = None
 
 
-    def setup(self, path=None):
+    def setup(self, path='/usr/bin/sex'):
         """
         Look for SExtractor program ('sextractor', or 'sex').
         If a full path is provided, only this path is checked.
