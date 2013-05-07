@@ -105,6 +105,7 @@ def performPhotometry(task, logger):
   except TypeError:
     task['pixscale'] = abs(hdr.get('CDELT1'))*3600.
   task['seeing'] = np.median( sorted([i['FWHM_IMAGE'] for i in catalog])[:int(-len(catalog)*0.5)] ) #Take the median of the "bottom" 50% of objects
+  
   logger.info('--> %s SExtractor detected bright objects in the field' % (len(catalog),) )
   logger.info('--> %0.2f median FWHM of bright objects in the field, in arcsec' % (task['seeing']*task['pixscale'],))
 
@@ -125,7 +126,7 @@ def performPhotometry(task, logger):
   task['skynoise'] *= constants.INTERPSM[task['band']]
   task['airmass'] = hdr.get('AIRMASS',1)
   task['zmag'] -= (float(task['airmass'])-1.0)*constants.extinction_coefficients[task['band']]  
-  task['match_proximity'] = 0.6 if task['band'] in constants.optical else 0.9
+  task['match_proximity'] = 2.5 * task['seeing']
   logger.info('--> %5.2f counts: Sky noise, corrected for drizzle imcombine' % task['skynoise'])
   logger.info('--> %5.2f Median count value, after background subtraction' % task['datamean'])
   logger.info('--> %5.2f Airmass' % task['airmass'])
@@ -392,7 +393,7 @@ def main(iniFile, logger, objwcs, jobid):
   parseIni(iniFile,task)
   task['objwcs'] = objwcs
   task['jobid'] = jobid
-  results = performPhotometry(task,logger)
+  results = performPhotometry(task,logger)    
   if task['band'] in constants.optical:
     if not results['PSF']:
       logger.warning('PSF photometry failed, reporting APP photometry instead')
@@ -402,8 +403,13 @@ def main(iniFile, logger, objwcs, jobid):
       logger.info('Reporting results from PSF photometry')
   else:
     result = results['APP']
-    logger.info('Reporting results from APP photometry')
+  if not result:
+    logger.critical('Unable to compute photometry for this position!')
+    raise Exception, 'No results from photometry'
+  logger.info('Reporting results from APP photometry')
   logger.info('Successfully performed photometry for object at ra,dec %0.4f,%0.4f' % (result[0],result[1]))
+  for k,v in results.iteritems():
+    logger.info("--> [%s]: %5.2f +- %2.2f" % (k,k[v][2],k[v][3]))
   end = time.time()
   logger.info("Photometry completed in %0.1f seconds" % (end-start) ) 
   return result
