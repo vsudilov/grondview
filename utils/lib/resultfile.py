@@ -59,9 +59,9 @@ structure of _parseRules in __init__(). Also, the columns are hardcoded in.
         raise SystemExit
       mag = obj[photo_type]
       mag_err = obj[photo_type+"_ERR"]
-      if mag == "INDEF":
+      if not mag:
         mag = -99
-      if mag_err == "INDEF":
+      if not mag_err:
         mag_err = -99
           
       if text:
@@ -320,7 +320,7 @@ structure of _parseRules in __init__(). Also, the columns are hardcoded in.
         try:
           obj[keyword] = float(line[columns[keyword]])
         except ValueError: #Take care of INDEF entries
-          obj[keyword] = line[columns[keyword]]
+          obj[keyword] = None
       obj['ObjID'] = objID
       self.objects.append(obj)
     if not self.header.has_key('XYXYMATCH_FAILURE'):
