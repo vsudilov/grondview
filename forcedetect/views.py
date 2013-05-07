@@ -7,9 +7,11 @@ from celery.result import AsyncResult
 from grondview.exceptions import *
 from grondview.settings import GP_INIDIR
 from grondview.settings import MEDIA_ROOT
+from grondview.settings import PROJECT_ROOT
 from grondview import tasks
 
-from imagequery.views import ImageHeader
+from objectquery.models import Photometry
+from objectquery.models import AstroSource
 
 from forcedetect.models import UserTask_photometry
 
@@ -17,6 +19,8 @@ import os,sys
 import ConfigParser
 import logging
 
+sys.path.insert(0,os.path.join(PROJECT_ROOT,'utils'))
+from lib import constants
 
 #http://www.pioverpi.net/2012/05/14/ajax-json-responses-using-django-class-based-views/
 class JSONResponseMixin(object):  
@@ -44,22 +48,30 @@ class ForceDetectView(JSONResponseMixin,TemplateView):
       targetID = request.POST['targetID']
       OB = request.POST['OB']
       band = request.POST['band']
+      sourceID = request.POST['sourceID']
     except:
       return HttpResponseBadRequest()
-    #Find path, iniFile, logger
+
+    current_user_tasks = UserTask_photometry.objects.filter(user=request.user)
+    if len(current_user_tasks) > 3:
+      return HttpResponseBadRequest()
+
+    #Find path, iniFile, logger; create task
     iniFile = os.path.join(GP_INIDIR,targetID,OB,'%sana.ini' % band)
     objwcs = (ra,dec)
-
     task = tasks.photometry.delay(iniFile, objwcs)
     context = {'jobid':task.id}
+
     #Make a database entry for the current task.
     fields = {}
     fields['user'] = request.user
     fields['jobid'] = task.id
-    fields['working_directory'] = '/some/long/path/to/the/ini/files.ini'
+    fields['band'] = band
+    fields['sourceID'] = sourceID
+    fields['OB'] = OB
     fields['logfile_line_number'] = 0
-    task = UserTask_photometry(**fields)
-    task.save()
+    db_entry = UserTask_photometry(**fields)
+    db_entry.save()
     return self.render_to_response(context)
   
   def head(self, request, *args, **kwargs):
@@ -80,10 +92,31 @@ class ForceDetectView(JSONResponseMixin,TemplateView):
         db_entry.save()
         context = {'completed':False,'log':loglines}
     else:
-      result = job.get()
+      result, results = job.get()
       mag = round(result[2],2)
       mag_err = round(result[3],2)
       context = {'completed':True,'jobid':jobid,'mag':mag,'mag_err':mag_err}
+
+      hashtable = {
+            'MAG_APP': lambda d: d['APP'][2] if d['APP'] else None,
+            'MAG_APP_ERR': lambda d: d['APP'][3] if d['APP'] else None,
+            'MAG_KRON': lambda d: None,
+            'MAG_KRON_ERR': lambda d: None,
+            'MAG_PSF': lambda d: d['PSF'][2] if d['PSF'] else None,
+            'MAG_PSF_ERR': lambda d: d['PSF'][3] if d['PSF'] else None,
+      }
+      fields = {}
+      fields['user'] = request.user
+      fields['BAND'] = db_entry.band
+      o = Photometry.objects.get(astrosource__sourceID=db_entry.sourceID)
+      fields['imageheader'] = o.imageheader
+      fields['astrosource'] = o.astrosource
+      [fields.update( {k:hashtable[k](results)} ) for k in hashtable.keys()]
+      fields['MAG_CALIB'] = mag
+      fields['MAG_CALIB_ERR'] = mag_err
+      p = Photometry(**fields)
+      p.save()
+      db_entry.delete() #Delete database entry, this should eventually tied to the redis backend!
     return self.render_to_response(context)
 
 

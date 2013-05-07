@@ -346,7 +346,9 @@ def calibrate(usersource,task,photometry,logger):
     #Find the user source again, apply calibration
     calibrated_data = [ [i[0],i[1],i[2]*pfinal[1]+pfinal[0],i[3] ] for i in photometry[phototype] ]
     results[phototype] = matchsource(usersource[0],usersource[1],calibrated_data)
-  results['zeropoints'] = matchsource(usersource[0],usersource[1],photometry['PSF'])
+  results['ZP'] = matchsource(usersource[0],usersource[1],photometry['PSF'])
+  if not results['ZP']:
+    results['ZP'] = matchsource(usersource[0],usersource[1],photometry['APP'])
   #end product: {'APP':[ra,dec,mag,magerr],'PSF':[...],'zeropoints':[...]}
   return results         
 
@@ -408,11 +410,13 @@ def main(iniFile, logger, objwcs, jobid):
     raise Exception, 'No results from photometry'
   logger.info('Reporting results from APP photometry')
   logger.info('Successfully performed photometry for object at ra,dec %0.4f,%0.4f' % (result[0],result[1]))
+  print results
   for k,v in results.iteritems():
-    logger.info("--> [%s]: %5.2f +- %2.2f" % (k,k[v][2],k[v][3]))
+    if v:
+      logger.info("--> [%s]: %5.2f +- %2.2f" % (k,v[2],v[3]))
   end = time.time()
   logger.info("Photometry completed in %0.1f seconds" % (end-start) ) 
-  return result
+  return result, results
 
 if __name__=="__main__":
   #For test purposes

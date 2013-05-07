@@ -177,7 +177,8 @@ $(function() {
           'dec': dec,
           'OB': OB,
           'targetID': targetID,
-          'band': band
+          'band': band,
+          'sourceID':'{{nominalOB.0.astrosource.sourceID}}',
         },
         dataType: 'json',
         url: '/forcedetect/',
@@ -221,7 +222,8 @@ $(function() {
           }; 
         },
         error: function(jqXHR,textStatus,errorThrown) {
-          $('img.'+jobid).parent().parent().next().children('div').html('<div>'+'ERROR'+'</div>')
+          $('img.'+jobid).parent().parent().next().children('div').html('<div class="userdetection">ERR</div>')
+          $('img.'+jobid).replaceWith('<div class="userdetection">ERR</div>')
           $('#logfile.'+jobid).append('<img style="float:right;" src={{STATIC_URL}}images/dialog_close.png class="close_dialog"/>');
           $('#logfile.'+jobid).animate({scrollTop:$('#logfile.'+jobid)[0].scrollHeight}, 500);
           clearInterval(pollID)
@@ -273,7 +275,7 @@ $(function() {
         <td><div><a href='/fields/{{nominalOB.0.imageheader.TARGETID}}/{{OB.OBname}}'>{{OB | hash:column }}</a></div></td>
         {% else %}
           {% if OB|hash:column %}
-        <td><div {% if OB.ownership != "pipeline" and column != "OBtype" %}class="userdetection" {% endif %}>{{OB|hash:column }}</div></td>
+        <td><div {% if OB.ownership.column != "pipeline" and column != "OBtype" %}class="userdetection" {% endif %}>{{OB|hash:column }}</div></td>
           {% else %}
             {% if "_err" not in column %}
         <td><div><img src="{{STATIC_URL}}images/plus_circle.png" class="forcedetect {{nominalOB.0.imageheader.TARGETID}}?{{OB.OBname}}?{{column}}" /></div></td>

@@ -148,8 +148,6 @@ class GrondData:
                   'MAG_KRON_ERR':'MAG_KRON_ERR',
                   'MAG_CALIB':'MAG_CALIB',
                   'MAG_CALIB_ERR':'MAG_CALIB_ERR',
-                  'ELONGATION':'ELONGATION',
-                  'R_HALFLIGHT':'R_HALFLIGHT',
                   }    
     for source in self.sources:
       matched = self.resultfile.getNearbyObjs(source.RA,source.DEC,limit=1)

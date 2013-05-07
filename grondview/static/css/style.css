@@ -51,7 +51,7 @@ body {
       background: transparent;
       text-align: left;
       color: #000;
-      text-shadow: 1px 1px white;
+      text-shadow: 1px 1px #FFF;
       text-decoration: none; }
       #navbar li a .hover, #navbar li a:hover {
         color: #737373; }
@@ -101,7 +101,7 @@ body {
     margin-top: 5px;
     float: left;
     font-size: 0.8em;
-    font-family: Century Gothic, sans-serif;
+    font-family: Century Gothic,sans-serif;
     width: 566.66667px;
     height: 270px; }
   #content-container #sed {
@@ -110,7 +110,7 @@ body {
     margin-top: 5px;
     float: right;
     font-size: 0.8em;
-    font-family: Century Gothic, sans-serif;
+    font-family: Century Gothic,sans-serif;
     width: 566.66667px;
     height: 270px; }
   #content-container #image-cutout {
@@ -138,7 +138,7 @@ body {
       background-color: #EBEBEB;
       position: relative;
       color: black;
-      overflow: scroll;
+      overflow-y: scroll;
       float: left;
       font-size: 0.8em;
       width: 50%;

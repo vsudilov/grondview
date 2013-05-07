@@ -101,8 +101,8 @@ class ObjectView(TemplateView):
     for photo_obj in nominalOB:
       x.append(constants.GrondFilters[photo_obj.BAND]['lambda_eff'])
       if photo_obj.BAND in 'griz':
-        mag = photo_obj.MAG_PSF
-        mag_err = photo_obj.MAG_PSF_ERR
+        mag = photo_obj.MAG_PSF if photo_obj.MAG_PSF else photo_obj.MAG_CALIB
+        mag_err = photo_obj.MAG_PSF_ERR if photo_obj.MAG_PSF_ERR else photo_obj.MAG_CALIB_ERR
       else:
         mag = photo_obj.MAG_CALIB
         mag_err = photo_obj.MAG_CALIB_ERR
@@ -136,18 +136,18 @@ class ObjectView(TemplateView):
                   'targetID': lambda k: k.imageheader.TARGETID,
                   'OBtype': lambda k: k.imageheader.OBTYPEID,
                   'OBname': lambda k: k.imageheader.OB,
-                  'g': lambda k: k.MAG_PSF,
-                  'r': lambda k: k.MAG_PSF,
-                  'i': lambda k: k.MAG_PSF,
-                  'z': lambda k: k.MAG_PSF,
+                  'g': lambda k: k.MAG_PSF if k.MAG_PSF else k.MAG_CALIB,
+                  'r': lambda k: k.MAG_PSF if k.MAG_PSF else k.MAG_CALIB,
+                  'i': lambda k: k.MAG_PSF if k.MAG_PSF else k.MAG_CALIB,
+                  'z': lambda k: k.MAG_PSF if k.MAG_PSF else k.MAG_CALIB,
                   'J': lambda k: k.MAG_CALIB+constants.convert_to_AB['J'],
                   'H': lambda k: k.MAG_CALIB+constants.convert_to_AB['H'],
                   'K': lambda k: k.MAG_CALIB+constants.convert_to_AB['K'],
 
-                  'g_err': lambda k: k.MAG_PSF_ERR,
-                  'r_err': lambda k: k.MAG_PSF_ERR,
-                  'i_err': lambda k: k.MAG_PSF_ERR,
-                  'z_err': lambda k: k.MAG_PSF_ERR,
+                  'g_err': lambda k: k.MAG_PSF_ERR if k.MAG_PSF_ERR else k.MAG_CALIB_ERR,
+                  'r_err': lambda k: k.MAG_PSF_ERR if k.MAG_PSF_ERR else k.MAG_CALIB_ERR,
+                  'i_err': lambda k: k.MAG_PSF_ERR if k.MAG_PSF_ERR else k.MAG_CALIB_ERR,
+                  'z_err': lambda k: k.MAG_PSF_ERR if k.MAG_PSF_ERR else k.MAG_CALIB_ERR,
                   'J_err': lambda k: k.MAG_CALIB_ERR,
                   'H_err': lambda k: k.MAG_CALIB_ERR,
                   'K_err': lambda k: k.MAG_CALIB_ERR,
@@ -157,8 +157,9 @@ class ObjectView(TemplateView):
       source_data.append( dict([(k,'') for k in userColumns]) )
       for r in results.filter(imageheader__OB=OB):
         D = {}
+        D['ownership'] = {}
+        D['ownership'][r.BAND] = r.user.username
         D['imageheader'] = r.imageheader
-        D['ownership'] = r.user.username
         for column in userColumns:
           if column not in magnitude_kws:
             D[column] = translation[column](r)
@@ -196,6 +197,7 @@ class ObjectView(TemplateView):
         results[0].astrosource.DEC,
         forceOB=nominalOB[0].imageheader.OB,
         )
+    print source_data
     return render(request,self.template_name,{'source_data':source_data,'request':request,
                                           'lightcurve':lightcurve[bestBand],'nominalOB':nominalOB,
                                           'SED':SED,'userColumns':userColumns,'lc_band':bestBand,

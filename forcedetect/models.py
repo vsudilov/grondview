@@ -18,7 +18,10 @@ from astLib import astCoords
 class UserTask_photometry(models.Model):
   user = models.ForeignKey(User)
   jobid = models.CharField(max_length=40)
-  working_directory = models.CharField(max_length=50)
+  sourceID = models.CharField(max_length=30)
+  band = models.CharField(max_length=1)
+  OB = models.CharField(max_length=10)
+
   logfile_line_number = models.IntegerField()
 
   def __unicode__(self):
