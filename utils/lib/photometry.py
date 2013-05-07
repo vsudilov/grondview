@@ -280,20 +280,20 @@ def calibrate(usersource,task,photometry,logger):
   #  1. calcat=<file> in ?ana.ini
   #  2. 2MASS (JHK), SDSS (griz)
   #  3. No catalog, no calibration (use zeropoints)
-  results['CALIB_SCHEMA'] = 'user'
+  results['CALIB_SCHEME'] = 'user'
   if not os.path.isfile(task['calcat']):
     if task['band'] in constants.infrared:
       task['calcat'] = os.path.join(task['workdir'],'GROND_%s_OB_cat_2MASS.tsv' % task['band'])
-      results['CALIB_SCHEMA'] = '2MASS'
+      results['CALIB_SCHEME'] = '2MASS'
     elif task['band'] in constants.optical:
       c = os.path.join(task['workdir'],'GROND_%s_OB_cat_SDSS.tsv' % task['band'])
-      results['CALIB_SCHEMA'] = 'SDSS'
+      results['CALIB_SCHEME'] = 'SDSS'
       if os.path.isfile(c):
         task['calcat'] = c
       else:
-        task['calcat'] = 'ZP'
-        results['CALIB_SCHEMA'] = 'ZP'
-  logger.info('--> Calibrating against [%s]' % os.path.basename(task['calcat']))
+        task['calcat'] = None
+        results['CALIB_SCHEME'] = 'ZP'
+  logger.info('--> Calibrating against [%s]' % (os.path.basename(task['calcat']) if task['calcat'] else 'ZP'))
   results['CALIB_FILE'] = task['calcat']
   def matchsource(ra,dec,catalog):
     #Return catalog [ra,dec,mag,magerr] for the matched source
@@ -304,7 +304,7 @@ def calibrate(usersource,task,photometry,logger):
     distances = sorted(distances,key=lambda k: k[1])[0]
     return distances[0]
 
-  if task['calcat'] == 'ZP':
+  if results['CALIB_SCHEME'] == 'ZP':
     for phototype in photometry:
       results[phototype] = matchsource(usersource[0],usersource[1],photometry[phototype])
     return results

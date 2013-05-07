@@ -3,7 +3,6 @@ from __future__ import absolute_import
 from celery import current_task
 from grondview.celery import celery
 from astLib import astWCS
-import random
 
 import matplotlib
 from matplotlib import pyplot as plt
@@ -15,6 +14,8 @@ import logging
 
 from grondview.settings import MEDIA_ROOT
 from grondview.settings import PROJECT_ROOT
+
+from forcedetect.models import UserTask_photometry
 
 sys.path.insert(0,os.path.join(PROJECT_ROOT,'utils'))
 from lib import img_scale
@@ -60,5 +61,9 @@ def photometry(iniFile, objwcs, **kwargs):
   fh = logging.FileHandler(filename=os.path.join(MEDIA_ROOT,jobid,'logfile'),mode='a') #file handler
   fh.setFormatter(formatter)
   logger.addHandler(fh)
-  results = phot.main(iniFile, logger, objwcs, jobid)
+  try:
+    results = phot.main(iniFile, logger, objwcs, jobid)
+  except:
+    logger.critical('Some unknown error has occured')
+    raise
   return results

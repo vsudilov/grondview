@@ -160,6 +160,7 @@ $(function() {
       };
 
       if ( $('img.busy').length > 3 ) {
+        //also checked server-side
         alert('Only 4 active reductions are allowed!')
         return
       };
@@ -192,7 +193,6 @@ $(function() {
   });
 
   $( document ).on('click','img.close_dialog',function() {
-   console.debug('clicked close_dialog');
    $(this).parent().remove();
    $(this).remove();
   });
@@ -223,8 +223,8 @@ $(function() {
         },
         error: function(jqXHR,textStatus,errorThrown) {
           clearInterval(pollID)
-          $('img.'+jobid).parent().parent().next().children('div').html('<div class="userdetection">ERR</div>')
-          $('img.'+jobid).replaceWith('<div class="userdetection">ERR</div>')
+          $('img.'+jobid).parent().parent().next().children('div').html('<div class="userdetection">NaN</div>')
+          $('img.'+jobid).replaceWith('<div class="userdetection">NaN</div>')
           $('#logfile.'+jobid).append('<img style="float:right;" src={{STATIC_URL}}images/dialog_close.png class="close_dialog"/>');
           $('#logfile.'+jobid).animate({scrollTop:$('#logfile.'+jobid)[0].scrollHeight}, 500);
         },
@@ -232,7 +232,6 @@ $(function() {
     };
     var pollID=setInterval(function() { poll(thisButton, jobid) }, 1000);
   };
-
 });
 
 

@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.query import QuerySet
 from grondview.settings import PROJECT_ROOT
-from imagequery.models import ImageHeader
 
 import sys
 import os

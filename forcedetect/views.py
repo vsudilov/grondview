@@ -82,6 +82,12 @@ class ForceDetectView(JSONResponseMixin,TemplateView):
     job = AsyncResult(jobid)
     completed = job.ready()
     db_entry = UserTask_photometry.objects.get(jobid=jobid)
+    if job.failed:
+      #We will let the client-side jquery/ajax handle the error that will come 
+      #from trying to parse the results of a failed job.
+      #We only care to delete our record of the job.
+      db_entry.delete()
+
     lastline = db_entry.logfile_line_number
     with open(os.path.join(MEDIA_ROOT,jobid,'logfile'),'r') as f:
       lines = f.readlines()
@@ -102,6 +108,8 @@ class ForceDetectView(JSONResponseMixin,TemplateView):
             'MAG_APP_ERR': lambda d: d['APP'][3] if d['APP'] else None,
             'MAG_PSF': lambda d: d['PSF'][2] if d['PSF'] else None,
             'MAG_PSF_ERR': lambda d: d['PSF'][3] if d['PSF'] else None,
+            'CALIB_SCHEME': lambda d: d['CALIB_SCHEME'],
+            'CALIB_FILE': lambda d: d['CALIB_FILE'],
       }
       fields = {}
       fields['user'] = request.user
