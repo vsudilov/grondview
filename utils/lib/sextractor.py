@@ -516,7 +516,7 @@ class SExtractor:
         main_f.close()
 
 
-    def run(self, file, updateconfig=True, clean=False, path=None):
+    def run(self, file, updateconfig=True, clean=True, path=None):
         """
         Run SExtractor.
 
@@ -564,7 +564,7 @@ class SExtractor:
         return c
 
 
-    def clean(self, config=True, catalog=False, check=False):
+    def clean(self, config=True, catalog=False, check=True):
         """
         Remove the generated SExtractor files (if any).
         If config is True, remove generated configuration files.
