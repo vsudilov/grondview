@@ -1,9 +1,15 @@
 {% load hash %}
 {% load sorting %}
 
-<script>
 
+<script>
 $(function() {
+  var master_data = {{ source_data|safe }};
+  var bands = ['g','r','i','z','J','H','K']
+  var currentOB = "{{nominalOB|safe}}";
+
+  //d = d.replace( / u'/g, " '" ).replace( /'/g, "\"" );
+  //d = $.parseJSON(d);
   function getCookie(name) {
     var cookieValue = null;
     if (document.cookie && document.cookie != '') {
@@ -38,21 +44,90 @@ $(function() {
     }
   });
 
-  $('#lightcurve').highcharts({
+  var datatable = $('#source_datatable').dataTable({
+     "aaData": [
+      ],
+      "aoColumns": [
+         { "sTitle": "OB type", "sDefaultContent":"" },
+         { "sTitle": "OB", "sDefaultContent":"" },
+         { "sTitle": "g", "sDefaultContent":"" },
+         { "sTitle": "g_err", "sDefaultContent":"" },
+         { "sTitle": "r", "sDefaultContent":"" },
+         { "sTitle": "r_err", "sDefaultContent":"" },
+         { "sTitle": "i", "sDefaultContent":"" },
+         { "sTitle": "i_err", "sDefaultContent":"" },
+         { "sTitle": "z", "sDefaultContent":"" },
+         { "sTitle": "z_err", "sDefaultContent":"" },
+         { "sTitle": "J", "sDefaultContent":"" },
+         { "sTitle": "J_err", "sDefaultContent":"" },
+         { "sTitle": "H", "sDefaultContent":"" },
+         { "sTitle": "H_err", "sDefaultContent":"" },
+         { "sTitle": "K", "sDefaultContent":"" },
+         { "sTitle": "K_err", "sDefaultContent":"" },
+      ]
+ 
+  });
+
+  function makeTable(data, phototype){
+      var newdata = []
+      $.each(data, function(k,v) {
+        var p = v.photometry
+        var url = '/fields/'+v.targetID+'/'+v.OBname+'/'
+        var rows = []
+        rows.push(v.OBtype)
+        rows.push("<a href="+url+">"+v.OBname +"</a>")
+        for (var i = 0; i < bands.length; i++) {
+          var ph = ('JHK'.indexOf(bands[i]) > -1) ? 'APP' : phototype
+          var div = (p[bands[i]].ownership!="pipeline") ? "<div class='userdetection'>" : "<div>"
+          var mag = p[bands[i]]['MAG_'+ph]
+          var mag_err = p[bands[i]]['MAG_'+ph+'_ERR']
+          mag  = (typeof mag !== "undefined") ? mag : "<img src='{{STATIC_URL}}images/plus_circle.png' class='forcedetect "+v.targetID+"?"+v.OBname+"?"+bands[i]+"'/>"
+          mag_err = (typeof mag_err !== "undefined") ? mag_err : ""
+          rows.push(div+mag+'</div>')
+          rows.push(div+mag_err+'</div>')
+        }
+        newdata.push(rows)
+      });
+      datatable.fnClearTable()
+      datatable.fnAddData(newdata)
+  }
+    
+  makeTable(master_data,'PSF');
+
+  var lightcurve = new Highcharts.Chart({
     chart: {
-        zoomType: 'xy'
+        zoomType: 'xy',
+        renderTo: 'lightcurve'
     },
     title: {
         text: 'Lightcurve'
     },
+
+    plotOptions: {
+        series: {
+            events: {
+                legendItemClick: function(event) {
+                    var selected = this.index;
+                    var allSeries = this.chart.series;
+                    
+                    $.each(allSeries, function(index, series) {
+                        selected == index ? series.show() : series.hide();
+                    });
+                    
+                    return false;
+                }
+            }
+        }
+    },
+
     xAxis: [{
-        categories: {{lightcurve.x}},
-                    title: {
-                        text: 'MJD',
-                        style: {
-                            color: '#89A54E'
-                        }
-                    }
+        //categories: {{lightcurve.x}},
+              title: {
+                  text: 'MJD',
+                  style: {
+                      color: '#89A54E'
+                  }
+            }
     }],
     yAxis: [{ // Primary yAxis
         reversed:true,
@@ -76,41 +151,50 @@ $(function() {
         shared: true
     },
 
-    series: [{
-        name: '{{lc_band}}',
-        color: '#89A54E',
+    series: [
+      {% for band in 'grizJHK' %}
+      {
+        name: '{{band}}',
+        //color: '#89A54E',
         type: 'spline',
-        data: {{lightcurve.y}},
+        data: [],
         tooltip: {
             pointFormat: '<span style="font-weight: bold; color: {series.color}">{series.name}</span>: <b>{point.y:.1f}</b> '
-        }
-    }, {
-        name: 'Magnitude error',
+        },
+        visible: false,
+      }, 
+      {
+        name: '{{band}} error',
         type: 'errorbar',
-        data: {{lightcurve.yerr}},
+        data: [],
         tooltip: {
             pointFormat: ''
-        }
-    }]
+        },
+        visible: false,
+      },
+      {% endfor %}
+    ]
   });
 
 
 
-  $('#sed').highcharts({
+  var sed = new Highcharts.Chart({
     chart: {
-        zoomType: 'xy'
+        zoomType: 'xy',
+        renderTo: 'sed',
     },
     title: {
         text: 'Spectral energy distribution'
     },
+
     xAxis: [{
-        categories: {{SED.x}},
-                    title: {
-                        text: 'Wavelength (nm)',
-                        style: {
-                            color: '#89A54E'
-                        }
-                    }
+        //categories: ['g','r','i','z','J','H','K'],
+        title: {
+            text: 'Filter central wavelength (nm)',
+            style: {
+                color: '#89A54E'
+            }
+        }
     }],
     yAxis: [{ // Primary yAxis
         reversed:true,
@@ -138,23 +222,45 @@ $(function() {
         name: 'Magnitude',
         color: '#89A54E',
         type: 'spline',
-        data: {{SED.y}},
+        data: [],
         tooltip: {
             pointFormat: '<span style="font-weight: bold; color: {series.color}">{series.name}</span>: <b>{point.y:.1f}</b> '
-        }
+        },
+        showInLegend: false,
     }, {
         name: 'Magnitude error',
         type: 'errorbar',
-        data: {{SED.yerr}},
+        data: [],
         tooltip: {
             pointFormat: ''
         }
     }]
   });
 
-  $('#source_datatable').dataTable();
+  function makeSED(data,phototype) {
+    var wavelengths = [458.69,621.98,764.07,898.96,1239.92,1646.84,2170.55]
+    var newdata = []
+    var newerrors = []
+    for (var i = 0; i < bands.length; i++) {
+      var p = ('JHK'.indexOf(bands[i]) > -1) ? 'APP' : phototype
+      var mag = data.photometry[bands[i]]['MAG_'+p]
+      var mag_err = data.photometry[bands[i]]['MAG_'+p+'_ERR']
+      mag = (typeof mag !== "undefined") ? mag : null
+      newdata.push([wavelengths[i],mag])
+      try {      
+        newerrors.push([wavelengths[i],mag-mag_err,mag+mag_err])
+      }
+      catch(err) {
+        newerrors.push([wavelengths[i],null,null])
+      }
+    }
 
-  $( document ).on('click','img.forcedetect',function() {
+    sed.series[0].setData(newdata);
+    sed.series[1].setData(newerrors);
+  }
+  makeSED(master_data[currentOB],'PSF')
+
+  $(document).on('click','img.forcedetect',function() {
       if ( this.className.indexOf('busy') > 0 ) {
         return
       };
@@ -168,8 +274,8 @@ $(function() {
       var targetID = target[1].split("?")[0];
       var OB = target[1].split("?")[1];
       var band = target[1].split("?")[2];
-      var ra = {{nominalOB.0.astrosource.RA}};
-      var dec = {{nominalOB.0.astrosource.DEC}};
+      var ra = {{astrosource.RA}};
+      var dec = {{astrosource.DEC}};
       var thisButton = this;
       $.ajax({
         type: 'POST',
@@ -179,7 +285,7 @@ $(function() {
           'OB': OB,
           'targetID': targetID,
           'band': band,
-          'sourceID':'{{nominalOB.0.astrosource.sourceID}}',
+          'sourceID':'{{astrosource.sourceID}}',
         },
         dataType: 'json',
         url: '/forcedetect/',
@@ -192,7 +298,7 @@ $(function() {
       });
   });
 
-  $( document ).on('click','img.close_dialog',function() {
+  $(document).on('click','img.close_dialog',function() {
    $(this).parent().remove();
    $(this).remove();
   });
@@ -241,14 +347,14 @@ $(function() {
 
 
 <div id="source_title">
-  Target RA, Dec: {{nominalOB.0.astrosource.RA}}, {{nominalOB.0.astrosource.DEC}}
+  <!-- Target RA, Dec: {{nominalOB.0.astrosource.RA}}, {{nominalOB.0.astrosource.DEC}} -->
   <div class="subtitle">
-    Image cutouts and SED derived from {{nominalOB.0.imageheader.OB}}. {{ lc_band }}-band lightcurve.
+  <!--  Image cutouts and SED derived from {{nominalOB.0.imageheader.OB}}. {{ lc_band }}-band lightcurve. -->
   </div>
 </div>
 
 
-<!--Lightcurve, SED, cutouts-->
+
 <div id='image-cutout'>
   {% for hdr in imageheaders %}
   <img src="{{MEDIA_URL}}{{hdr.fname}}" />
@@ -256,36 +362,5 @@ $(function() {
 </div>
 <div id="lightcurve"></div>
 <div id="sed"></div>
-
-<!--Data table-->
-<table id="source_datatable">
-  <thead>
-    <tr>
-      {% for column in userColumns %}
-      <th>{{column}}</th>
-      {% endfor %}
-    </tr>
-  </thead>
-  <tbody>
-    {% for OB in source_data %}
-      <tr>
-      {% for column in userColumns %}
-        {% if column == "OBname" %}
-        <td><div><a href='/fields/{{nominalOB.0.imageheader.TARGETID}}/{{OB.OBname}}'>{{OB | hash:column }}</a></div></td>
-        {% else %}
-          {% if OB|hash:column %}
-        <td><div {% if OB.ownership.column != "pipeline" and column != "OBtype" %}class="userdetection" {% endif %}>{{OB|hash:column }}</div></td>
-          {% else %}
-            {% if "_err" not in column %}
-        <td><div><img src="{{STATIC_URL}}images/plus_circle.png" class="forcedetect {{nominalOB.0.imageheader.TARGETID}}?{{OB.OBname}}?{{column}}" /></div></td>
-            {% else %}
-            <td><div></div></td>
-            {% endif %}          
-          {% endif %}
-        {% endif %}      
-      {% endfor %}
-      </tr>
-      {% endfor %}
-  </tbody>
-</table>
+<table id="source_datatable"></table>
 <div id="logfile-container"></div>

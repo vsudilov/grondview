@@ -1,6 +1,6 @@
 convert_arcmin_or_arcsec_to_degrees = {'arcminutes':1/60.,'arcseconds':1/3600.,'degrees':1}
 
-GrondFilters = {
+grondfilters = {
   'g': {'lambda_eff': 458.69},
   'r': {'lambda_eff': 621.98},
   'i': {'lambda_eff': 764.07},
@@ -31,7 +31,7 @@ band_sequence =  dict([(b,bands.index(b)+1) for b in bands])
 optical = 'griz'
 infrared = 'JHK'
 
-obtypes = ['30m6td','20m4td','10m6td','8m4td','4m4td']
+obtypes = ['30m6td','20m4td','10m6td','8m4td','4m4td','2m2td','1m1td']
 obtypes_sequence = dict([(o,obtypes.index(o)+1) for o in obtypes])
 
 extinction_coefficients = {

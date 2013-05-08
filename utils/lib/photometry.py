@@ -348,7 +348,7 @@ def calibrate(usersource,task,photometry,logger):
       plt.savefig('calib-%s.png' % phototype,format='png')
       logger.info('--> Calibration plot [%s] saved' % phototype)
     #Find the user source again, apply calibration
-    calibrated_data = [ [i[0],i[1],i[2]*pfinal[1]+pfinal[0],np.sqrt(i[3]**2+std**2) ] for i in photometry[phototype] ]
+    calibrated_data = [ [i[0],i[1],i[2]*pfinal[1]+pfinal[0]+constants.convert_to_AB[task['band']],np.sqrt(i[3]**2+std**2) ] for i in photometry[phototype] ]
     results[phototype] = matchsource(usersource[0],usersource[1],calibrated_data)
   return results         
 

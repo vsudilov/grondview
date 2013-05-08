@@ -15,6 +15,7 @@ from imagequery.models import ImageHeader
 
 import os, sys
 import operator
+import json
 
 from astLib import astCoords
 
@@ -56,157 +57,84 @@ def get_sources(formdata,request):
 
 class ObjectView(TemplateView):
   template_name = 'content.html'
-  sourceID = None #Set in urls.py
+  sourceID = None #Passed from urls.py|kwargs
 
   def get(self,request,*args,**kwargs):
     sourceID = self.kwargs['sourceID']
-    if 'user' in self.kwargs:
-      if AstroSource.objects.get(sourceID=sourceID).user != request.user:
-        raise PermissionDenied
+    try:
+      thisSource = AstroSource.objects.get(sourceID=sourceID)
+    except AstroSource.DoesNotExist:
+      return Http404    
+    if thisSource.user != request.user and thisSource.user.username != "pipeline":
+      #We should make this more robust, ie this will fail if two users "own" the same sourceID
+      #Perhaps change the userfield to a M2M field and test if user is in the list?
+      raise PermissionDenied
     results = Photometry.objects.filter(astrosource__sourceID=sourceID)
     if not results:
       raise Http404
+    #1. Create unique master keys, assuming uniqueness of the concat of TARGETID+OB
+    unique_observations = set(["%s %s" % (i.imageheader.TARGETID,i.imageheader.OB) for i in results])
+    data = dict([(_id,{}) for _id in unique_observations])
 
-#    Find the nominal OB with which to make the initial image cutouts and SED. The nominal OB will 
-#    be image with the most detections, followed by the longest exposure time. Additionally,
-#    there is a seeing limit imposed on all OBs
-    ra = results[0].astrosource.RA
-    dec = results[0].astrosource.DEC
-    SEEING_LIMIT = 2.0
-    candidateOBs = {}
-    TARGETIDs = [i.imageheader.TARGETID for i in results]
-    OBs = [i.imageheader.OB for i in results]
-    for TARGETID in TARGETIDs: 
-      #Necessary if there happen to be multiple IDs per field
-      for OB in OBs: 
-        photo_objs = (Photometry.objects
-                    .filter(astrosource__sourceID=sourceID)
-                    .filter(imageheader__imageproperties__SEEING__lte=SEEING_LIMIT)
-                    .filter(imageheader__OB=OB)
-                    .filter(imageheader__TARGETID=TARGETID)
-                    )
-        if not photo_objs:
-          continue
-        candidateOBs[TARGETID+OB] = photo_objs
-    max_filters = max( [len(i) for i in candidateOBs.values()] ) 
-    candidateOBs = [i for i in candidateOBs.values() if len(i)==max_filters]  
-    nominalOB = sorted(candidateOBs, key = lambda k: constants.obtypes_sequence[k[0].imageheader.OBTYPEID])[0]
-    nominalOB = sorted(nominalOB, key=lambda k: constants.band_sequence[k.BAND])
+    #2. Populate fields
+    for _id in unique_observations:        
+      data[_id]['images'] = dict( [(b,None) for b in constants.grondfilters] )
+      data[_id]['photometry'] = dict( [(b,{}) for b in constants.grondfilters] )
+
+      #2a.  Populate the properties that are OB (not band) specific
+      targetID, OB = _id.split()
+      p = results.filter(imageheader__OB=OB).filter(imageheader__TARGETID=targetID)[0].imageheader.PATH
+      p = os.path.dirname(os.path.dirname(p)) #Get from ...target/r/GROND_ana.fits to ../target
+      thisOB = results.filter(imageheader__PATH__startswith=p)
+      data[_id]['OBname'] = thisOB[0].imageheader.OB
+      data[_id]['OBtype'] = thisOB[0].imageheader.OBTYPEID
+      data[_id]['targetID'] = thisOB[0].imageheader.TARGETID
+      for band_specific_data in thisOB:
+        #2b.  Populate the photometry fields:
+        ht_photometry = {
+          'MAG_PSF':      lambda p: round(p.MAG_PSF,2) if p.MAG_PSF else None,
+          'MAG_PSF_ERR':  lambda p: round(p.MAG_PSF_ERR,2) if p.MAG_PSF_ERR else None,
+          'MAG_APP':      lambda p: round(p.MAG_APP,2) if p.MAG_APP else None,
+          'MAG_APP_ERR':  lambda p: round(p.MAG_APP_ERR,2) if p.MAG_APP_ERR else None,
+          'ownership':    lambda p: p.user.username,
+        }
+        data[_id]['photometry'][band_specific_data.BAND] = {}
+        for k in ht_photometry:        
+          data[_id]['photometry'][band_specific_data.BAND][k] = ht_photometry[k](band_specific_data)
+
+        if band_specific_data.BAND in constants.optical:
+          #These will be potentially overwritten by every band in constants.optical
+          #This shouldn't be a problem, since the CALIB_SCHEME+FILE should
+          #be the same among all optical bands within a particular observation
+          data[_id]['griz_calib_scheme'] = band_specific_data.CALIB_SCHEME
+          #Consider if we really want/need to expose system pathnames to the client
+          data[_id]['griz_calib_file'] = band_specific_data.CALIB_FILE
+    #  Find the nominal OB with which to make the initial image cutouts and SED. The nominal OB will 
+    #  be image with the most detections, followed by the longest exposure time.
+    data_statistics = {}
+    for observation in data:
+      data_statistics[observation] = {}
+      data_statistics[observation]['NIMGS'] = len(data[observation]['images'])
+      try:
+        data_statistics[observation]['DEPTH'] = constants.obtypes_sequence[data[observation]['OBtype']] #Smaller value = deeper
+      except KeyError:
+        data_statistics[observation]['DEPTH'] = 100
+    t = sorted([ (k,v) for k,v in data_statistics.iteritems()], key = lambda k: k[1]['NIMGS'], reverse=True)  #Sort by the numbers of images
+    t = [i for i in t if i[1]['NIMGS'] == t[0][1]['NIMGS']]  #Remove all observations whose NIMGS are less than the max found
+    t = sorted(t,key = lambda k: k[1]['DEPTH'])[0] #Take the deepest observation (random choice if multiple OBs at same depth)
+    nominalOB = t[0] #Finally, return the TARGETID+OB key that cooresponds to the choosen observation
     
-    #Create the "master" JSON that we will give to the template.
-    #The template will parse/update the necessary data from this
-    #object.
-    
-    
-    
 
-
-    #For SEDs
-    x,y,yerr = [],[],[]
-    for photo_obj in nominalOB:
-      x.append(constants.GrondFilters[photo_obj.BAND]['lambda_eff'])
-      if photo_obj.BAND in 'griz':
-        mag = photo_obj.MAG_PSF if photo_obj.MAG_PSF else photo_obj.MAG_CALIB
-        mag_err = photo_obj.MAG_PSF_ERR if photo_obj.MAG_PSF_ERR else photo_obj.MAG_CALIB_ERR
-      else:
-        mag = photo_obj.MAG_CALIB
-        mag_err = photo_obj.MAG_CALIB_ERR
-      y.append(mag)
-      yerr.append( [mag-mag_err,mag+mag_err] )
-    SED = dict(x=x,y=y,yerr=yerr)
-
-    #Set up the data container that will be iterated/presented in the html template
-    userColumns = (
-            'OBtype',
-            'OBname',
-            'g','g_err',
-            'r','r_err',
-            'i','i_err',
-            'z','z_err',
-            'J','J_err',
-            'H','H_err', 
-            'K','K_err') #This should eventually be a user input
-            
-    magnitude_kws = (
-            'g','g_err',
-            'r','r_err',
-            'i','i_err',
-            'z','z_err',
-            'J','J_err',
-            'H','H_err', 
-            'K','K_err',
-            )
-
-    translation = {
-                  'targetID': lambda k: k.imageheader.TARGETID,
-                  'OBtype': lambda k: k.imageheader.OBTYPEID,
-                  'OBname': lambda k: k.imageheader.OB,
-                  'g': lambda k: k.MAG_PSF if k.MAG_PSF else k.MAG_CALIB,
-                  'r': lambda k: k.MAG_PSF if k.MAG_PSF else k.MAG_CALIB,
-                  'i': lambda k: k.MAG_PSF if k.MAG_PSF else k.MAG_CALIB,
-                  'z': lambda k: k.MAG_PSF if k.MAG_PSF else k.MAG_CALIB,
-                  'J': lambda k: k.MAG_CALIB+constants.convert_to_AB['J'],
-                  'H': lambda k: k.MAG_CALIB+constants.convert_to_AB['H'],
-                  'K': lambda k: k.MAG_CALIB+constants.convert_to_AB['K'],
-
-                  'g_err': lambda k: k.MAG_PSF_ERR if k.MAG_PSF_ERR else k.MAG_CALIB_ERR,
-                  'r_err': lambda k: k.MAG_PSF_ERR if k.MAG_PSF_ERR else k.MAG_CALIB_ERR,
-                  'i_err': lambda k: k.MAG_PSF_ERR if k.MAG_PSF_ERR else k.MAG_CALIB_ERR,
-                  'z_err': lambda k: k.MAG_PSF_ERR if k.MAG_PSF_ERR else k.MAG_CALIB_ERR,
-                  'J_err': lambda k: k.MAG_CALIB_ERR,
-                  'H_err': lambda k: k.MAG_CALIB_ERR,
-                  'K_err': lambda k: k.MAG_CALIB_ERR,
-                  }
-    source_data = []
-    for OB in set(OBs):
-      source_data.append( dict([(k,'') for k in userColumns]) )
-      for r in results.filter(imageheader__OB=OB):
-        D = {}
-        D['ownership'] = {}
-        D['ownership'][r.BAND] = r.user.username
-        D['imageheader'] = r.imageheader
-        for column in userColumns:
-          if column not in magnitude_kws:
-            D[column] = translation[column](r)
-        if r.BAND in userColumns:
-          D[r.BAND] = '%0.2f' % translation[r.BAND](r)
-          D[r.BAND+"_err"] = '%0.2f' % translation[r.BAND+"_err"](r)
-        source_data[-1].update(D)
-
-    #Take care of the possibilty that an imageheader exists where there are no detections of this source 
-    allImages = ImageHeader.objects.positionFilter(r.astrosource.RA,r.astrosource.DEC,radius=10,units="arcminutes")
-    for (TARGETID,OB,OBTYPEID) in set(zip([i.TARGETID for i in allImages],[i.OB for i in allImages],[i.OBTYPEID for i in allImages])):
-      if (TARGETID,OB) not in zip(TARGETIDs,OBs):
-        source_data.append( dict([(k,'') for k in userColumns]) )
-        D = {}
-        D['targetID'] = TARGETID
-        D['OBname'] = OB
-        D['OBtype'] = OBTYPEID
-        source_data[-1].update(D)
-    
-    lightcurve = {}
-    for band in constants.bands:
-      x,y,yerr = [],[],[] #For lightcurve
-      #TODO: Allow user to choose which band is plotted in the LC
-      for OB in source_data:
-        if OB[band]:
-          mag = round(float(OB[band]),2) #Convert back to float from formatted string
-          mag_err = round(float(OB[band+"_err"]),2)
-          x.append(round(OB['imageheader'].MJD_MID,2))
-          y.append(mag)
-          yerr.append([ mag-mag_err,mag+mag_err ])
-      lightcurve[band] = {'x':x,'y':y,'yerr':yerr}
-    bestBand = sorted(lightcurve.items(),key=lambda k: len(k[1]['x']), reverse=True)[0][0]
     imageheaders = ImageHeader.objects.getBestImages(
-        results[0].astrosource.RA,
-        results[0].astrosource.DEC,
-        forceOB=nominalOB[0].imageheader.OB,
-        )
-    return render(request,self.template_name,{'source_data':source_data,'request':request,
-                                          'lightcurve':lightcurve[bestBand],'nominalOB':nominalOB,
-                                          'SED':SED,'userColumns':userColumns,'lc_band':bestBand,
-                                          'imageheaders':imageheaders,
-                                          })
+      results[0].astrosource.RA,
+      results[0].astrosource.DEC,
+      forceOB=nominalOB.split()[1],
+      )
+    #data[nominalOB]['images']
+    for i in imageheaders:
+      data[nominalOB]['images'][i.FILTER] = i.fname
+    context = {'source_data':json.dumps(data),'request':request,'nominalOB':nominalOB,'astrosource':thisSource}
+    return render(request,self.template_name,context)
 
   def post(self,request,*args,**kwargs):
     pass
