@@ -315,7 +315,6 @@ def calibrate(usersource,task,photometry,logger):
   fitfunc = lambda p, x: p[0] + p[1] * x #linear fit
   errfunc = lambda p, x, y, err: (y - fitfunc(p, x)) / err
   pinit = [0.0, 1.0]
-  results = {}
   for phototype in photometry:
     data = []
     for source in photometry[phototype]:
@@ -400,7 +399,7 @@ def main(iniFile, logger, objwcs, jobid):
     logger.critical('Unable to compute photometry for this position!')
     raise Exception, 'No results from photometry'
   for k,v in results.iteritems():
-    if v:
+    if v and type(v)!=str:
       logger.info("--> [%s]: %5.2f +- %2.2f" % (k,v[2],v[3]))
   end = time.time()
   logger.info("Photometry completed in %0.1f seconds" % (end-start) ) 

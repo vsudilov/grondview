@@ -201,9 +201,9 @@ $(function() {
     function poll(thisButton, jobid) {
       $.ajax({
         type: 'GET',
-        data: { 
-          'jobid':jobid,
-        },
+        //data: { 
+        //  'jobid':jobid,
+        //},
         dataType: 'json',
         url: '/forcedetect/'+jobid,
         success: function(data, textStatus, jqXHR){

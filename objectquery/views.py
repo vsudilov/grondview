@@ -67,20 +67,18 @@ class ObjectView(TemplateView):
     if not results:
       raise Http404
 
-    '''
-    Find the nominal OB with which to make image cutouts and SED. The nominal OB will 
-    be image with the most detections, followed by the longest exposure time. Additionally,
-    there is a seeing limit imposed on all OBs
-    '''
-    OBs = [i.imageheader.OB for i in results]
-    TARGETIDs = [i.imageheader.TARGETID for i in results] #Necessary if there happen to be multiple IDs per field
+#    Find the nominal OB with which to make the initial image cutouts and SED. The nominal OB will 
+#    be image with the most detections, followed by the longest exposure time. Additionally,
+#    there is a seeing limit imposed on all OBs
     ra = results[0].astrosource.RA
     dec = results[0].astrosource.DEC
-    
     SEEING_LIMIT = 2.0
     candidateOBs = {}
-    for TARGETID in TARGETIDs:
-      for OB in OBs:
+    TARGETIDs = [i.imageheader.TARGETID for i in results]
+    OBs = [i.imageheader.OB for i in results]
+    for TARGETID in TARGETIDs: 
+      #Necessary if there happen to be multiple IDs per field
+      for OB in OBs: 
         photo_objs = (Photometry.objects
                     .filter(astrosource__sourceID=sourceID)
                     .filter(imageheader__imageproperties__SEEING__lte=SEEING_LIMIT)
@@ -90,11 +88,18 @@ class ObjectView(TemplateView):
         if not photo_objs:
           continue
         candidateOBs[TARGETID+OB] = photo_objs
-
-    max_filters = max( [len(i) for i in candidateOBs.values()] )
+    max_filters = max( [len(i) for i in candidateOBs.values()] ) 
     candidateOBs = [i for i in candidateOBs.values() if len(i)==max_filters]  
     nominalOB = sorted(candidateOBs, key = lambda k: constants.obtypes_sequence[k[0].imageheader.OBTYPEID])[0]
     nominalOB = sorted(nominalOB, key=lambda k: constants.band_sequence[k.BAND])
+    
+    #Create the "master" JSON that we will give to the template.
+    #The template will parse/update the necessary data from this
+    #object.
+    
+    
+    
+
 
     #For SEDs
     x,y,yerr = [],[],[]
