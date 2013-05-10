@@ -350,6 +350,8 @@ $(function() {
       }
   }
   
+  
+  
   function updateCutouts(data,currentOB) {
     var imgs = data[currentOB].images
     var missing = []
@@ -359,12 +361,25 @@ $(function() {
       }
     }
     if (missing.length === 7) {
-      //POST for new images with $.ajax
-      
-      //first, set each img src to the placeholder
+      //need to POST for new images with $.ajax
       for (var i = 0; i < bands.length; i++) {
         var img = $('div#image-cutout img.'+bands[i])
-        img.attr('src','{{STATIC_URL}}images/cutout-placeholder.png')
+        img.attr('src','{{STATIC_URL}}images/cutout-placeholder.png') //first make sure it is a placeholder png
+        $.ajax({
+          type: 'POST',
+          url: '/sources/get_cutouts/',
+          data: {
+            'currentOB':currentOB,
+            'band':bands[i],
+          },
+          dataType: 'json',
+          success: function(data, textStatus, jqXHR){
+            imagePollWrapper(img,data.jobid)
+          },
+          error: function(jqXHR,textStatus,errorThrown) {
+           console.log(textStatus,errorThrown)
+          }
+        });
       }
     }
     else {
@@ -373,25 +388,27 @@ $(function() {
       
       //Poll that these images still exist on the server
       for (var i = 0; i < bands.length; i++) {
+        var img = $('div#image-cutout img.'+bands[i])
+        img.attr('src','{{STATIC_URL}}images/cutout-placeholder.png')
         if (missing.indexOf(bands[i]) !== -1) {
           continue
         }
-        var img = $('div#image-cutout img.'+bands[i])
         img.attr('id','{{MEDIA_URL}}'+imgs[bands[i]])
         $.ajax({
           type: 'HEAD',
           url: '{{MEDIA_URL}}'+imgs[bands[i]],
           context: img,
+          timeout: 5000,
           success: function(data, textStatus, jqXHR){
             this.attr('src',this.attr('id'))
             this.attr('id','')
           },
           error: function () {
-            $('div.subtitle').text('Warning: Cached image not available. Try reloading the page.')
+            $('div.subtitle').html('Warning: Cached images no longer available. Try reloading the page.')
             this.attr('src','{{STATIC_URL}}images/cutout-placeholder.png')
             this.attr('id','')
           },
-        });
+        });   
       }
     }
   }
@@ -459,6 +476,32 @@ $(function() {
 
   ////////////////////////////////////////////////////////////////////////////////////
   // Polling for photometry and image-cutout generation
+  
+  function imagePollWrapper(img,jobid) {
+    var pollCounter = 0
+    function poll(img,jobid) {
+      pollCounter += 1
+      $.ajax({
+        type: 'HEAD',
+        //data: { // will be parsed in urls.py
+        //  'jobid':jobid,
+        //},
+        dataType: 'json',
+        context: img,
+        url: '{{MEDIA_URL}}'+jobid+'.png',
+        success: function(data, textStatus, jqXHR){
+          clearInterval(pollID)
+          this.attr('src','{{MEDIA_URL}}'+jobid+'.png')
+          this.attr('id','')
+        }
+      });
+        if (pollCounter > 15) {
+          clearInterval(pollID)
+        }
+    }
+    var pollID=setInterval(function() { poll(img, jobid) }, 1000);
+  }
+  
   function photometryPollWrapper(thisButton, jobid) {
     function poll(thisButton, jobid) {
       $.ajax({

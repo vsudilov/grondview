@@ -74,7 +74,6 @@ class ForceDetectView(JSONResponseMixin,TemplateView):
     db_entry.save()
     return self.render_to_response(context)
   
-  def head(self, request, *args, **kwargs):
     pass
 
   def get(self, request, *args, **kwargs):

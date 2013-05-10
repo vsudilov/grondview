@@ -1,11 +1,17 @@
 from django.shortcuts import render
+from django.views.generic import TemplateView
+from django.http import HttpResponse, HttpResponseBadRequest
+import json
+from celery.result import AsyncResult
 
 from grondview.settings import PROJECT_ROOT
 from grondview.exceptions import *
-from .models import ImageHeader
+
+from forcedetect.views import JSONResponseMixin
+
+from imagequery.models import ImageHeader
 
 import os, sys
-
 sys.path.insert(0,os.path.join(PROJECT_ROOT,'utils'))
 from lib import constants
 
@@ -34,3 +40,34 @@ def get_fields(formdata,request):
 
   grouped_fields = sorted(grouped_fields, key=lambda k: k['distance'])
   return {'fields':grouped_fields} 
+
+
+
+class GetCutouts(JSONResponseMixin,TemplateView):
+  def get(self, request, *args, **kwargs):
+    pass
+  def head(self, request, *args, **kwargs):
+    pass
+  def post(self, request, *args, **kwargs):
+    try:
+      targetID, OB = request.POST['currentOB'].split()
+      band = request.POST['band']
+    except:
+      return HttpResponseBadRequest()
+  
+    jobid = 'abc123'
+    context = {'jobid':jobid}
+    return self.render_to_response(context)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

@@ -36,7 +36,9 @@ class ImageHeaderQuerySet(QuerySet):
         results.append(i)
     return results
 
-  def getBestImages(self,ra,dec,clipSize=10,seeing_limit=2.0,makeImages=True,forceOB=None,units='arcseconds'):
+  def getBestImages(self,ra,dec,clipSize=10,seeing_limit=2.0,
+                    makeImages=True,forceOB=None,units='arcseconds',
+                    forceTarget=None,async=False): 
     '''  
     Find imageheaders that will be plotted. Find the "best", nominalOB, which has the following criteria:
     1. most filters
@@ -44,6 +46,29 @@ class ImageHeaderQuerySet(QuerySet):
     3. seeing <= seeing_limit
     Returns a list of imageheader objects, sorted by band
     '''
+    def doTask(imageheaders):
+      imageheaders = sorted(imageheaders,key = lambda k: constants.band_sequence[k.FILTER])
+      #Create image cut-outs
+      #if DEBUG:
+      #clipSize*=10 #For stubdata only!
+      for hdr in imageheaders:
+        fname = '%s.png' % uuid.uuid4()
+        hdr.fname = fname #This attribute links the filename to the <img src=''> tag
+        if async:
+          t = tasks.makeImage.delay(hdr,fname,clipSize,ra,dec,units=units)
+          hdr.jobid = t.id
+        else:
+          tasks.makeImage(hdr,fname,clipSize,ra,dec,units=units)
+    
+    if forceOB: #Bit sloppy code here!
+      if forceTarget:
+        imageheaders = self.filter(OB=forceOB).filter(TARGETID=forceTarget).positionFilter(ra,dec,radius=10)
+      else:
+        imageheaders = self.filter(OB=forceOB).positionFilter(ra,dec,radius=10) 
+      if makeImages:
+        doTask(imageheaders)
+      return imageheaders  
+    
     candidateOBs = {}
     results = self.filter(imageproperties__SEEING__lte=seeing_limit).positionFilter(ra,dec,radius=10,units='arcminutes')
     if not results:
@@ -56,17 +81,8 @@ class ImageHeaderQuerySet(QuerySet):
     max_filters = max( [len(i) for i in candidateOBs.values()] )
     candidateOBs = [i for i in candidateOBs.values() if len(i)==max_filters]
     imageheaders = sorted(candidateOBs, key = lambda k: constants.obtypes_sequence[k[0].OBTYPEID])[0]
-    if forceOB:
-      imageheaders = self.filter(OB=forceOB).positionFilter(ra,dec,radius=10)
-    imageheaders = sorted(imageheaders,key = lambda k: constants.band_sequence[k.FILTER])
-    #Create image cut-outs
-    #if DEBUG:
-      #clipSize*=10 #For stubdata only!
-    for hdr in imageheaders:
-      fname = '%s.png' % uuid.uuid4()
-      hdr.fname = fname #This attribute links the filename to the <img src=''> tag
-      if makeImages:
-        tasks.makeImage(hdr,fname,clipSize,ra,dec,units=units)
+    if makeImages:
+      doTask()
     return imageheaders
 
 
