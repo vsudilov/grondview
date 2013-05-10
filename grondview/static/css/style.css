@@ -126,7 +126,8 @@ body {
     text-align: center;
     font-size: 1.4em; }
     #content-container #source_title .subtitle {
-      font-size: 0.6em; }
+      font-size: 0.6em;
+      color: red; }
   #content-container #logfile-container {
     position: fixed;
     top: 75%;

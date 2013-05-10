@@ -1,16 +1,22 @@
-{% load hash %}
-{% load sorting %}
-
-
 <script>
 $(function() {
+  
+  ////////////////////////////////////////////////////////////////////////////////////  
+  // Setup globals
   var master_data = {{ source_data|safe }};
   var bands = ['g','r','i','z','J','H','K']
   var currentOB = "{{nominalOB|safe}}";
   var phototype = "PSF"
-  
   //d = d.replace( / u'/g, " '" ).replace( /'/g, "\"" );
   //d = $.parseJSON(d);
+  ////////////////////////////////////////////////////////////////////////////////////  
+  
+  
+  
+  
+  
+  ////////////////////////////////////////////////////////////////////////////////////  
+  // Django CSFR token with ajax
   function getCookie(name) {
     var cookieValue = null;
     if (document.cookie && document.cookie != '') {
@@ -44,7 +50,13 @@ $(function() {
       }
     }
   });
+  ////////////////////////////////////////////////////////////////////////////////////  
 
+
+
+
+  ////////////////////////////////////////////////////////////////////////////////////  
+  // Initialize datatable, charts
   var datatable = $('#source_datatable').dataTable({
      "aaData": [
       ],
@@ -69,30 +81,6 @@ $(function() {
  
   });
 
-  function makeTable(data, phototype){
-      var newdata = []
-      $.each(data, function(k,v) {
-        var p = v.photometry
-        var url = '/fields/'+v.targetID+'/'+v.OBname+'/'
-        var rows = []
-        rows.push(v.OBtype)
-        rows.push("<a href="+url+">"+v.OBname +"</a>")
-        for (var i = 0; i < bands.length; i++) {
-          var ph = ('JHK'.indexOf(bands[i]) > -1) ? 'APP' : phototype
-          var div = (p[bands[i]].ownership!="pipeline") ? "<div class='userdetection'>" : "<div>"
-          var mag = p[bands[i]]['MAG_'+ph]
-          var mag_err = p[bands[i]]['MAG_'+ph+'_ERR']
-          mag  = (typeof mag !== "undefined") ? mag : "<img src='{{STATIC_URL}}images/plus_circle.png' class='forcedetect "+v.targetID+"?"+v.OBname+"?"+bands[i]+"'/>"
-          mag_err = (typeof mag_err !== "undefined") ? mag_err : ""
-          rows.push(div+mag+'</div>')
-          rows.push(div+mag_err+'</div>')
-        }
-        newdata.push(rows)
-      });
-      datatable.fnClearTable()
-      datatable.fnAddData(newdata)
-  }
-
   var lightcurve = new Highcharts.Chart({
     chart: {
         zoomType: 'xy',
@@ -102,10 +90,17 @@ $(function() {
         //  },
         //}
     },
+    legend: {
+      itemStyle: {
+        //color: '#000000',
+        fontWeight: 'bold',
+        fontSize: '14px',
+      }
+    },
+    
     title: {
         text: 'Lightcurve'
     },
-
     plotOptions: {
         series: {
             events: {
@@ -117,8 +112,7 @@ $(function() {
                       if (selected === index) {
                          (!allSeries[selected].visible) ? series.show() : series.hide()
                       }
-                    
-                    //    selected == index ? series.show() : series.hide();
+                      //selected == index ? series.show() : series.hide();
                     });
                     
                     return false;
@@ -126,7 +120,6 @@ $(function() {
             }
         }
     },
-
     xAxis: [{
               title: {
                   text: 'MJD',
@@ -156,7 +149,6 @@ $(function() {
     tooltip: {
         shared: true
     },
-
     series: [
       {% for band in 'grizJHK' %}
       {
@@ -181,9 +173,7 @@ $(function() {
       {% endfor %}
     ]
   });
-
-
-
+  
   var sed = new Highcharts.Chart({
     chart: {
         zoomType: 'xy',
@@ -219,11 +209,9 @@ $(function() {
             }
         }
     },],
-
     tooltip: {
         shared: true
     },
-
     series: [{
         name: 'Magnitude',
         color: '#89A54E',
@@ -243,7 +231,45 @@ $(function() {
         }
     }]
   });
+  ////////////////////////////////////////////////////////////////////////////////////  
+  
 
+
+
+
+  ////////////////////////////////////////////////////////////////////////////////////
+  // Populate table, SED, lightcurve, and image-cutouts
+  function updatePage(data,currentOB,phototype) {
+    makeTable(data,phototype);
+    makeSED(data[currentOB],phototype);
+    makeLightcurve(data,phototype);
+    updateCutouts(data,currentOB);
+  }
+  
+  function makeTable(data, phototype){
+    var newdata = []
+    $.each(data, function(k,v) {
+      var p = v.photometry
+      var url = '/fields/'+v.targetID+'/'+v.OBname+'/'
+      var rows = []
+      rows.push(v.OBtype)
+      rows.push("<a href="+url+">"+v.OBname +"</a>")
+      for (var i = 0; i < bands.length; i++) {
+        var ph = ('JHK'.indexOf(bands[i]) > -1) ? 'APP' : phototype
+        var div = (p[bands[i]].ownership!="pipeline") ? "<div class='userdetection'>" : "<div>"
+        var mag = p[bands[i]]['MAG_'+ph]
+        var mag_err = p[bands[i]]['MAG_'+ph+'_ERR']
+        mag  = (typeof mag !== "undefined") ? mag : "<img src='{{STATIC_URL}}images/plus_circle.png' class='forcedetect "+v.targetID+"?"+v.OBname+"?"+bands[i]+"' />"
+        mag_err = (typeof mag_err !== "undefined") ? mag_err : ""
+        rows.push(div+mag+'</div>')
+        rows.push(div+mag_err+'</div>')
+      }
+      newdata.push(rows)
+    });
+    datatable.fnClearTable()
+    datatable.fnAddData(newdata)
+  }
+  
   function makeLightcurve(data,phototype) {    
     var newdata = {
       'g': [],
@@ -271,7 +297,7 @@ $(function() {
           var p = ('JHK'.indexOf(bands[i]) > -1) ? 'APP' : phototype
           var mag = data[k].photometry[bands[i]]['MAG_'+p]
           var mag_err = data[k].photometry[bands[i]]['MAG_'+p+'_ERR']
-          if (typeof mag === "undefined") {
+          if (!mag) {
             newdata[bands[i]].push([mjd,null])
             newerrors[bands[i]].push([mjd,null,null])
           }
@@ -290,7 +316,6 @@ $(function() {
       lightcurve.series[j+1].setData(newerrors[bands[i]])
     }
   };
-  
 
   function makeSED(data,phototype) {
     var wavelengths = [458.69,621.98,764.07,898.96,1239.92,1646.84,2170.55]
@@ -300,7 +325,7 @@ $(function() {
       var p = ('JHK'.indexOf(bands[i]) > -1) ? 'APP' : phototype
       var mag = data.photometry[bands[i]]['MAG_'+p]
       var mag_err = data.photometry[bands[i]]['MAG_'+p+'_ERR']
-      if (typeof mag === "undefined") {
+      if (!mag) {
         newdata.push([wavelengths[i],null])
         newerrors.push([wavelengths[i],null,null])
       }
@@ -309,10 +334,8 @@ $(function() {
         newerrors.push([wavelengths[i],mag-mag_err,mag+mag_err])
       }
     }
-
     sed.series[0].setData(newdata);
     sed.series[1].setData(newerrors);
-    
   }
 
   function populate_dropdown(data) {
@@ -327,70 +350,120 @@ $(function() {
       }
   }
   
-  function initialize(data,currentOB,phototype) {
-    makeTable(data,phototype);
-    makeSED(data[currentOB],phototype);
-    makeLightcurve(data,phototype);
+  function updateCutouts(data,currentOB) {
+    var imgs = data[currentOB].images
+    var missing = []
+    for (var i = 0; i < bands.length; i++) {
+      if (!imgs[bands[i]]) {
+        missing.push(bands[i])
+      }
+    }
+    if (missing.length === 7) {
+      //POST for new images with $.ajax
+      
+      //first, set each img src to the placeholder
+      for (var i = 0; i < bands.length; i++) {
+        var img = $('div#image-cutout img.'+bands[i])
+        img.attr('src','{{STATIC_URL}}images/cutout-placeholder.png')
+      }
+    }
+    else {
+      //some images in cache requires us to poll that they exist
+      //and, if so, change the img src to point to them
+      
+      //Poll that these images still exist on the server
+      for (var i = 0; i < bands.length; i++) {
+        if (missing.indexOf(bands[i]) !== -1) {
+          continue
+        }
+        var img = $('div#image-cutout img.'+bands[i])
+        img.attr('id','{{MEDIA_URL}}'+imgs[bands[i]])
+        $.ajax({
+          type: 'HEAD',
+          url: '{{MEDIA_URL}}'+imgs[bands[i]],
+          context: img,
+          success: function(data, textStatus, jqXHR){
+            this.attr('src',this.attr('id'))
+            this.attr('id','')
+          },
+          error: function () {
+            $('div.subtitle').text('Warning: Cached image not available. Try reloading the page.')
+            this.attr('src','{{STATIC_URL}}images/cutout-placeholder.png')
+            this.attr('id','')
+          },
+        });
+      }
+    }
   }
   
-  populate_dropdown(master_data);
-  initialize(master_data,currentOB,phototype)
-
+  ////////////////////////////////////////////////////////////////////////////////////
+  
+  
+  
+  
+  ////////////////////////////////////////////////////////////////////////////////////
+  //event listeners
   $(document).on('click','button#userchoice_OB_submit',function() {
     var t = $('select#userchoice_OB option:selected').attr('name').split('?')
     currentOB = t[0]+" "+t[1]
     phototype =  $('select#userchoice_photometry option:selected').attr('name')
-    initialize(master_data,currentOB,phototype)
+    updatePage(master_data,currentOB,phototype)
   });
 
   $(document).on('click','img.forcedetect',function() {
-      if ( this.className.indexOf('busy') > 0 ) {
-        return
-      };
+    if ( this.className.indexOf('busy') > 0 ) {
+      return
+    };
 
-      if ( $('img.busy').length > 3 ) {
-        //also checked server-side
-        alert('Only 4 active reductions are allowed!')
-        return
-      };
-      var target = this.className.split(" ");
-      var targetID = target[1].split("?")[0];
-      var OB = target[1].split("?")[1];
-      var band = target[1].split("?")[2];
-      var ra = {{astrosource.RA}};
-      var dec = {{astrosource.DEC}};
-      var thisButton = this;
-      $.ajax({
-        type: 'POST',
-        data: { 
-          'ra': ra,
-          'dec': dec,
-          'OB': OB,
-          'targetID': targetID,
-          'band': band,
-          'sourceID':'{{astrosource.sourceID}}',
-        },
-        dataType: 'json',
-        url: '/forcedetect/',
-        success: function(data, textStatus, jqXHR){
-          thisButton.src = '{{STATIC_URL}}images/ajax-loader.gif';
-          thisButton.className += ' busy ' + data.jobid;
-          $('#logfile-container').append('<div id="logfile" class="'+data.jobid+'"></div>');
-          pollWrapper(thisButton, data.jobid);
-        },
-      });
+    if ( $('img.busy').length > 3 ) {
+      //also checked server-side
+      alert('Only 4 active reductions are allowed!')
+      return
+    };
+    var target = this.className.split(" ");
+    var targetID = target[1].split("?")[0];
+    var OB = target[1].split("?")[1];
+    var band = target[1].split("?")[2];
+    var ra = {{astrosource.RA}};
+    var dec = {{astrosource.DEC}};
+    var thisButton = this;
+    $.ajax({
+      type: 'POST',
+      data: { 
+        'ra': ra,
+        'dec': dec,
+        'OB': OB,
+        'targetID': targetID,
+        'band': band,
+        'sourceID':'{{astrosource.sourceID}}',
+      },
+      dataType: 'json',
+      url: '/forcedetect/',
+      success: function(data, textStatus, jqXHR){
+        thisButton.src = '{{STATIC_URL}}images/ajax-loader.gif';
+        thisButton.className += ' busy ' + data.jobid;
+        $('#logfile-container').append('<div id="logfile" class="'+data.jobid+'"></div>');
+        photometryPollWrapper(thisButton, data.jobid);
+      },
+    });
   });
-
+  
   $(document).on('click','img.close_dialog',function() {
    $(this).parent().remove();
    $(this).remove();
   });
+  ////////////////////////////////////////////////////////////////////////////////////
 
-  function pollWrapper(thisButton, jobid) {
+
+
+
+  ////////////////////////////////////////////////////////////////////////////////////
+  // Polling for photometry and image-cutout generation
+  function photometryPollWrapper(thisButton, jobid) {
     function poll(thisButton, jobid) {
       $.ajax({
         type: 'GET',
-        //data: { 
+        //data: { // will be parsed in urls.py
         //  'jobid':jobid,
         //},
         dataType: 'json',
@@ -421,19 +494,29 @@ $(function() {
     };
     var pollID=setInterval(function() { poll(thisButton, jobid) }, 1000);
   };
-});
-
-
-
+  ////////////////////////////////////////////////////////////////////////////////////
+  
+  
+  
+  
+  
+  ////////////////////////////////////////////////////////////////////////////////////
+  //Initial page population
+  populate_dropdown(master_data);
+  updatePage(master_data,currentOB,phototype)
+  ////////////////////////////////////////////////////////////////////////////////////
+  
+  
+}); //end $(document).ready call
 </script>
 
 
 
 
 <div id="source_title">
-  <!-- Target RA, Dec: {{nominalOB.0.astrosource.RA}}, {{nominalOB.0.astrosource.DEC}} -->
+  Target RA, Dec: {{astrosource.RA}}, {{astrosource.DEC}}
   <div class="subtitle">
-  <!--  Image cutouts and SED derived from {{nominalOB.0.imageheader.OB}}. {{ lc_band }}-band lightcurve. -->
+  <!-- warning/errors will go here -->
   </div>
 </div>
 
@@ -449,11 +532,9 @@ $(function() {
   </form>
 </div>
 
-
-
 <div id='image-cutout'>
-  {% for hdr in imageheaders %}
-  <img src="{{MEDIA_URL}}{{hdr.fname}}" />
+  {% for band in 'grizJHK' %}
+  <img src={{STATIC_URL}}images/cutout-placeholder.png class="{{band}}" />
   {% endfor %}
 </div>
 <div id="lightcurve"></div>
