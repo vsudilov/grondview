@@ -161,7 +161,7 @@ $(function() {
         tooltip: {
             pointFormat: '<span style="font-weight: bold; color: {series.color}">{series.name}</span>: <b>{point.y:.1f}</b> '
         },
-        visible: false,
+        //visible: false,
       }, 
       {
         name: '{{band}} error',
@@ -170,7 +170,7 @@ $(function() {
         tooltip: {
             pointFormat: ''
         },
-        visible: false,
+        //visible: false,
       },
       {% endfor %}
     ]
@@ -227,6 +227,7 @@ $(function() {
             pointFormat: '<span style="font-weight: bold; color: {series.color}">{series.name}</span>: <b>{point.y:.1f}</b> '
         },
         showInLegend: false,
+        visible: true,
     }, {
         name: 'Magnitude error',
         type: 'errorbar',
@@ -237,6 +238,54 @@ $(function() {
     }]
   });
 
+  function makeLightcurve(data,phototype) {    
+    var newdata = {
+      'g': [],
+      'r': [],
+      'i': [],
+      'z': [],
+      'J': [],
+      'H': [],
+      'K': [],
+    };
+    var newerrors = {
+      'g': [],
+      'r': [],
+      'i': [],
+      'z': [],
+      'J': [],
+      'H': [],
+      'K': [],
+    };
+    for (var k in data) {
+      if (data.hasOwnProperty(k)) {
+        //k = "TARGETID OB"
+        var mjd = data[k].MJD
+        for (var i = 0; i < bands.length; i++) {
+          var p = ('JHK'.indexOf(bands[i]) > -1) ? 'APP' : phototype
+          var mag = data[k].photometry[bands[i]]['MAG_'+p]
+          var mag_err = data[k].photometry[bands[i]]['MAG_'+p+'_ERR']
+          if (typeof mag === "undefined") {
+            newdata[bands[i]].push([mjd,null])
+            newerrors[bands[i]].push([mjd,null,null])
+          }
+          else {
+            newdata[bands[i]].push([mjd,mag])
+            newerrors[bands[i]].push([mjd,mag-mag_err,mag+mag_err])
+          }
+        }
+      }
+    }
+    // Now that the series data is populated, call setData
+    for (var i=0, j=0; i < bands.length; i++, j+=2) {
+      newdata[bands[i]].sort()
+      newerrors[bands[i]].sort()
+      lightcurve.series[j].setData(newdata[bands[i]])
+      lightcurve.series[j+1].setData(newerrors[bands[i]])
+    }
+  };
+  makeLightcurve(master_data,'PSF')
+
   function makeSED(data,phototype) {
     var wavelengths = [458.69,621.98,764.07,898.96,1239.92,1646.84,2170.55]
     var newdata = []
@@ -245,18 +294,19 @@ $(function() {
       var p = ('JHK'.indexOf(bands[i]) > -1) ? 'APP' : phototype
       var mag = data.photometry[bands[i]]['MAG_'+p]
       var mag_err = data.photometry[bands[i]]['MAG_'+p+'_ERR']
-      mag = (typeof mag !== "undefined") ? mag : null
-      newdata.push([wavelengths[i],mag])
-      try {      
-        newerrors.push([wavelengths[i],mag-mag_err,mag+mag_err])
-      }
-      catch(err) {
+      if (typeof mag === "undefined") {
+        newdata.push([wavelengths[i],null])
         newerrors.push([wavelengths[i],null,null])
+      }
+      else {
+        newdata.push([wavelengths[i],mag])
+        newerrors.push([wavelengths[i],mag-mag_err,mag+mag_err])
       }
     }
 
     sed.series[0].setData(newdata);
     sed.series[1].setData(newerrors);
+    
   }
   makeSED(master_data[currentOB],'PSF')
 

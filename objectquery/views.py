@@ -89,6 +89,7 @@ class ObjectView(TemplateView):
       data[_id]['OBname'] = thisOB[0].imageheader.OB
       data[_id]['OBtype'] = thisOB[0].imageheader.OBTYPEID
       data[_id]['targetID'] = thisOB[0].imageheader.TARGETID
+      data[_id]['MJD'] = thisOB[0].imageheader.MJD_OBS
       for band_specific_data in thisOB:
         #2b.  Populate the photometry fields:
         ht_photometry = {
