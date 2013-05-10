@@ -7,7 +7,8 @@ $(function() {
   var master_data = {{ source_data|safe }};
   var bands = ['g','r','i','z','J','H','K']
   var currentOB = "{{nominalOB|safe}}";
-
+  var phototype = "PSF"
+  
   //d = d.replace( / u'/g, " '" ).replace( /'/g, "\"" );
   //d = $.parseJSON(d);
   function getCookie(name) {
@@ -91,13 +92,15 @@ $(function() {
       datatable.fnClearTable()
       datatable.fnAddData(newdata)
   }
-    
-  makeTable(master_data,'PSF');
 
   var lightcurve = new Highcharts.Chart({
     chart: {
         zoomType: 'xy',
-        renderTo: 'lightcurve'
+        renderTo: 'lightcurve',
+        //events: {
+        //  redraw: function() {
+        //  },
+        //}
     },
     title: {
         text: 'Lightcurve'
@@ -111,17 +114,20 @@ $(function() {
                     var allSeries = this.chart.series;
                     
                     $.each(allSeries, function(index, series) {
-                        selected == index ? series.show() : series.hide();
+                      if (selected === index) {
+                         (!allSeries[selected].visible) ? series.show() : series.hide()
+                      }
+                    
+                    //    selected == index ? series.show() : series.hide();
                     });
                     
                     return false;
-                }
+                },
             }
         }
     },
 
     xAxis: [{
-        //categories: {{lightcurve.x}},
               title: {
                   text: 'MJD',
                   style: {
@@ -284,7 +290,7 @@ $(function() {
       lightcurve.series[j+1].setData(newerrors[bands[i]])
     }
   };
-  makeLightcurve(master_data,'PSF')
+  
 
   function makeSED(data,phototype) {
     var wavelengths = [458.69,621.98,764.07,898.96,1239.92,1646.84,2170.55]
@@ -308,7 +314,34 @@ $(function() {
     sed.series[1].setData(newerrors);
     
   }
-  makeSED(master_data[currentOB],'PSF')
+
+  function populate_dropdown(data) {
+    //populate dropdown list which allows user to choose the OB that is plotted
+    for (var k in data) {
+        var ob = k.split(' ')[1]
+        var targetid = k.split(' ')[0]
+        var obtype = data[k].OBtype
+        var opt = "<option name="+targetid+"?"+ob+">"+ob+" ("+obtype+")</option>"
+        var s = $('select#userchoice_OB')
+        s.append(opt)
+      }
+  }
+  
+  function initialize(data,currentOB,phototype) {
+    makeTable(data,phototype);
+    makeSED(data[currentOB],phototype);
+    makeLightcurve(data,phototype);
+  }
+  
+  populate_dropdown(master_data);
+  initialize(master_data,currentOB,phototype)
+
+  $(document).on('click','button#userchoice_OB_submit',function() {
+    var t = $('select#userchoice_OB option:selected').attr('name').split('?')
+    currentOB = t[0]+" "+t[1]
+    phototype =  $('select#userchoice_photometry option:selected').attr('name')
+    initialize(master_data,currentOB,phototype)
+  });
 
   $(document).on('click','img.forcedetect',function() {
       if ( this.className.indexOf('busy') > 0 ) {
@@ -392,8 +425,9 @@ $(function() {
 
 
 
-
 </script>
+
+
 
 
 <div id="source_title">
@@ -401,6 +435,18 @@ $(function() {
   <div class="subtitle">
   <!--  Image cutouts and SED derived from {{nominalOB.0.imageheader.OB}}. {{ lc_band }}-band lightcurve. -->
   </div>
+</div>
+
+<div id="OB_chooser">
+  <form>    
+    <select id='userchoice_OB'>
+    </select>
+    <select id="userchoice_photometry">
+      <option name="PSF">PSF</option>
+      <option name="APP">APP</option>
+    </select>
+    <button id="userchoice_OB_submit" type="button">Redraw</button>
+  </form>
 </div>
 
 
