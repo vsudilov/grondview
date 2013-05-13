@@ -47,7 +47,6 @@ class ImageHeaderQuerySet(QuerySet):
     Returns a list of imageheader objects, sorted by band
     '''
     def doTask(imageheaders):
-      imageheaders = sorted(imageheaders,key = lambda k: constants.band_sequence[k.FILTER])
       #Create image cut-outs
       #if DEBUG:
       #clipSize*=10 #For stubdata only!
@@ -65,6 +64,7 @@ class ImageHeaderQuerySet(QuerySet):
         imageheaders = self.filter(OB=forceOB).filter(TARGETID=forceTarget).positionFilter(ra,dec,radius=10)
       else:
         imageheaders = self.filter(OB=forceOB).positionFilter(ra,dec,radius=10) 
+      imageheaders = sorted(imageheaders,key = lambda k: constants.band_sequence[k.FILTER])
       if makeImages:
         doTask(imageheaders)
       return imageheaders  
@@ -81,8 +81,9 @@ class ImageHeaderQuerySet(QuerySet):
     max_filters = max( [len(i) for i in candidateOBs.values()] )
     candidateOBs = [i for i in candidateOBs.values() if len(i)==max_filters]
     imageheaders = sorted(candidateOBs, key = lambda k: constants.obtypes_sequence[k[0].OBTYPEID])[0]
+    imageheaders = sorted(imageheaders,key = lambda k: constants.band_sequence[k.FILTER])
     if makeImages:
-      doTask()
+      doTask(imageheaders)
     return imageheaders
 
 

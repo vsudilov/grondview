@@ -1,17 +1,18 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.http import HttpResponse, HttpResponseBadRequest
-import json
 from celery.result import AsyncResult
 
 from grondview.settings import PROJECT_ROOT
 from grondview.exceptions import *
+from grondview import tasks
 
 from forcedetect.views import JSONResponseMixin
 
 from imagequery.models import ImageHeader
 
 import os, sys
+import uuid
 sys.path.insert(0,os.path.join(PROJECT_ROOT,'utils'))
 from lib import constants
 
@@ -45,18 +46,39 @@ def get_fields(formdata,request):
 
 class GetCutouts(JSONResponseMixin,TemplateView):
   def get(self, request, *args, **kwargs):
-    pass
+    try:
+      jobid = request.GET['jobid']
+    except:
+      return HttpResponseBadRequest()
+    job = AsyncResult(jobid)
+    completed = job.ready()
+    if not completed:
+      context = {'completed':False}
+    else:
+      result = job.get()
+      context = {'completed':True,'fname':result.fname,'band':result.FILTER}
+      
+    return self.render_to_response(context)
+
   def head(self, request, *args, **kwargs):
     pass
   def post(self, request, *args, **kwargs):
     try:
       targetID, OB = request.POST['currentOB'].split()
       band = request.POST['band']
+      ra = float(request.POST['ra'])
+      dec = float(request.POST['dec'])
     except:
       return HttpResponseBadRequest()
-  
-    jobid = 'abc123'
-    context = {'jobid':jobid}
+    ih = ImageHeader.objects.filter(TARGETID=targetID).filter(OB=OB).filter(FILTER=band)
+    if not ih:
+      context = {'jobid':'no_images_available'}
+    else:
+      ih = ih[0]
+      fname = '%s.png' % uuid.uuid4()
+      ih.fname = fname
+      job = tasks.makeImage.delay(ih,fname,10,ra,dec) 
+      context = {'jobid':job.id}
     return self.render_to_response(context)
     
     

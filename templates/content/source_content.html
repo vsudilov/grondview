@@ -29,6 +29,7 @@ $(function() {
           break;
         }
       }
+
     }
     return cookieValue;
   }
@@ -159,7 +160,9 @@ $(function() {
         tooltip: {
             pointFormat: '<span style="font-weight: bold; color: {series.color}">{series.name}</span>: <b>{point.y:.1f}</b> '
         },
-        //visible: false,
+        {% if band != 'r' %}
+        visible: false,
+        {% endif %}
       }, 
       {
         name: '{{band}} error',
@@ -168,7 +171,9 @@ $(function() {
         tooltip: {
             pointFormat: ''
         },
-        //visible: false,
+        {% if band != 'r' %}
+        visible: false,
+        {% endif %}
       },
       {% endfor %}
     ]
@@ -370,11 +375,14 @@ $(function() {
           url: '/sources/get_cutouts/',
           data: {
             'currentOB':currentOB,
-            'band':bands[i],
+            'ra': {{astrosource.RA}},
+            'dec': {{astrosource.DEC}},
+            'band': bands[i],
           },
+          context: img,
           dataType: 'json',
           success: function(data, textStatus, jqXHR){
-            imagePollWrapper(img,data.jobid)
+            imagePollWrapper(this,data.jobid)
           },
           error: function(jqXHR,textStatus,errorThrown) {
            console.log(textStatus,errorThrown)
@@ -479,27 +487,38 @@ $(function() {
   
   function imagePollWrapper(img,jobid) {
     var pollCounter = 0
+    console.log(img)
     function poll(img,jobid) {
       pollCounter += 1
       $.ajax({
-        type: 'HEAD',
-        //data: { // will be parsed in urls.py
-        //  'jobid':jobid,
-        //},
+        type: 'GET',
+        data: { // will be parsed in urls.py
+          'jobid':jobid,
+        },
         dataType: 'json',
+        timeout: 4900,
         context: img,
-        url: '{{MEDIA_URL}}'+jobid+'.png',
+        url: '/sources/get_cutouts/',
         success: function(data, textStatus, jqXHR){
-          clearInterval(pollID)
-          this.attr('src','{{MEDIA_URL}}'+jobid+'.png')
-          this.attr('id','')
+          cb(data)
         }
       });
-        if (pollCounter > 15) {
+      
+      function cb(data) {
+        if (data.completed) {
           clearInterval(pollID)
+          img.attr('src','{{MEDIA_URL}}'+data.fname)
+          img.attr('id','')
+          master_data[currentOB].images[data.band] = data.fname
         }
+      }      
+
+      if (pollCounter > 3) {
+        clearInterval(pollID)
+      }
     }
-    var pollID=setInterval(function() { poll(img, jobid) }, 1000);
+    poll(img, jobid)
+    var pollID=setInterval(function() { poll(img, jobid) }, 5000);
   }
   
   function photometryPollWrapper(thisButton, jobid) {

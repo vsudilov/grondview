@@ -44,7 +44,7 @@ def makeImage(ImageHeaderInstance,fname,clipSize,ra,dec,units='arcseconds', **kw
     clipSizeDeg=clipSizeDeg,
     scale=scale,
     )
-  return None
+  return ImageHeaderInstance
 
 @celery.task
 def photometry(iniFile, objwcs, **kwargs):
