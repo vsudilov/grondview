@@ -24,9 +24,11 @@ from lib import constants
 from lib import photometry as phot
 
 from stsci.numdisplay import zscale
+import time
 
 @celery.task
 def makeImage(ImageHeaderInstance,fname,clipSize,ra,dec,units='arcseconds', **kwargs):
+  start = time.time()
   d = pyfits.open(ImageHeaderInstance.PATH)[0].data
   wcs = astWCS.WCS(ImageHeaderInstance.PATH)  
   scale=zscale.zscale(d)

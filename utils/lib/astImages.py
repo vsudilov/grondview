@@ -37,7 +37,7 @@ except:
     print "WARNING: astImages: failed to import matplotlib - some functions will not work."
 
 #---------------------------------------------------------------------------------------------------
-def clipImageSectionWCS(imageData, imageWCS, RADeg, decDeg, clipSizeDeg, returnWCS = True):
+def clipImageSectionWCS(imageData, imageWCS, RADeg, decDeg, clipSizeDeg, returnWCS = False):
     """Clips a square or rectangular section from an image array at the given celestial coordinates. 
     An updated WCS for the clipped section is optionally returned, as well as the x, y pixel 
     coordinates in the original image corresponding to the clipped section.
@@ -870,15 +870,17 @@ def saveBitmap(outputFileName, imageData, cutLevels, size, colorMapName, caption
     etc. (do "help(pylab.colormaps)" in the Python interpreter to see available options)
     
     """		
+
     clipSizeArcsec = clipSizeDeg*60*60.
     if not scale:
       cut=intensityCutImage(imageData, cutLevels)
     else:
       anorm = pylab.normalize(scale[0],scale[1])
-      cut = {'image': imageData.copy(), 'norm': anorm}  
+      cut = {'image': imageData, 'norm': anorm}  
     # Make plot
     aspectR=float(cut['image'].shape[0])/float(cut['image'].shape[1])
     fig = pylab.figure(figsize=(10,10*aspectR))
+    pylab.minorticks_off()
     xPix = size
     yPix = size
     dpi = 100
@@ -894,7 +896,6 @@ def saveBitmap(outputFileName, imageData, cutLevels, size, colorMapName, caption
     
     if cutLevels[0]=="histEq":
         pylab.imshow(cut['image'],  interpolation="bilinear", origin='lower', cmap=colorMap)
-    
     else:
         pylab.imshow(cut['image'],  interpolation="bilinear",  norm=cut['norm'], origin='lower',
             cmap=colorMap)
@@ -906,7 +907,8 @@ def saveBitmap(outputFileName, imageData, cutLevels, size, colorMapName, caption
     pylab.axis("off")
     
     pylab.savefig(outputFileName,format="png",dpi=dpi)	
-    pylab.close("all")
+    #pylab.close("all") #leads to memory leak AND degrades performance
+    
     
 #    try:
 #        from PIL import Image

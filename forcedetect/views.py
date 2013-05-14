@@ -13,6 +13,8 @@ from grondview import tasks
 from objectquery.models import Photometry
 from objectquery.models import AstroSource
 
+from imagequery.models import ImageHeader
+
 from forcedetect.models import UserTask_photometry
 
 import os,sys
@@ -65,6 +67,7 @@ class ForceDetectView(JSONResponseMixin,TemplateView):
     #Make a database entry for the current task.
     fields = {}
     fields['user'] = request.user
+    fields['targetID'] = targetID
     fields['jobid'] = task.id
     fields['band'] = band
     fields['sourceID'] = sourceID
@@ -99,25 +102,33 @@ class ForceDetectView(JSONResponseMixin,TemplateView):
       results = job.get()
       mag = round(results['APP'][2],2)
       mag_err = round(results['APP'][3],2)
-      context = {'completed':True,'jobid':jobid,'mag':mag,'mag_err':mag_err}
       hashtable = {
-            'MAG_APP': lambda d: d['APP'][2] if d['APP'] else None,
-            'MAG_APP_ERR': lambda d: d['APP'][3] if d['APP'] else None,
-            'MAG_PSF': lambda d: d['PSF'][2] if d['PSF'] else None,
-            'MAG_PSF_ERR': lambda d: d['PSF'][3] if d['PSF'] else None,
+            'MAG_APP': lambda d: round(d['APP'][2],2) if d['APP'] else None,
+            'MAG_APP_ERR': lambda d: round(d['APP'][3],2) if d['APP'] else None,
+            'MAG_PSF': lambda d: round(d['PSF'][2],2) if d['PSF'] else None,
+            'MAG_PSF_ERR': lambda d: round(d['PSF'][3],2) if d['PSF'] else None,
             'CALIB_SCHEME': lambda d: d['CALIB_SCHEME'],
             'CALIB_FILE': lambda d: d['CALIB_FILE'],
       }
       fields = {}
       fields['user'] = request.user
       fields['BAND'] = db_entry.band
-      o = Photometry.objects.filter(astrosource__sourceID=db_entry.sourceID)[0]
-      fields['imageheader'] = o.imageheader
-      fields['astrosource'] = o.astrosource
+      astrosource = AstroSource.objects.get(sourceID=db_entry.sourceID)
+      imageheader = ImageHeader.objects.filter(TARGETID=db_entry.targetID).filter(OB=db_entry.OB).filter(FILTER=db_entry.band)[0]
+      fields['imageheader'] = imageheader
+      fields['astrosource'] = astrosource
       [fields.update( {k:hashtable[k](results)} ) for k in hashtable.keys()]
       p = Photometry(**fields)
       p.save()
       db_entry.delete() #Delete database entry, this should eventually be tied to the redis backend!
+      context = {'completed':True,'jobid':jobid,
+                 'PSF':hashtable['MAG_PSF'](results),
+                 'PSF_ERR':hashtable['MAG_PSF_ERR'](results),
+                 'APP':hashtable['MAG_APP'](results),
+                 'APP_ERR':hashtable['MAG_APP_ERR'](results),
+                 'band':db_entry.band,
+                 'OB':db_entry.OB,
+                 'targetID':db_entry.targetID}
     return self.render_to_response(context)
 
 

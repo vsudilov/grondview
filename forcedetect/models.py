@@ -20,7 +20,7 @@ class UserTask_photometry(models.Model):
   sourceID = models.CharField(max_length=30)
   band = models.CharField(max_length=1)
   OB = models.CharField(max_length=10)
-
+  targetID = models.CharField(max_length=40)
   logfile_line_number = models.IntegerField()
 
   def __unicode__(self):

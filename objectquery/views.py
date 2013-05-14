@@ -3,7 +3,7 @@ from django.db.models import Q
 from django.http import Http404
 from django.core.exceptions import PermissionDenied
 from django.views.generic import TemplateView
-
+from django.db.models import Count
 
 from grondview.settings import PROJECT_ROOT
 from grondview import tasks
@@ -27,13 +27,16 @@ def get_sources(formdata,request):
   dec = formdata['dec']
   radius = formdata['radius']
   units = formdata['units']
+  n_bands = formdata['n_bands']
   Qs = [Q(user=request.user), Q(user__username='pipeline')] 
   q = reduce(operator.or_, Qs)
-  results = AstroSource.objects.filter(q).positionFilter(ra,dec,radius=radius)   
+  results = AstroSource.objects.filter(q).annotate(Count('photometry')).positionFilter(ra,dec,radius=radius) 
 
   if not results:
     #raise NoCoverageError(radius=radius)
     return {'sources':'NO_SOURCES_DETECTED'}
+  
+  results = [r for r in results if r.photometry__count >= n_bands]
 
   distances = dict((i.sourceID,i.distance*3600) for i in results) #Keep distance for later
   ownership = dict((i.sourceID,i.user.username) for i in results)  
@@ -131,7 +134,7 @@ class ObjectView(TemplateView):
       results[0].astrosource.DEC,
       forceOB=nominalOB.split()[1],
       )
-    #data[nominalOB]['images']
+
     for i in imageheaders:
       data[nominalOB]['images'][i.FILTER] = i.fname
     context = {'source_data':json.dumps(data),'request':request,'nominalOB':nominalOB,'astrosource':thisSource}

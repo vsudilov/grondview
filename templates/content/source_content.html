@@ -264,7 +264,7 @@ $(function() {
         var div = (p[bands[i]].ownership!="pipeline") ? "<div class='userdetection'>" : "<div>"
         var mag = p[bands[i]]['MAG_'+ph]
         var mag_err = p[bands[i]]['MAG_'+ph+'_ERR']
-        mag  = (typeof mag !== "undefined") ? mag : "<img src='{{STATIC_URL}}images/plus_circle.png' class='forcedetect "+v.targetID+"?"+v.OBname+"?"+bands[i]+"' />"
+        mag  = (typeof mag !== "undefined") ? mag : "<button type='button' class='forcedetect "+v.targetID+"?"+v.OBname+"?"+bands[i]+"'>+</button>"
         mag_err = (typeof mag_err !== "undefined") ? mag_err : ""
         rows.push(div+mag+'</div>')
         rows.push(div+mag_err+'</div>')
@@ -343,13 +343,18 @@ $(function() {
     sed.series[1].setData(newerrors);
   }
 
-  function populate_dropdown(data) {
+  function populate_dropdown(data, currentOB) {
     //populate dropdown list which allows user to choose the OB that is plotted
     for (var k in data) {
         var ob = k.split(' ')[1]
         var targetid = k.split(' ')[0]
         var obtype = data[k].OBtype
-        var opt = "<option name="+targetid+"?"+ob+">"+ob+" ("+obtype+")</option>"
+        if (k === currentOB) {
+          var opt = "<option selected='selected' name="+targetid+"?"+ob+">"+ob+" ("+obtype+")</option>"
+        }
+        else {
+          var opt = "<option name="+targetid+"?"+ob+">"+ob+" ("+obtype+")</option>"
+        }
         var s = $('select#userchoice_OB')
         s.append(opt)
       }
@@ -435,23 +440,21 @@ $(function() {
     updatePage(master_data,currentOB,phototype)
   });
 
-  $(document).on('click','img.forcedetect',function() {
-    if ( this.className.indexOf('busy') > 0 ) {
-      return
-    };
-
-    if ( $('img.busy').length > 3 ) {
-      //also checked server-side
-      alert('Only 4 active reductions are allowed!')
-      return
-    };
+  $(document).on('click','button.forcedetect',function() {
+    if ( $('img.busy').length > 1 ) {
+      $('button.forcedetect').each(function() {
+        $(this).prop('disabled',true)
+      })
+    }
+  
+  
     var target = this.className.split(" ");
     var targetID = target[1].split("?")[0];
     var OB = target[1].split("?")[1];
     var band = target[1].split("?")[2];
     var ra = {{astrosource.RA}};
     var dec = {{astrosource.DEC}};
-    var thisButton = this;
+    var thisButton = $(this);
     $.ajax({
       type: 'POST',
       data: { 
@@ -465,10 +468,10 @@ $(function() {
       dataType: 'json',
       url: '/forcedetect/',
       success: function(data, textStatus, jqXHR){
-        thisButton.src = '{{STATIC_URL}}images/ajax-loader.gif';
-        thisButton.className += ' busy ' + data.jobid;
+        var classname = thisButton.attr('class') + ' busy ' + data.jobid;        
+        thisButton.replaceWith("<img src='{{STATIC_URL}}images/ajax-loader.gif' class='"+classname+"'/ >")
         $('#logfile-container').append('<div id="logfile" class="'+data.jobid+'"></div>');
-        photometryPollWrapper(thisButton, data.jobid);
+        photometryPollWrapper(data.jobid);
       },
     });
   });
@@ -487,7 +490,6 @@ $(function() {
   
   function imagePollWrapper(img,jobid) {
     var pollCounter = 0
-    console.log(img)
     function poll(img,jobid) {
       pollCounter += 1
       $.ajax({
@@ -496,33 +498,48 @@ $(function() {
           'jobid':jobid,
         },
         dataType: 'json',
-        timeout: 4900,
+        timeout: 2400,
         context: img,
         url: '/sources/get_cutouts/',
         success: function(data, textStatus, jqXHR){
-          cb(data)
+          if (data.completed) {          
+            cb(data)
+          }
         }
       });
       
       function cb(data) {
-        if (data.completed) {
-          clearInterval(pollID)
-          img.attr('src','{{MEDIA_URL}}'+data.fname)
-          img.attr('id','')
-          master_data[currentOB].images[data.band] = data.fname
-        }
+        clearInterval(pollID)
+        img.attr('src','{{MEDIA_URL}}'+data.fname)
+        img.attr('id','')
+        master_data[currentOB].images[data.band] = data.fname
       }      
 
-      if (pollCounter > 3) {
+      if (pollCounter > 10) {
         clearInterval(pollID)
       }
     }
     poll(img, jobid)
-    var pollID=setInterval(function() { poll(img, jobid) }, 5000);
+    var pollID=setInterval(function() { poll(img, jobid) }, 2500);
   }
   
-  function photometryPollWrapper(thisButton, jobid) {
-    function poll(thisButton, jobid) {
+  function photometryPollWrapper(jobid) {
+    function poll(jobid) {
+      function cb(data) {
+        clearInterval(pollID)
+        var p = ('JHK'.indexOf(data.band) > -1) ? 'APP' : phototype
+        $('img.'+jobid).parent().parent().next().children('div').html('<div class="userdetection">'+data[p+"_ERR"]+'</div>')
+        $('img.'+jobid).replaceWith('<div class="userdetection">'+data[p]+'</div>')
+        $('#logfile.'+jobid).append('<img style="float:right;" src={{STATIC_URL}}images/dialog_close.png class="close_dialog"/>');
+        $('#logfile.'+jobid).animate({scrollTop:$('#logfile.'+jobid)[0].scrollHeight}, 500);
+        $('button.forcedetect').each(function() {
+          $(this).prop('disabled',false)
+        })
+        master_data[data.targetID+" "+data.OB].photometry[data.band].PSF = data.PSF
+        master_data[data.targetID+" "+data.OB].photometry[data.band].PSF_ERR = data.PSF_ERR
+        master_data[data.targetID+" "+data.OB].photometry[data.band].APP = data.APP
+        master_data[data.targetID+" "+data.OB].photometry[data.band].APP_ERR = data.APP_ERR
+      }
       $.ajax({
         type: 'GET',
         //data: { // will be parsed in urls.py
@@ -532,11 +549,7 @@ $(function() {
         url: '/forcedetect/'+jobid,
         success: function(data, textStatus, jqXHR){
           if ( data.completed ) {
-            clearInterval(pollID)
-            $('img.'+jobid).parent().parent().next().children('div').html('<div class="userdetection">'+data.mag_err+'</div>')
-            $('img.'+jobid).replaceWith('<div class="userdetection">'+data.mag+'</div>')
-            $('#logfile.'+jobid).append('<img style="float:right;" src={{STATIC_URL}}images/dialog_close.png class="close_dialog"/>');
-            $('#logfile.'+jobid).animate({scrollTop:$('#logfile.'+jobid)[0].scrollHeight}, 500);
+            cb(data)
           }
           else {
             if ( data.log ) {
@@ -551,10 +564,13 @@ $(function() {
           $('img.'+jobid).replaceWith('<div class="userdetection">NaN</div>')
           $('#logfile.'+jobid).append('<img style="float:right;" src={{STATIC_URL}}images/dialog_close.png class="close_dialog"/>');
           $('#logfile.'+jobid).animate({scrollTop:$('#logfile.'+jobid)[0].scrollHeight}, 500);
+          $('button.forcedetect').each(function() {
+            $(this).prop('disabled',false)
+          })
         },
       });
     };
-    var pollID=setInterval(function() { poll(thisButton, jobid) }, 1000);
+    var pollID=setInterval(function() { poll(jobid) }, 1000);
   };
   ////////////////////////////////////////////////////////////////////////////////////
   
@@ -564,7 +580,7 @@ $(function() {
   
   ////////////////////////////////////////////////////////////////////////////////////
   //Initial page population
-  populate_dropdown(master_data);
+  populate_dropdown(master_data,currentOB);
   updatePage(master_data,currentOB,phototype)
   ////////////////////////////////////////////////////////////////////////////////////
   

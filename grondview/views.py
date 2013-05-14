@@ -115,11 +115,17 @@ class FormView(TemplateView):
     except:
       raise AreaParseError
 
+    try:
+      n_bands = float(cd['n_bands'])
+    except:
+      n_bands = None
+
     formdata = {
       'radius':radius,
       'ra':ra,
       'dec':dec,
       'units':units,
+      'n_bands':n_bands,
       }
     return formdata
 

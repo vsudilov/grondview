@@ -23,6 +23,7 @@ import time
 import numpy as np
 import ConfigParser
 import logging
+from scipy import optimize
 
 PLOT=False
 
@@ -311,7 +312,8 @@ def calibrate(usersource,task,photometry,logger):
 
   with open(task['calcat'],'r') as f:
     calcat = [map(float,i.strip().split()) for i in f]
-  from scipy import optimize #Big import
+  calcat = [i for i in calcat if len(i)>=4] #must have ra,dec,mag,mag_err
+
   fitfunc = lambda p, x: p[0] + p[1] * x #linear fit
   errfunc = lambda p, x, y, err: (y - fitfunc(p, x)) / err
   pinit = [0.0, 1.0]
