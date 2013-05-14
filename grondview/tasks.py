@@ -4,8 +4,6 @@ from celery import current_task
 from grondview.celery import celery
 from astLib import astWCS
 
-import matplotlib
-from matplotlib import pyplot as plt
 import pyfits
 import os
 import sys
@@ -25,6 +23,7 @@ from lib import photometry as phot
 
 from stsci.numdisplay import zscale
 import time
+
 
 @celery.task
 def makeImage(ImageHeaderInstance,fname,clipSize,ra,dec,units='arcseconds', **kwargs):

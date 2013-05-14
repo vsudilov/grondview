@@ -3,6 +3,7 @@ stage { 'last':  require => Stage['main'] }
 stage { 'pre': before => Stage['first'] }
 
 class {
+      'setup_user':     stage => first;
       'apt_update':     stage => pre;
       'system':         stage => first;     
       'python_modules': stage => main;
@@ -12,7 +13,8 @@ class {
       'sextractor': stage => last;
       'cronjobs':	stage => last;
       'sass-watch':	stage => last;
-#      'coffee-watch': stage => last; #Doesnt work, bug in coffee --watch
+###      'coffee-watch': stage => last; #Doesnt work, bug in coffee --watch
+      'run_webserver': stage => last;
       'celeryd-init': stage => last;
 }
 
@@ -83,6 +85,9 @@ class system{
       "alien":
           ensure => installed,
           provider => apt;
+      "nginx":
+          ensure => installed,
+          provider => apt;
   }
 
 
@@ -104,7 +109,9 @@ class python_modules{
       "d2to1":
           ensure => installed,
           provider => pip;
-
+      "uwsgi":
+          ensure => installed,
+          provider => pip;
   }
 }
 class post_python_modules{
@@ -320,6 +327,21 @@ class celeryd-init {
   }
 }
 
+class setup_user {
+  user {"vagrant":
+    ensure => present,
+    shell => '/bin/bash',
+    home => '/home/vagrant';
+    #groups => ['sudo','vagrant','www-data'];
+  }
+
+  #user {"root":
+    #groups => ['root','www-data'];
+  #}
+
+  
+}
+
 
 # Misc
 #------
@@ -329,4 +351,58 @@ class coffee-watch{
      command => "/usr/bin/coffee -o /home/vagrant/grondview/static/js/ -cw /home/vagrant/grondview/static/coffee/ &",
      user => vagrant;
        }
+}
+
+class run_webserver {
+  exec {
+    "ln_nginxconf":
+      command => "/bin/ln -fs /home/vagrant/grondview/manifests/nginx.conf /etc/nginx/sites-enabled/",
+      user => root,
+      #creates => "/etc/nginx/sites-enabled/nginx.conf";
+  }
+
+  exec {
+    "ln_django_ini":
+      command => "/bin/ln -fs /home/vagrant/grondview/manifests/django_uwsgi.ini /etc/uwsgi/vassals/",
+      user => root,
+      #creates => "/etc/uwsgi/vassals/django_uwsgi.ini",
+      require => Exec['mk_etc_uwsgi'];
+  }
+
+  exec {
+    "nginx_restart":
+      command => "/etc/init.d/nginx restart",
+      user => root,
+      require => [Exec['ln_nginxconf'],Exec['nginx_changeuser']];
+  }
+  
+  exec {
+    "nginx_changeuser":
+      command => "/bin/sed -i 's/user www-data;/user vagrant;/g' /etc/nginx/nginx.conf",
+      user => root;
+  }
+
+  exec {
+    "mk_etc_uwsgi":
+      command => '/bin/mkdir -p /etc/uwsgi/vassals/',
+      user => root,
+      creates => '/etc/uwsgi/vassals/';
+  }
+
+  exec {
+    "mk_uwsgi_logdir":
+      command => '/bin/mkdir -p /var/log/uwsgi/',
+      user => root,
+      creates => '/var/log/uwsgi/';
+  }
+
+
+  exec {
+    "uwsgi_restart":
+      command => "/usr/local/bin/uwsgi --emperor /etc/uwsgi/vassals --uid vagrant --gid vagrant --master --daemonize /home/vagrant/grondview/logs/uwsgi.log",
+      user => vagrant,
+      environment => ['USER=vagrant','HOME=/home/vagrant'],
+      require => [Exec['ln_django_ini'],Exec['mk_uwsgi_logdir']];
+  }
+
 }

@@ -2,7 +2,8 @@
 
 import os
 
-USER_HOME = os.path.expanduser('~')
+#USER_HOME = os.path.expanduser('~') # This will break in deployment
+USER_HOME = '/home/vagrant' 
 PROJECT_ROOT = os.path.join(USER_HOME,'grondview')
 GP_INIDIR = os.path.join(PROJECT_ROOT,'work/ini') #Path to ini files
 

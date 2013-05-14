@@ -539,6 +539,7 @@ $(function() {
         master_data[data.targetID+" "+data.OB].photometry[data.band].PSF_ERR = data.PSF_ERR
         master_data[data.targetID+" "+data.OB].photometry[data.band].APP = data.APP
         master_data[data.targetID+" "+data.OB].photometry[data.band].APP_ERR = data.APP_ERR
+        updatePage(master_data,currentOB,phototype)
       }
       $.ajax({
         type: 'GET',
