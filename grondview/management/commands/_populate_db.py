@@ -7,6 +7,7 @@ import pyfits
 import re
 import ConfigParser
 from astLib import astCoords
+from astLib import astWCS
 
 from imagequery.models import ImageHeader,ImageProperties
 from objectquery.models import AstroSource,Photometry
@@ -59,7 +60,7 @@ class GrondData:
     fields = {}
     def _match_db_fields(fields):
       #Match the FITS header keys with those defined in the database table
-      modelfields = ('PATH','NAXIS1', 'NAXIS2', 'RA', 'DEC', 'EXPTIME', 'MJD_OBS', 
+      modelfields = ('PATH','NAXIS1', 'NAXIS2', 'EXPTIME', 'MJD_OBS', 
                      'DATE_OBS', 'CRVAL1', 'CRVAL2', 'NGR', 'NINT', 'NIZ', 'NMD', 
                      'NTD', 'NTP', 'OBSEQNUM', 'OBSRUNID', 'TARGETID', 'FILTER', 'RON',
                      'GAIN', 'MJD_MID', 'OBSERR', 'NCOMBINE', 'NIMGS', 'TDP_MID', 
@@ -69,6 +70,10 @@ class GrondData:
     fields = dict([(k.replace('-','_'),self.header[k]) for k in self.header if k]) 
     fields = _match_db_fields(fields) #Need to remove the extraneous keys...Django blindly tries to copy all keys to models 
     fields['PATH'] = self.image
+    wcs = astWCS.WCS(self.image)
+    fields['RA'], fields['DEC'] = wcs.pix2wcs(self.header['NAXIS1']/2.0,self.header['NAXIS2']/2.0)
+    fields['BOTTOMLEFT_RA'], fields['BOTTOMLEFT_DEC'] = wcs.pix2wcs(0,0)
+    fields['TOPRIGHT_RA'], fields['TOPRIGHT_DEC'] = wcs.pix2wcs(self.header['NAXIS1'],self.header['NAXIS2'])
     try:
       result = ImageHeader.objects.get(PATH=fields['PATH'])
       print "NOTE: This field already exists in the database. I will UPDATE the values for it instead of INSERT a new row"

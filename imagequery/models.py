@@ -30,11 +30,17 @@ class ImageHeaderQuerySet(QuerySet):
 
     results = []
     for i in self:
-      distance = astCoords.calcAngSepDeg(i.CRVAL1,i.CRVAL2,ra,dec)
+      distance = astCoords.calcAngSepDeg(i.RA,i.DEC,ra,dec)
       if distance <= radius:
         i.__setattr__("distance",distance)
         results.append(i)
     return results
+
+  def findImagesWithObjectCoverage(self,ra,dec):
+    '''
+    returns a QuerySet of all imageheaders that have coverage of a specific source.
+    '''
+    return self.filter(BOTTOMLEFT_RA__gte=ra,TOPRIGHT_RA__lte=ra,BOTTOMLEFT_DEC__lte=dec,TOPRIGHT_DEC__gte=dec)
 
   def getBestImages(self,ra,dec,clipSize=10,seeing_limit=2.0,
                     makeImages=True,forceOB=None,units='arcseconds',
@@ -48,8 +54,6 @@ class ImageHeaderQuerySet(QuerySet):
     '''
     def doTask(imageheaders):
       #Create image cut-outs
-      #if DEBUG:
-      #clipSize*=10 #For stubdata only!
       for hdr in imageheaders:
         fname = '%s.png' % uuid.uuid4()
         hdr.fname = fname #This attribute links the filename to the <img src=''> tag
@@ -111,7 +115,7 @@ class ImageHeader(models.Model):
   PATH = models.CharField(max_length=80)
   NAXIS1 = models.IntegerField()
   NAXIS2 = models.IntegerField()
-  RA = models.FloatField() #Telescope pointing
+  RA = models.FloatField() #Computed center of the image
   DEC = models.FloatField()
   EXPTIME = models.FloatField()
   MJD_OBS = models.FloatField()
@@ -140,6 +144,11 @@ class ImageHeader(models.Model):
   IMGEXP = models.FloatField()
   OBTYPEID = models.CharField(max_length=10)
   OB = models.CharField(max_length=10,null=True)
+
+  BOTTOMLEFT_RA = models.FloatField()
+  BOTTOMLEFT_DEC = models.FloatField()
+  TOPRIGHT_RA = models.FloatField()
+  TOPRIGHT_DEC = models.FloatField()
 
 
   def save(self, *args, **kwargs):

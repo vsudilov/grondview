@@ -35,7 +35,7 @@ def get_sources(formdata,request,imageheaders):
 
   Qs = [Q(user=request.user), Q(user__username='pipeline')] 
   q = reduce(operator.or_, Qs)
-  results = AstroSource.objects.filter(q).annotate(Count('photometry')).positionFilter(ra,dec,radius=radius) 
+  results = AstroSource.objects.filter(q).annotate(Count('photometry')).positionFilter(ra,dec,radius=radius)
   results = [r for r in results if r.photometry__count >= n_bands]
 
   if formdata['forcedetect']:
@@ -90,11 +90,11 @@ class ObjectView(TemplateView):
       #We should make this more robust, ie this will fail if two users "own" the same sourceID
       #Perhaps change the userfield to a M2M field and test if user is in the list?
       raise PermissionDenied
-    results = Photometry.objects.filter(astrosource__sourceID=sourceID)
-    if not results:
-      raise Http404
+
+    
+    results = ImageHeader.objects.findImagesWithObjectCoverage(thisSource.RA,thisSource.DEC)
     #1. Create unique master keys, assuming uniqueness of the concat of TARGETID+OB
-    unique_observations = set(["%s %s" % (i.imageheader.TARGETID,i.imageheader.OB) for i in results])
+    unique_observations = set(["%s %s" % (i.TARGETID,i.OB) for i in results])
     data = dict([(_id,{}) for _id in unique_observations])
 
     #2. Populate fields
@@ -104,13 +104,13 @@ class ObjectView(TemplateView):
 
       #2a.  Populate the properties that are OB (not band) specific
       targetID, OB = _id.split()
-      p = results.filter(imageheader__OB=OB).filter(imageheader__TARGETID=targetID)[0].imageheader.PATH
-      p = os.path.dirname(os.path.dirname(p)) #Get from ...target/r/GROND_ana.fits to ../target
-      thisOB = results.filter(imageheader__PATH__startswith=p)
-      data[_id]['OBname'] = thisOB[0].imageheader.OB
-      data[_id]['OBtype'] = thisOB[0].imageheader.OBTYPEID
-      data[_id]['targetID'] = thisOB[0].imageheader.TARGETID
-      data[_id]['MJD'] = thisOB[0].imageheader.MJD_OBS
+      p = results.filter(OB=OB).filter(TARGETID=targetID)
+      path = os.path.dirname(os.path.dirname(p[0].PATH)) #Get from ...target/r/GROND_ana.fits to ../target
+      thisOB = Photometry.objects.filter(astrosource__sourceID=sourceID).filter(imageheader__PATH__startswith=path)
+      data[_id]['OBname'] = p[0].OB
+      data[_id]['OBtype'] = p[0].OBTYPEID
+      data[_id]['targetID'] = p[0].TARGETID
+      data[_id]['MJD'] = p[0].MJD_OBS
       for band_specific_data in thisOB:
         #2b.  Populate the photometry fields:
         ht_photometry = {
@@ -148,8 +148,8 @@ class ObjectView(TemplateView):
     
 
     imageheaders = ImageHeader.objects.getBestImages(
-      results[0].astrosource.RA,
-      results[0].astrosource.DEC,
+      thisSource.RA,
+      thisSource.DEC,
       forceOB=nominalOB.split()[1],
       )
 
