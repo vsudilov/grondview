@@ -244,11 +244,13 @@ $(function() {
 
   ////////////////////////////////////////////////////////////////////////////////////
   // Populate table, SED, lightcurve, and image-cutouts
-  function updatePage(data,currentOB,phototype) {
+  function updatePage(data,currentOB,phototype,doImages) {
     makeTable(data,phototype);
     makeSED(data[currentOB],phototype);
     makeLightcurve(data,phototype);
-    updateCutouts(data,currentOB);
+    if (doImages) {
+      updateCutouts(data,currentOB);
+    }
   }
   
   function makeTable(data, phototype){
@@ -412,7 +414,6 @@ $(function() {
           type: 'HEAD',
           url: '{{MEDIA_URL}}'+imgs[bands[i]],
           context: img,
-          timeout: 5000,
           success: function(data, textStatus, jqXHR){
             this.attr('src',this.attr('id'))
             this.attr('id','')
@@ -438,17 +439,17 @@ $(function() {
     var t = $('select#userchoice_OB option:selected').attr('name').split('?')
     currentOB = t[0]+" "+t[1]
     phototype =  $('select#userchoice_photometry option:selected').attr('name')
-    updatePage(master_data,currentOB,phototype)
+    updatePage(master_data,currentOB,phototype,true)
   });
 
   $(document).on('click','button.forcedetect',function() {
     $(this).addClass('busy')
-
     if ( $('img.busy').length > 1 || $('button.busy').length > 1 ) {
       $('button.forcedetect').each(function() {
         $(this).prop('disabled',true)
       })
     }
+    $('button#userchoice_OB_submit').prop('disabled',true)
   
   
     var target = this.className.split(" ");
@@ -490,7 +491,6 @@ $(function() {
 
   ////////////////////////////////////////////////////////////////////////////////////
   // Polling for photometry and image-cutout generation
-  
   function imagePollWrapper(img,fname) {
     var pollCounter = 0
     function poll(img,fname) {
@@ -498,11 +498,6 @@ $(function() {
       console.log(pollCounter)
       $.ajax({
         type: 'HEAD',
-        //data: { 
-        //  'jobid':jobid,
-        //},
-        //dataType: 'json',
-        //timeout: 2300,
         context: img,
         url: '{{MEDIA_URL}}'+fname,
         success: function(){         
@@ -518,7 +513,6 @@ $(function() {
         band = _id[2]
         img.attr('id','')
         master_data[currentOB].images[band] = fname
-        console.log(master_data)
       }      
 
       if (pollCounter > 10) {
@@ -545,7 +539,8 @@ $(function() {
         master_data[data.targetID+" "+data.OB].photometry[data.band].MAG_APP = data.APP
         master_data[data.targetID+" "+data.OB].photometry[data.band].MAG_APP_ERR = data.APP_ERR
         master_data[data.targetID+" "+data.OB].photometry[data.band].ownership = data.ownership
-        updatePage(master_data,currentOB,phototype)
+        $('button#userchoice_OB_submit').prop('disabled',false)
+        updatePage(master_data,currentOB,phototype,false)
       }
       $.ajax({
         type: 'GET',
@@ -567,6 +562,7 @@ $(function() {
         },
         error: function(jqXHR,textStatus,errorThrown) {
           clearInterval(pollID)
+          $('button#userchoice_OB_submit').prop('disabled',false)
           $('img.'+jobid).parent().parent().next().children('div').html('<div class="userdetection">NaN</div>')
           $('img.'+jobid).replaceWith('<div class="userdetection">NaN</div>')
           if ($('#logfile.jobid').children('img.close_dialog').length === 0) {
@@ -590,7 +586,7 @@ $(function() {
   ////////////////////////////////////////////////////////////////////////////////////
   //Initial page population
   populate_dropdown(master_data,currentOB);
-  updatePage(master_data,currentOB,phototype)
+  updatePage(master_data,currentOB,phototype,true)
   ////////////////////////////////////////////////////////////////////////////////////
   
   
