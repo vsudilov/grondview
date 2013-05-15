@@ -265,7 +265,7 @@ class cronjobs{
            command => "/usr/bin/python /home/vagrant/grondview/utils/purge_media.py >~/grondview/logs/cron.log 2>&1",
            user => vagrant,
            ensure => present,
-           minute => "*/5"
+           minute => "*/10"
   }
 }
 

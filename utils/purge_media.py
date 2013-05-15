@@ -44,11 +44,11 @@ def main():
     (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(f)
     now = time.time()
     if os.path.isfile(f):
-      if now-atime > 60:
+      if now-atime > 600: #images should last longer
         os.remove(f)    
         deleted_MB += size/1048576.0
     elif os.path.isdir(f):
-      if now-atime > 120:
+      if now-atime > 60:
         shutil.rmtree(f)
         deleted_MB += size/1048576.0
 
