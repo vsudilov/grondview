@@ -67,7 +67,8 @@ body {
   margin-right: 0px; }
   #content-container #form-container {
     float: left;
-    width: 297.5px;
+    text-align: left;
+    width: 499.8px;
     background: #e6e6e6;
     padding-top: 10px;
     padding-bottom: 10px;

@@ -98,7 +98,8 @@ $banner-bkg-color: #A7DDF2;
 
   #form-container {
     float:left;
-    width: ($content-width)*(0.25);
+    text-align: left;
+    width: ($content-width)*(0.42);
     background: $content-bkg-color;
     padding-top: 10px;
     padding-bottom: 10px;

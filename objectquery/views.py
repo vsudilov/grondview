@@ -7,6 +7,7 @@ from django.db.models import Count
 
 from grondview.settings import PROJECT_ROOT
 from grondview import tasks
+from grondview.exceptions import NoCoverageError
 
 from objectquery.forms import ObjectQueryForm
 from objectquery.models import AstroSource
@@ -21,22 +22,39 @@ from astLib import astCoords
 
 sys.path.insert(0,os.path.join(PROJECT_ROOT,'utils'))
 from lib import constants
+from lib import deg2sex
 
-def get_sources(formdata,request):
+def get_sources(formdata,request,imageheaders):
   ra = formdata['ra']
   dec = formdata['dec']
   radius = formdata['radius']
   units = formdata['units']
   n_bands = formdata['n_bands']
+  if not imageheaders:
+    raise NoCoverageError(radius=radius,units='arcseconds')
+
   Qs = [Q(user=request.user), Q(user__username='pipeline')] 
   q = reduce(operator.or_, Qs)
   results = AstroSource.objects.filter(q).annotate(Count('photometry')).positionFilter(ra,dec,radius=radius) 
+  results = [r for r in results if r.photometry__count >= n_bands]
+
+  if formdata['forcedetect']:
+
+    fields = {}
+    sexRa,sexDec = deg2sex.main(ra,dec)
+    fields['sourceID'] = 'GROND_J%s%s' % (sexRa,sexDec)
+    fields['RA'] = ra
+    fields['DEC'] = dec
+    fields['user'] = request.user
+    s = AstroSource(**fields)
+    s.save()
+    s.distance = 0.0
+    results.append(s)
 
   if not results:
     #raise NoCoverageError(radius=radius)
     return {'sources':'NO_SOURCES_DETECTED'}
   
-  results = [r for r in results if r.photometry__count >= n_bands]
 
   distances = dict((i.sourceID,i.distance*3600) for i in results) #Keep distance for later
   ownership = dict((i.sourceID,i.user.username) for i in results)  

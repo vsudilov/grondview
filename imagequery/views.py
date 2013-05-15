@@ -4,7 +4,7 @@ from django.http import HttpResponse, HttpResponseBadRequest
 from celery.result import AsyncResult
 
 from grondview.settings import PROJECT_ROOT
-from grondview.exceptions import *
+from grondview.exceptions import NoCoverageError
 from grondview import tasks
 
 from forcedetect.views import JSONResponseMixin
@@ -17,7 +17,7 @@ sys.path.insert(0,os.path.join(PROJECT_ROOT,'utils'))
 from lib import constants
 
 
-def get_fields(formdata,request):
+def get_fields(formdata,request,imageheaders):
   ra = formdata['ra']
   dec = formdata['dec']
   radius = formdata['radius']

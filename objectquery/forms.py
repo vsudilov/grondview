@@ -23,10 +23,11 @@ class ObjectQueryForm(forms.Form):
 
   radius_arcsec = forms.FloatField(
               widget=forms.TextInput(
-                  attrs={'value':"1.0",'min': '1.0', 'max': '300','class':'radius_input'}),
+                  attrs={'value':"5.0",'class':'radius_input'}),
               label="Search radius (arcsec)"
               )
   n_bands = forms.ChoiceField(widget=forms.Select,choices=CHOICES['n_bands'],
                               label="Seen in at least N bands:",
                               initial=2)
-  
+
+  forcedetect = forms.BooleanField(required=False, initial=False, label='Create a source at this exact position\n(this source ignores N bands criterion)') 

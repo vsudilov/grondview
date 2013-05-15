@@ -6,5 +6,5 @@ class AreaParseError(Exception):
     self.msg = "Unable to parse area"
 class NoCoverageError(Exception):
   def __init__(self,radius,units='arcseconds'):
-    self.msg = "No GROND objects within %0.1f %s of given coordinates" % (radius,units)
+    self.msg = "No GROND fields observed within %0.1f %s of given coordinates" % (radius,units)
 
