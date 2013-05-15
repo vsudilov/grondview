@@ -67,4 +67,5 @@ def photometry(iniFile, objwcs, **kwargs):
   except:
     logger.critical('Some unknown error has occured')
     raise
+  results.update({'ownership':kwargs['user']})
   return results

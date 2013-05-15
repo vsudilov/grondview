@@ -375,6 +375,7 @@ $(function() {
       for (var i = 0; i < bands.length; i++) {
         var img = $('div#image-cutout img.'+bands[i])
         img.attr('src','{{STATIC_URL}}images/cutout-placeholder.png') //first make sure it is a placeholder png
+        img.attr('id',currentOB.split(' ')[0]+'?'+currentOB.split(' ')[1]+'?'+bands[i])
         $.ajax({
           type: 'POST',
           url: '/sources/get_cutouts/',
@@ -387,7 +388,7 @@ $(function() {
           context: img,
           dataType: 'json',
           success: function(data, textStatus, jqXHR){
-            imagePollWrapper(this,data.jobid)
+            imagePollWrapper(this,data.fname)
           },
           error: function(jqXHR,textStatus,errorThrown) {
            console.log(textStatus,errorThrown)
@@ -441,7 +442,9 @@ $(function() {
   });
 
   $(document).on('click','button.forcedetect',function() {
-    if ( $('img.busy').length > 1 ) {
+    $(this).addClass('busy')
+
+    if ( $('img.busy').length > 1 || $('button.busy').length > 1 ) {
       $('button.forcedetect').each(function() {
         $(this).prop('disabled',true)
       })
@@ -488,57 +491,60 @@ $(function() {
   ////////////////////////////////////////////////////////////////////////////////////
   // Polling for photometry and image-cutout generation
   
-  function imagePollWrapper(img,jobid) {
+  function imagePollWrapper(img,fname) {
     var pollCounter = 0
-    function poll(img,jobid) {
+    function poll(img,fname) {
       pollCounter += 1
+      console.log(pollCounter)
       $.ajax({
-        type: 'GET',
-        data: { // will be parsed in urls.py
-          'jobid':jobid,
-        },
-        dataType: 'json',
-        timeout: 2400,
+        type: 'HEAD',
+        //data: { 
+        //  'jobid':jobid,
+        //},
+        //dataType: 'json',
+        //timeout: 2300,
         context: img,
-        url: '/sources/get_cutouts/',
-        success: function(data, textStatus, jqXHR){
-          if (data.completed) {          
-            cb(data)
-          }
+        url: '{{MEDIA_URL}}'+fname,
+        success: function(){         
+          cb(this)
         }
       });
       
-      function cb(data) {
+      function cb(img) {
         clearInterval(pollID)
-        img.attr('src','{{MEDIA_URL}}'+data.fname)
+        img.attr('src','{{MEDIA_URL}}'+fname)
+        _id = img.attr('id').split('?')
+        currentOB = _id[0]+" "+_id[1]
+        band = _id[2]
         img.attr('id','')
-        master_data[currentOB].images[data.band] = data.fname
+        master_data[currentOB].images[band] = fname
+        console.log(master_data)
       }      
 
       if (pollCounter > 10) {
         clearInterval(pollID)
       }
     }
-    poll(img, jobid)
-    var pollID=setInterval(function() { poll(img, jobid) }, 2500);
+    poll(img, fname)
+    var pollID=setInterval(function() { poll(img, fname) }, 2500);
   }
   
   function photometryPollWrapper(jobid) {
     function poll(jobid) {
       function cb(data) {
         clearInterval(pollID)
-        var p = ('JHK'.indexOf(data.band) > -1) ? 'APP' : phototype
-        $('img.'+jobid).parent().parent().next().children('div').html('<div class="userdetection">'+data[p+"_ERR"]+'</div>')
-        $('img.'+jobid).replaceWith('<div class="userdetection">'+data[p]+'</div>')
-        $('#logfile.'+jobid).append('<img style="float:right;" src={{STATIC_URL}}images/dialog_close.png class="close_dialog"/>');
-        $('#logfile.'+jobid).animate({scrollTop:$('#logfile.'+jobid)[0].scrollHeight}, 500);
-        $('button.forcedetect').each(function() {
-          $(this).prop('disabled',false)
-        })
-        master_data[data.targetID+" "+data.OB].photometry[data.band].PSF = data.PSF
-        master_data[data.targetID+" "+data.OB].photometry[data.band].PSF_ERR = data.PSF_ERR
-        master_data[data.targetID+" "+data.OB].photometry[data.band].APP = data.APP
-        master_data[data.targetID+" "+data.OB].photometry[data.band].APP_ERR = data.APP_ERR
+        if ($('#logfile.jobid').children('img.close_dialog').length === 0) {
+          $('#logfile.'+jobid).append('<img style="float:right;" src={{STATIC_URL}}images/dialog_close.png class="close_dialog"/>');
+          $('#logfile.'+jobid).animate({scrollTop:$('#logfile.'+jobid)[0].scrollHeight}, 500);
+          $('button.forcedetect').each(function() {
+            $(this).prop('disabled',false)
+          })
+        }
+        master_data[data.targetID+" "+data.OB].photometry[data.band].MAG_PSF = data.PSF
+        master_data[data.targetID+" "+data.OB].photometry[data.band].MAG_PSF_ERR = data.PSF_ERR
+        master_data[data.targetID+" "+data.OB].photometry[data.band].MAG_APP = data.APP
+        master_data[data.targetID+" "+data.OB].photometry[data.band].MAG_APP_ERR = data.APP_ERR
+        master_data[data.targetID+" "+data.OB].photometry[data.band].ownership = data.ownership
         updatePage(master_data,currentOB,phototype)
       }
       $.ajax({
@@ -563,11 +569,13 @@ $(function() {
           clearInterval(pollID)
           $('img.'+jobid).parent().parent().next().children('div').html('<div class="userdetection">NaN</div>')
           $('img.'+jobid).replaceWith('<div class="userdetection">NaN</div>')
-          $('#logfile.'+jobid).append('<img style="float:right;" src={{STATIC_URL}}images/dialog_close.png class="close_dialog"/>');
-          $('#logfile.'+jobid).animate({scrollTop:$('#logfile.'+jobid)[0].scrollHeight}, 500);
-          $('button.forcedetect').each(function() {
-            $(this).prop('disabled',false)
-          })
+          if ($('#logfile.jobid').children('img.close_dialog').length === 0) {
+            $('#logfile.'+jobid).append('<img style="float:right;" src={{STATIC_URL}}images/dialog_close.png class="close_dialog"/>');
+            $('#logfile.'+jobid).animate({scrollTop:$('#logfile.'+jobid)[0].scrollHeight}, 500);
+            $('button.forcedetect').each(function() {
+              $(this).prop('disabled',false)
+            })
+          }
         },
       });
     };

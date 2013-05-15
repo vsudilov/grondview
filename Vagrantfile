@@ -29,16 +29,16 @@ Vagrant::Config.run do |config|
 
   # Forward a port from the guest to the host, which allows for outside
   # computers to access the VM, whereas host only networking does not.
-   config.vm.forward_port 8000, 8000
-
+  config.vm.forward_port 8000, 8000
+  
   # Share an additional folder to the guest VM. The first argument is
   # an identifier, the second is the path on the guest to mount the
   # folder, and the third is the path on the host to the actual folder.
   
- config.vm.share_folder "v-data", "/home/vagrant/grondview/", "./"
+  config.vm.share_folder "v-data", "/home/vagrant/grondview/", "./"
 
-
-
+  config.vm.customize ["modifyvm", :id, "--memory", 2048]
+  
 
   # Enable provisioning with Puppet stand alone.  Puppet manifests
   # are contained in a directory path relative to this Vagrantfile.

@@ -72,13 +72,13 @@ class GetCutouts(JSONResponseMixin,TemplateView):
       return HttpResponseBadRequest()
     ih = ImageHeader.objects.filter(TARGETID=targetID).filter(OB=OB).filter(FILTER=band)
     if not ih:
-      context = {'jobid':'no_images_available'}
+      context = {'jobid':None,'fname':None}
     else:
       ih = ih[0]
       fname = '%s.png' % uuid.uuid4()
       ih.fname = fname
       job = tasks.makeImage.delay(ih,fname,10,ra,dec) 
-      context = {'jobid':job.id}
+      context = {'jobid':job.id,'fname':fname}
     return self.render_to_response(context)
     
     

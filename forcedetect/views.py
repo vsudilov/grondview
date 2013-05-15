@@ -61,7 +61,7 @@ class ForceDetectView(JSONResponseMixin,TemplateView):
     #Find path, iniFile, logger; create task
     iniFile = os.path.join(GP_INIDIR,targetID,OB,'%sana.ini' % band)
     objwcs = (ra,dec)
-    task = tasks.photometry.delay(iniFile, objwcs)
+    task = tasks.photometry.delay(iniFile, objwcs, user=request.user.username)
     context = {'jobid':task.id}
 
     #Make a database entry for the current task.
