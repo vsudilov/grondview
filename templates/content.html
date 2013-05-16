@@ -39,4 +39,12 @@
 {% include "content/source_content.html" %}
 {% endif %}
 
+{% if field_data %}
+{% include "content/field_content.html" %}
+{% endif %}
+
+{% if ob_data %}
+{% include "content/ob_content.html" %}
+{% endif %}
+
 {% endblock %}

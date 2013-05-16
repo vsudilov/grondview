@@ -43,6 +43,14 @@ def get_fields(formdata,request,imageheaders):
   return {'fields':grouped_fields} 
 
 
+class FieldView(TemplateView):
+  template_name = 'content.html'
+  def get(self, request, *args, **kwargs):
+    if 'OB' in kwargs:
+      context = {'ob_data':[]}
+    else:
+      context = {'field_data':[]}
+    return render(request,self.template_name,context)
 
 class GetCutouts(JSONResponseMixin,TemplateView):
   def get(self, request, *args, **kwargs):
