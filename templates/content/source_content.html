@@ -597,12 +597,20 @@ $(function() {
 
 
 <div id="source_title">
-  Target RA, Dec: {{astrosource.RA}}, {{astrosource.DEC}}
+  {{astrosource.sourceID}} (RA, Dec: {{astrosource.RA}}, {{astrosource.DEC}})
   <div class="subtitle">
   <!-- warning/errors will go here -->
   </div>
 </div>
 
+
+<div id='image-cutout'>
+  {% for band in 'grizJHK' %}
+  <img src={{STATIC_URL}}images/cutout-placeholder.png class="{{band}}" />
+  {% endfor %}
+</div>
+<div id="lightcurve"></div>
+<div id="sed"></div>
 <div id="OB_chooser">
   <form>    
     <select id='userchoice_OB'>
@@ -614,13 +622,5 @@ $(function() {
     <button id="userchoice_OB_submit" type="button">Redraw</button>
   </form>
 </div>
-
-<div id='image-cutout'>
-  {% for band in 'grizJHK' %}
-  <img src={{STATIC_URL}}images/cutout-placeholder.png class="{{band}}" />
-  {% endfor %}
-</div>
-<div id="lightcurve"></div>
-<div id="sed"></div>
 <table id="source_datatable"></table>
 <div id="logfile-container"></div>
