@@ -162,87 +162,88 @@ def performPhotometry(task, logger):
     dannulus=task['fdannulus']*task['seeing'],
     calgorithm='gauss',
     cbox = 1.5*task['seeing'],
-    maxshift=15,
+    maxshift=2.0*task['seeing'],
     mode="h",Stdout=1,verify=0)
   iraf.phot(**kwargs)
 
-  #iraf.pstselect to choose objects for PSF modelling
-  logger.info('Running iraf.daophot.pstselect')
-  kwargs = dict(image=task['images'],
-                   photfile=task['photfile'].name,pstfile=task['pstfile'].name,
-                   maxnpsf=task['pstnumber'],
-                   wcsin='physical',
-                   wcsout='physical',
-                   interac="no",verify='no',scale=1,
-                   fwhmpsf=task['seeing'],
-                   datamin=0,
-                   datamax=task['datamax'],
-                   psfrad=3.0*task['seeing'],
-                   fitrad=1.0*task['seeing'],
-                   recente='yes',
-                   nclean=task['nclean'],
-                   mode="h",Stdout=1)
-  iraf.pstselect(**kwargs)
+  if task['band'] not in constants.infrared:
+    #iraf.pstselect to choose objects for PSF modelling
+    logger.info('Running iraf.daophot.pstselect')
+    kwargs = dict(image=task['images'],
+                     photfile=task['photfile'].name,pstfile=task['pstfile'].name,
+                     maxnpsf=task['pstnumber'],
+                     wcsin='physical',
+                     wcsout='physical',
+                     interac="no",verify='no',scale=1,
+                     fwhmpsf=task['seeing'],
+                     datamin=0,
+                     datamax=task['datamax'],
+                     psfrad=3.0*task['seeing'],
+                     fitrad=1.0*task['seeing'],
+                     recente='yes',
+                     nclean=task['nclean'],
+                     mode="h",Stdout=1)
+    iraf.pstselect(**kwargs)
 
-  #iraf.psf to model PSF
-  logger.info('Running iraf.daophot.psf')
-  kwargs = dict( image=task['images'],
-            photfile=task['photfile'].name,
-            pstfile=task['pstfile'].name,
-            psfimage=task['psfimg'].name,
-            opstfile=task['opstfile'].name,
-            groupfile=task['groupfile'].name,
-            wcsin='physical',wcsout='physical',
-            interac="no",verify="no",scale=1,
-            fwhmpsf=task['seeing'],
-            sigma=task['skynoise'],
-            datamin=task['datamin'],
-            datamax=task['datamax'],
-            readnoi=task['ron'],
-            epadu=task['gain'],
-            itime=task['exposure'],
-            xairmass=task['airmass'],
-            ifilter=task['band'],
-            otime=task['dateobs'],
-            function=task['func'],
-            varorder=task['varorder'],
-            saturat='no',
-            psfrad=3.0*task['seeing'],
-            fitrad=1.*task['faperture']*task['seeing'],
-            nclean=task['nclean'],
-            mergerad=1.5*task['seeing'],
-            mode='h',Stdout=1)  
+    #iraf.psf to model PSF
+    logger.info('Running iraf.daophot.psf')
+    kwargs = dict( image=task['images'],
+              photfile=task['photfile'].name,
+              pstfile=task['pstfile'].name,
+              psfimage=task['psfimg'].name,
+              opstfile=task['opstfile'].name,
+              groupfile=task['groupfile'].name,
+              wcsin='physical',wcsout='physical',
+              interac="no",verify="no",scale=1,
+              fwhmpsf=task['seeing'],
+              sigma=task['skynoise'],
+              datamin=task['datamin'],
+              datamax=task['datamax'],
+              readnoi=task['ron'],
+              epadu=task['gain'],
+              itime=task['exposure'],
+              xairmass=task['airmass'],
+              ifilter=task['band'],
+              otime=task['dateobs'],
+              function=task['func'],
+              varorder=task['varorder'],
+              saturat='no',
+              psfrad=3.0*task['seeing'],
+              fitrad=1.*task['faperture']*task['seeing'],
+              nclean=task['nclean'],
+              mergerad=1.5*task['seeing'],
+              mode='h',Stdout=1)  
 
-  iraf.psf(**kwargs)
-  logger.info('Running iraf.daophot.allstar')
-  #iraf.allstars to compute PSF photometry; recenter with recenter='yes', mergerad=<value> to avoid duplicate detection
-  kwargs = dict(image=task['images'],
-                photfile=task['photfile'].name,
-                wcsin='physical',
-                wcsout='physical',
-                psfimage=task['psfimg'].name,
-                allstarf=task['allstarfile'].name,
-                rejfile=task['rejfile'].name,
-                subimage=task['subimage'].name,
-                verbose=1,verify='no',scale=1,
-                fwhmpsf=task['seeing'],
-                sigma=task['skynoise'],
-                datamin=task['datamin'],
-                datamax=task['datamax'],
-                readnoi=task['ron'],
-                epadu=task['gain'],
-                itime=task['exposure'],
-                xairmass=task['airmass'],
-                ifilter=task['band'],
-                otime=task['dateobs'],
-                function=task['func'],
-                varorder=task['varorder'],
-                psfrad=3.*task['seeing'],
-                fitrad=1.*task['faperture']*task['seeing'],
-                recenter='yes',
-                mergerad=1.5*task['seeing'],
-                mode='h',Stdout=1)
-  iraf.allstar(**kwargs)
+    iraf.psf(**kwargs)
+    logger.info('Running iraf.daophot.allstar')
+    #iraf.allstars to compute PSF photometry; recenter with recenter='yes', mergerad=<value> to avoid duplicate detection
+    kwargs = dict(image=task['images'],
+                  photfile=task['photfile'].name,
+                  wcsin='physical',
+                  wcsout='physical',
+                  psfimage=task['psfimg'].name,
+                  allstarf=task['allstarfile'].name,
+                  rejfile=task['rejfile'].name,
+                  subimage=task['subimage'].name,
+                  verbose=1,verify='no',scale=1,
+                  fwhmpsf=task['seeing'],
+                  sigma=task['skynoise'],
+                  datamin=task['datamin'],
+                  datamax=task['datamax'],
+                  readnoi=task['ron'],
+                  epadu=task['gain'],
+                  itime=task['exposure'],
+                  xairmass=task['airmass'],
+                  ifilter=task['band'],
+                  otime=task['dateobs'],
+                  function=task['func'],
+                  varorder=task['varorder'],
+                  psfrad=3.*task['seeing'],
+                  fitrad=1.*task['faperture']*task['seeing'],
+                  recenter='yes',
+                  mergerad=1.5*task['seeing'],
+                  mode='h',Stdout=1)
+    iraf.allstar(**kwargs)
   
 
   #Parse both photometry, convert to RA,DEC,MAG,MAGERR
@@ -251,9 +252,12 @@ def performPhotometry(task, logger):
   photometry['APP'] = iraf.txdump(textfiles=task['photfile'].name,
                         fields='XCENTER,YCENTER,MAG,MERR',expr='yes',
                         headers='no',Stdout=1)
-  photometry['PSF'] = iraf.txdump(textfiles=task['allstarfile'].name,
-                        fields='XCENTER,YCENTER,MAG,MERR',expr='yes',
-                        headers='no',Stdout=1)
+
+  if task['band'] not in constants.infrared:
+    photometry['PSF'] = iraf.txdump(textfiles=task['allstarfile'].name,
+                          fields='XCENTER,YCENTER,MAG,MERR',expr='yes',
+                          headers='no',Stdout=1)
+
 
   for phototype in photometry:
     kwargs = dict(input='STDIN',
@@ -272,6 +276,8 @@ def performPhotometry(task, logger):
     photometry[phototype] = [i.split() for i in iraf.skyctran(**kwargs) if i and not i.startswith('#') and 'INDEF' not in i]
     photometry[phototype] = [map(float,(i[4],i[5],i[2],i[3])) for i in photometry[phototype] ] #Now we have [(ra,dec,'mag','mageerr'),...]
   results = calibrate((task['objwcs'][0],task['objwcs'][1]),task,photometry,logger)
+#  if 'PSF' not in results:
+    
   return results
 
 def calibrate(usersource,task,photometry,logger):
