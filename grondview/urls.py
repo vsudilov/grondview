@@ -29,6 +29,8 @@ urlpatterns = patterns('',
     url(r'^sources/(?P<user>[\w-]+)/(?P<sourceID>[\w:\.+-]+)/$',objectquery.views.ObjectView.as_view() ),
     url(r'^forcedetect/$',forcedetect.views.ForceDetectView.as_view() ),
     url(r'^forcedetect/(?P<jobid>[\w-]+)$', forcedetect.views.ForceDetectView.as_view() ),
+    url(r'^fields/(?P<targetID>[\w:\.+-]+)/(?P<OB>\w+)/$',imagequery.views.FieldView.as_view() ),
+    url(r'^fields/(?P<targetID>[\w:\.+-]+)/$',imagequery.views.FieldView.as_view() ),
 
     url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
 )
