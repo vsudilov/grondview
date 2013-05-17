@@ -97,6 +97,8 @@ class GrondData:
     fields = {}      
     for k in translation:
       fields[k] = self.resultfile.header[translation[k]]
+    fields['LIMITING_MAG_3S_ZP'] += constants.convert_to_AB[self.imageheader.FILTER]
+    fields['LIMITING_MAG_3S_CALIB'] += constants.convert_to_AB[self.imageheader.FILTER]
     fields['imageheader'] = self.imageheader
     try:
       result = ImageHeader.objects.get(PATH=fields['imageheader'].PATH)

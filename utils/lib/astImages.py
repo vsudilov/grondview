@@ -903,7 +903,7 @@ def saveBitmap(outputFileName, imageData, cutLevels, size, colorMapName, caption
     ymin,ymax = pylab.gca().get_ylim()
     pylab.text(xmin+1,ymin+1,caption,color="red",fontsize=20,fontweight=500,backgroundcolor='white')
     pylab.axhline(y=ymax*0.95, xmin=0.25, xmax=0.75,color='red',linewidth=2.4)
-    pylab.text(xmin+1,ymax*0.90,'%s"' % (clipSizeArcsec/2) ,color="red",fontsize=12,fontweight=500,backgroundcolor='white')
+    pylab.text(xmin+1,ymax*0.90,'%s"' % (round(clipSizeArcsec/2,1)) ,color="red",fontsize=12,fontweight=500,backgroundcolor='white')
     pylab.axis("off")
     pylab.grid(False, which="minor")
     pylab.grid(False, which="majorminor") 

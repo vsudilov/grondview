@@ -22,18 +22,20 @@ from lib import constants
 from lib import photometry as phot
 
 from stsci.numdisplay import zscale
-import time
 
 
 @celery.task
 def makeImage(ImageHeaderInstance,fname,clipSize,ra,dec,units='arcseconds', **kwargs):
-  start = time.time()
   d = pyfits.open(ImageHeaderInstance.PATH)[0].data
-  wcs = astWCS.WCS(ImageHeaderInstance.PATH)  
+  cutout = {'data':d}
   scale=zscale.zscale(d)
-  clipSizeDeg = clipSize * constants.convert_arcmin_or_arcsec_to_degrees[units]
-  cutout = astImages.clipImageSectionWCS(d, wcs, ra, dec, clipSizeDeg, returnWCS = False)
+  clipSizeDeg = ImageHeaderInstance.TOPRIGHT_DEC-ImageHeaderInstance.BOTTOMLEFT_DEC
+  if clipSize:
+    wcs = astWCS.WCS(ImageHeaderInstance.PATH)  
+    clipSizeDeg = clipSize * constants.convert_arcmin_or_arcsec_to_degrees[units]
+    cutout = astImages.clipImageSectionWCS(d, wcs, ra, dec, clipSizeDeg, returnWCS = False)
   caption = ImageHeaderInstance.FILTER
+  ImageHeaderInstance.fname = fname
 
   astImages.saveBitmap(
     os.path.join(MEDIA_ROOT,fname),

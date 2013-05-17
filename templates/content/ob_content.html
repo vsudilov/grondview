@@ -1,0 +1,77 @@
+<script>
+  $(function() {
+    var master_data = {{ob_data | safe}}
+    var datatable = $('#ob_datatable').dataTable({
+       "aaData": [
+        ],
+        "aoColumns": [
+           { "sTitle": "Band", "sDefaultContent":"" },
+           { "sTitle": "3s limiting magnitude (zeropoints)", "sDefaultContent":"" },
+           { "sTitle": "3s limiting magnitude (calib)", "sDefaultContent":"" },
+           { "sTitle": "Astrometry accuracy RA", "sDefaultContent":"" },
+           { "sTitle": "Astrometry accuracy DEC", "sDefaultContent":"" },
+           { "sTitle": "Aperture size", "sDefaultContent":"" },
+           { "sTitle": "Seeing", "sDefaultContent":"" },
+        ],
+        "aaSorting": [],
+    });
+  
+    function makeTable(data){
+      var newdata = []
+      var bands = ['g','r','i','z','J','H','K']
+      for (var i = 0; i < bands.length; i++) {
+        var row = []
+        var b = bands[i]
+        row.push(b)
+        row.push(data[b].LIMITING_MAG_3S_ZP)
+        row.push(data[b].LIMITING_MAG_3S_CALIB)
+        row.push(data[b].ASTROMETRY_ACCURACY_RA)
+        row.push(data[b].ASTROMETRY_ACCURACY_DEC)
+        row.push(data[b].APP_SIZE)
+        row.push(data[b].SEEING)
+        newdata.push(row)
+      }
+      datatable.fnClearTable()
+      datatable.fnAddData(newdata)
+      }
+    function getImages(data) {
+      $.each(data, function(k, v) {
+        $('img.'+k).attr('src','{{MEDIA_URL}}'+v.fname)
+      });
+    }
+
+    function setTitle(data) {
+      var b; //pick an element from the Object (Doesn't matter which)
+      for (var i in data) {
+          if (data.hasOwnProperty(i) && typeof(i) !== 'function') {
+              b = data[i];
+              break;
+          }
+      }
+      $('div#source_title').html(
+        "{{targetID}} {{OB}} <br />" +
+        b.OBTYPEID + "<br />" + 
+        "UT " + b.date + ", " + b.time + "<br />" +
+        "Mean airmass: "+ b.MEAN_AIRMASS+"<br />"+
+        "griz calib scheme: "+b.griz_calib_scheme+"<br />"
+      )
+    }
+    setTitle(master_data)
+    makeTable(master_data)
+    getImages(master_data)
+  });
+</script>
+
+<div id="source_title">
+  <div class="subtitle">
+  <!-- warning/errors will go here -->
+  </div>
+</div>
+<div id='image-cutout'>
+  {% for band in 'grizJHK' %}
+  <img src={{STATIC_URL}}images/cutout-placeholder.png class="{{band}}" />
+  {% endfor %}
+</div>
+<button id="download_OB">Download this OB</button>
+<table id="ob_datatable"></table>
+
