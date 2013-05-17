@@ -226,10 +226,10 @@ structure of _parseRules in __init__(). Also, the columns are hardcoded in.
         'parse':     lambda line: float(re.search('DEC \d+.\d+',line).group()[4:])},
 
         'MEAN_FWHM_PIXEL':    {'matchString':    'Mean fwhm of stars',
-        'parse':    lambda line: float(re.search(': \d+.\d+',line).group()[3:])},
+        'parse':    float(re.search('\d+\.\d+',re.search(' \d+.\d+',line).group()).group())},
 
         'MEAN_FWHM_ARCSEC':    {'matchString':    'Mean fwhm of stars',
-        'parse':    lambda line: float(re.search(', \d+.\d+',line).group()[3:])},
+        'parse':    lambda line: float(re.search('\d+\.\d+',re.search(', \d+.\d+',line).group()).group())},
 
         'MEAN_AIRMASS':    {'matchString':    'Mean airmass',
         'parse':    lambda line: float(re.search('\d+.\d+',line).group())},
