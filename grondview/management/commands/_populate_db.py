@@ -21,6 +21,8 @@ from lib import resultfile
 from lib import deg2sex
 from lib import constants
 
+from math import cos, pi
+
 class GrondData:
   def __repr__(self):
     return self.path
@@ -41,7 +43,9 @@ class GrondData:
     self.header = hdulist[0].header
 
   def _arclength(self,ra1,dec1,ra2,dec2):
-    from math import cos, pi
+    if abs(ra1-ra2) > 0.5 or abs(dec1-dec2) > 0.5:
+      return 1000 #Hopefully will optimize this routine for sources at large seperations by avoiding the trig functions
+    
     def cosd(degs):
       return cos(degs*pi/180)
     return (    (    (ra1-ra2)*cosd(  (dec1+dec2)/2.0  )  )**2 + (dec1-dec2)**2)**(1/2.)*60.*60.
