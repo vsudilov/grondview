@@ -7,6 +7,7 @@
     <li {% if "/impressum/" in request.path %} class="current" {% endif %}><a href="/impressum/">Impressum</a></li>
     <li {% if "/contact/" in request.path %} class="current" {% endif %}><a href="/contact/">Contact</a></li>
     {% if user.is_authenticated %}
+    <li {% if "/accounts/{{user.username}}/" in request.path %} class="current" {% endif %}><a href="/accounts/{{user.username}}">My account</a></li>
     <li class="logout"><a href="/logout/">Log out</a></li>  
     {% else %}
     <li class="login"><a href="/login/">Log in</a></li>

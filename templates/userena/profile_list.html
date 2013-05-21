@@ -1,0 +1,30 @@
+{% extends 'userena/base_userena.html' %}
+{% load i18n %}
+{% load url from future %}
+
+
+{% block content %}
+{% if user.username == profile.user.username %}
+{% include 'userena/profile_navbar.html' %}
+{% endif %}
+
+{% if is_paginated %}
+<div class="pagination">
+  <span class="step-links">
+    {% if page_obj.has_previous %}
+    <a href="{% url 'userena_profile_list_paginated' page_obj.previous_page_number %}">{% trans 'previous' %}</a>
+    {% endif %}
+
+    <span class="current">
+      {% blocktrans with page_obj.number as page and page_obj.paginator.num_pages as num_pages %}
+      Page {{ page }} of {{ num_pages }}
+      {% endblocktrans %}
+    </span>
+
+    {% if page_obj.has_next %}
+    <a href="{% url 'userena_profile_list_paginated'  page_obj.next_page_number %}">{% trans 'next' %}</a>
+    {% endif %}
+  </span>
+</div>
+{% endif %}
+{% endblock %}

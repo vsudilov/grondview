@@ -2,15 +2,15 @@
 
 import os
 
-#USER_HOME = os.path.expanduser('~') # This will break in deployment
-USER_HOME = '/home/vagrant' 
+USER_HOME = os.path.expanduser('~')
 PROJECT_ROOT = os.path.join(USER_HOME,'grondview')
 GP_INIDIR = os.path.join(PROJECT_ROOT,'work/ini') #Path to ini files
 
 DEBUG = True
-ALLOWED_HOSTS = ['localhost','sauron.mpe.mpg.de']
+ALLOWED_HOSTS = ['localhost','sauron.mpe.mpg.de','faramir.mpe.mpg.de']
 
 TEMPLATE_DEBUG = DEBUG
+
 import djcelery
 djcelery.setup_loader()
 BROKER_URL = 'redis://localhost/'
@@ -114,6 +114,13 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.messages.context_processors.messages',
 )
 
+AUTHENTICATION_BACKENDS = (
+    'userena.backends.UserenaAuthenticationBackend',
+    'guardian.backends.ObjectPermissionBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -124,6 +131,12 @@ MIDDLEWARE_CLASSES = (
      'django.middleware.clickjacking.XFrameOptionsMiddleware',
       'grondview.middleware.LoginRequiredMiddleware',
 )
+
+LOGIN_EXEMPT_URLS = (
+    r'^signup/$',
+    r'^accounts/password/reset/$',
+    r'^accounts/[\w-]+/disabled/$',
+    )
 
 ROOT_URLCONF = 'grondview.urls'
 
@@ -137,9 +150,27 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
 )
 
-LOGIN_URL = "/login/"
-LOGOUT_URL = "/logout/"
+
+
+ANONYMOUS_USER_ID = -1
+AUTH_PROFILE_MODULE = 'accounts.UserProfile'
+LOGIN_REDIRECT_URL = '/accounts/%(username)s/'
+LOGIN_URL = '/accounts/signin/'
+LOGOUT_URL = '/accounts/signout/'
+USERENA_SIGNIN_REDIRECT_URL = '/'
+USERENA_ACTIVATION_REQUIRED = False
   
+#Necessary for userena auth
+EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+#EMAIL_USE_TLS = True
+#EMAIL_HOST = 'smtp.gmail.com'
+#EMAIL_PORT = 587
+#EMAIL_HOST_USER = 'yourgmailaccount@gmail.com'
+#EMAIL_HOST_PASSWORD = 'yourgmailpassword'
+
+
+
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -148,18 +179,19 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Uncomment the next line to enable the admin:
-     #'grappelli',
-     'django.contrib.admin',
+    #'grappelli',
+    'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
-     'django.contrib.admindocs',
-     'grondview',
-     'imagequery',
-     'objectquery',
-     'forcedetect',
-     'djcelery',
+    'django.contrib.admindocs',
+    'accounts',
+    'grondview',
+    'imagequery',
+    'objectquery',
+    'forcedetect',
+    'djcelery',
+    'userena',
+    'guardian',
   )
-
-#DAJAXICE_MEDIA_PREFIX="dajaxice"
 
 #FIXTURE_DIRS = ()
 

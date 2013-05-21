@@ -5,7 +5,7 @@
 
 #Create stubdata, load it, sync it
 python manage.py syncdb
-
+python manage.py check_permissions
 #python manage.py loaddata fixtures/stubdata.json
 python manage.py collectstatic --noinput
 

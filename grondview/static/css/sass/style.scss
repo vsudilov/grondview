@@ -16,6 +16,8 @@ $navbar-offset: 20px;
 $content-bkg-color: #E6E6E6;
 $content-width: ($page-width)-($navbar-width)-($navbar-offset);
 $banner-bkg-color: #A7DDF2;
+$bkg_color: #FFF;
+$grad_color: #CCC;
 
 #banner {
   height: $banner-height;
@@ -38,8 +40,6 @@ $banner-bkg-color: #A7DDF2;
 }
 
 #navbar { 
-  $bkg_color: #FFF;
-  $grad_color: #CCC;
   background: $bkg_color;
   background: -moz-linear-gradient($bkg_color, $grad_color);
   background: -o-linear-gradient($bkg_color, $grad_color);
@@ -75,6 +75,9 @@ $banner-bkg-color: #A7DDF2;
       .hover, &:hover {
         color:darken($grad_color,35%)
        }
+      .current {
+        color:darken($grad_color,35%)
+      }
     }
 
 
@@ -94,7 +97,41 @@ $banner-bkg-color: #A7DDF2;
   margin-left: ($navbar-width)+($navbar_offset);
   margin-right: 0px;
 
+  #profile-navbar {
+    height: 100px;
+    width: 100%;
+    text-align: center;
+    font-size: 1.2em;
+    background: $bkg_color;
+    
 
+    li {
+    padding: 0 10px 0 10px;
+    float: left;
+    list-style: none;
+    background: transparent;
+    }
+
+    a {
+      height: 20px;
+      padding-top: 8px;
+      padding-bottom: 0;
+      padding-left: 15px;
+      padding-right: 20px;
+      background: transparent; 
+      text-align: left;
+      color: #000;
+      text-shadow: 1px 1px #FFF;
+      text-decoration: none;
+      .hover, &:hover {
+        color:darken($grad_color,35%)
+       }
+      .current {
+        color:darken($grad_color,35%)
+      }
+    }
+
+  }
 
   #form-container {
     float:left;
@@ -111,12 +148,18 @@ $banner-bkg-color: #A7DDF2;
     -webkit-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
     -moz-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
     box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px; 
-   
-  .hint {
-      font-size: 0.8em;
-      color: blue;
+    text-decoration: none;
+    
+    ul {
+      list-style-type: none;
     }
 
+    .hint {
+        font-size: 0.8em;
+        color: blue;
+      }
+    
+    
     table {
       width:100%;
       li {
@@ -137,7 +180,6 @@ $banner-bkg-color: #A7DDF2;
       }
     }
   }
-  
 
   #lightcurve {
     margin-left: 8px;

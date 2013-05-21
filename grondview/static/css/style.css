@@ -55,6 +55,8 @@ body {
       text-decoration: none; }
       #navbar li a .hover, #navbar li a:hover {
         color: #737373; }
+      #navbar li a .current {
+        color: #737373; }
   #navbar .login a {
     color: #F00; }
   #navbar .logout a {
@@ -65,6 +67,32 @@ body {
   width: 1190px;
   margin-left: 160px;
   margin-right: 0px; }
+  #content-container #profile-navbar {
+    height: 100px;
+    width: 100%;
+    text-align: center;
+    font-size: 1.2em;
+    background: white; }
+    #content-container #profile-navbar li {
+      padding: 0 10px 0 10px;
+      float: left;
+      list-style: none;
+      background: transparent; }
+    #content-container #profile-navbar a {
+      height: 20px;
+      padding-top: 8px;
+      padding-bottom: 0;
+      padding-left: 15px;
+      padding-right: 20px;
+      background: transparent;
+      text-align: left;
+      color: #000;
+      text-shadow: 1px 1px #FFF;
+      text-decoration: none; }
+      #content-container #profile-navbar a .hover, #content-container #profile-navbar a:hover {
+        color: #737373; }
+      #content-container #profile-navbar a .current {
+        color: #737373; }
   #content-container #form-container {
     float: left;
     text-align: left;
@@ -79,7 +107,10 @@ body {
     margin-bottom: 10px;
     -webkit-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
     -moz-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
-    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px; }
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
+    text-decoration: none; }
+    #content-container #form-container ul {
+      list-style-type: none; }
     #content-container #form-container .hint {
       font-size: 0.8em;
       color: blue; }

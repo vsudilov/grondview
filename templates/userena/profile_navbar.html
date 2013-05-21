@@ -1,0 +1,6 @@
+<ul id="profile-navbar">
+    <li><a {% if "/password/" in request.path %}class="current"{% endif %} href="{% url 'userena_password_change' user.username %}">Change password</a></li>
+    <li><a {% if "/email/" in request.path %}class="current"{% endif %} href="{% url 'userena_email_change' user.username %}">Change email</a></li>
+    <li><a {% if "/sources/" in request.path %}class="current"{% endif %} href="/accounts/{{user.username}}/sources/">View my sources</a></li>
+    <li style="margin-left: 400px;"><a {% if "/delete/" in request.path %}class="current"{% endif %} href="/accounts/{{user.username}}/delete/">Delete my account</a></li>
+</ul>

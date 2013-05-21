@@ -1,0 +1,17 @@
+{% extends 'userena/base_userena.html' %}
+{% load url from future %}
+
+{% block content %}
+{% if user.username == profile.user.username %}
+{% include 'userena/profile_navbar.html' %}
+{% endif %}
+<div id='form-container'>
+<form action="" method="post">
+  <table>
+    {% csrf_token %}
+    {{ form.as_table }}
+  </table>
+</form>
+<input type="submit" value="Send link to change email" />
+</div>
+{% endblock %}

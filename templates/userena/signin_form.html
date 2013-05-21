@@ -1,0 +1,35 @@
+{% extends 'userena/base_userena.html' %}
+{% load url from future %}
+{% block content %}
+<script>
+$(document).ready(function() {
+    $("input#id_identification").focus();
+}); 
+</script> 
+
+<div id="form-container">
+
+<form action="" method="post">
+  {% csrf_token %}
+  <table>
+    {% for field in form %}
+    {% if field.name != 'remember_me' %}
+    <tr>
+    <td>{{ field.label_tag }}</td>
+    <td>{{ field }}</td>
+    </tr>
+    {% else %}
+    <tr class="checkbox">
+    <td><label style="font-size: 0.8em;" for="id_{{ field.name }}">{{ field }} {{ field.label }}</label></td>
+    </tr>
+    {% endif %}
+    {% endfor %}
+  </table>
+  <input type="submit" value="Signin" />
+  {% if next %}<input type="hidden" name="next" value="{{ next }}" />{% endif %}
+</form>
+<div class='hint'>
+<a style="float:left;" href="{% url 'userena_password_reset' %}" title="Forgot your password?">Forgot your password?</a>
+<a style="float:right;" href="/signup/" title="Create a new account">Create a new account</a>
+</div>
+{% endblock %}

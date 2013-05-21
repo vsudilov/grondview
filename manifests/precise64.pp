@@ -148,6 +148,15 @@ class post_python_modules{
         ensure => installed,
         provider => pip;
 
+     "django-userena":
+         ensure => installed,
+         provider => pip;
+
+     "South":
+         ensure => installed,
+         provider => pip;
+
+
         }
   
 

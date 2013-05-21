@@ -26,35 +26,6 @@ from lib import constants
 
 
 
-
-class Authentication(TemplateView):
-  template_name = 'login.html'
-  form_class = LoginForm
-  method = None #Set in urls.py
-
-  def post(self, request, *args, **kwargs):
-    form = self.form_class(request.POST)
-    if form.is_valid():
-      cd = form.cleaned_data
-      username = request.POST['username']
-      passwd = request.POST['passwd']
-      user = auth.authenticate(username=username, password=passwd)
-      if user is not None:
-        if user.is_active:
-          auth.login(request, user)
-          # Redirect to a success page.
-        return HttpResponseRedirect('/')
-    return render(request,'login.html',{'form': form, 'invalid_login':True})
-  def get(self, request, *args, **kwargs):
-      return render(request,'login.html',{'form': self.form_class})
-
-  def dispatch(self, request, *args, **kwargs):
-    if self.method == 'logout':
-      auth.logout(request)
-      return HttpResponseRedirect('/')
-    return super(Authentication, self).dispatch(request, *args, **kwargs)        
-
-
 class FormView(TemplateView):  
   template_name= 'content.html'
   form_class = None #Set in urls.py
