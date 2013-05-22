@@ -36,20 +36,23 @@ def get_sources(formdata,request,imageheaders):
   Qs = [Q(user=request.user), Q(user__username='pipeline')] 
   q = reduce(operator.or_, Qs)
   results = AstroSource.objects.filter(q).annotate(Count('photometry')).positionFilter(ra,dec,radius=radius)
-  results = [r for r in results if r.photometry__count >= n_bands]
+  results = [r for r in results if r.photometry__count >= n_bands or r.user==request.user]
 
   if formdata['forcedetect']:
-
-    fields = {}
-    sexRa,sexDec = deg2sex.main(ra,dec)
-    fields['sourceID'] = 'GROND_J%s%s' % (sexRa,sexDec)
-    fields['RA'] = ra
-    fields['DEC'] = dec
-    fields['user'] = request.user
-    s = AstroSource(**fields)
-    s.save()
-    s.distance = 0.0
-    results.append(s)
+    if 0.0 in [r.distance for r in results]:
+      #Should let the user know there is already a source there!
+      pass
+    else:
+      fields = {}
+      sexRa,sexDec = deg2sex.main(ra,dec)
+      fields['sourceID'] = 'GROND_J%s%s' % (sexRa,sexDec)
+      fields['RA'] = ra
+      fields['DEC'] = dec
+      fields['user'] = request.user
+      s = AstroSource(**fields)
+      s.save()
+      s.distance = 0.0
+      results.append(s)
 
   if not results:
     #raise NoCoverageError(radius=radius)
@@ -83,7 +86,7 @@ class ObjectView(TemplateView):
   def get(self,request,*args,**kwargs):
     sourceID = self.kwargs['sourceID']
     try:
-      thisSource = AstroSource.objects.get(sourceID=sourceID)
+      thisSource = AstroSource.objects.filter(sourceID=sourceID).get(user=request.user)
     except AstroSource.DoesNotExist:
       return Http404    
     if thisSource.user != request.user and thisSource.user.username != "pipeline":
