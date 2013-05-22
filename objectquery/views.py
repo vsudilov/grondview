@@ -35,8 +35,8 @@ def get_sources(formdata,request,imageheaders):
 
   Qs = [Q(user=request.user), Q(user__username='pipeline')] 
   q = reduce(operator.or_, Qs)
-  results = AstroSource.objects.filter(q).annotate(Count('photometry')).positionFilter(ra,dec,radius=radius)
-  results = [r for r in results if r.photometry__count >= n_bands or r.user==request.user]
+  results = AstroSource.objects.filter(q).annotate(nbands=Count('photometry__BAND',distinct=True)).positionFilter(ra,dec,radius=radius)
+  results = [r for r in results if r.bands >= n_bands or r.user==request.user]
 
   if formdata['forcedetect']:
     if 0.0 in [r.distance for r in results]:

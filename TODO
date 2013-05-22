@@ -1,23 +1,12 @@
 TODO:
 
 /sources/
-  -FORCE DETECTION link in table, force detect all OB link
-
-  -source table columns based on user input
-  -ability to choose which OB's SED is plotted
-  -ability to choose which OB's cutouts are plotted
+  -table, force detect all OB link
   -ability to dump data to ascii
 
 objectquery/
   -circle sources in cutouts
-  -force detect flag
-    .Adds entry to dataTable or above, clicking entry produces /source/ page that will have force detect links
-    .Save in user database  
   -search by source name (or coordinates)
-
-
-/fields/
-  -implement fields, fields/OB page
 
 imagequery/
   -bulk download link
@@ -26,8 +15,15 @@ readme/impressum/contact/
   -write static pages
 
 models.py
-  -calibration field ForeignKey in ImageProperties
   -low galactic latitude flag in AstroSource
+
+etc
+  -Multiple concurrent requests to MPL seem to break it, at least in the devel server. Check this out with nginx/uwsgi.
+
+accounts/
+  -View/delete sources
+  -View/delete Photometryies
+  -Delete account
 
 dataside
 

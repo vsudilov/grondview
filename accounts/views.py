@@ -4,12 +4,15 @@ from django.contrib import auth
 from django.http import HttpResponseRedirect
 
 class SourcesView(TemplateView):
-  template_name = ''
-
+  template_name = 'content.html'
+  def get(self, request, *args, **kwargs):
+    context = {}
+    context['user_sources_data'] = 'abc'
+    return render(request,self.template_name,context)
 
 
 class Authentication(TemplateView):
-  template_name = ''
+  template_name = 'content.html'
   method = None #Set in urls.py
 
   def post(self, request, *args, **kwargs):

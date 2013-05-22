@@ -3,6 +3,8 @@ from django.contrib import auth
 from django.http import HttpResponseRedirect
 from django.utils.importlib import import_module
 from django.views.generic import TemplateView
+from django.db.models import Q
+from django.db.models import Count
 
 from .forms import LoginForm
 from .settings import PROJECT_ROOT
@@ -11,6 +13,7 @@ from . import tasks
 from .exceptions import *
 
 from imagequery.models import ImageHeader
+from objectquery.models import AstroSource
 
 from imagequery.forms import ImageQueryForm
 from objectquery.forms import ObjectQueryForm
@@ -108,11 +111,24 @@ class FormView(TemplateView):
       }
     return formdata
 
+class HomeView(TemplateView):
+  template_name = 'home.html'
+  def get(self,request, *args, **kwargs):
+    context = {}
+    context['aggData'] = {}
+    context['aggData']['totalFields'] = ImageHeader.objects.distinct('TARGETID').count()
+    t = AstroSource.objects.filter(user__username='pipeline').annotate(nbands=Count('photometry__BAND',distinct=True))
+    context['aggData']['totalPipelineObjects'] = len([i for i in t if i.nbands>=2])
+    t = AstroSource.objects.filter(~Q(user__username='pipeline')).annotate(nbands=Count('photometry__BAND',distinct=True))
+    context['aggData']['totalUserObjects'] = len([i for i in t if i.nbands>=2])
+    s = sum([(i.TOPRIGHT_DEC-i.BOTTOMLEFT_DEC)*(i.BOTTOMLEFT_RA-i.TOPRIGHT_RA) for i in ImageHeader.objects.distinct('TARGETID')])
+    context['aggData']['totalArea'] = round(s,3)
+    context['aggData']['totalOBs'] = ImageHeader.objects.distinct('TARGETID','OB').count()
+    return render(request, self.template_name, context)
 
 
 class StaticView(TemplateView):
-  template_name= 'home.html'
-
+  template_name= 'content.html'
   def get(self,request, *args, **kwargs):
     if 'page_name' in self.kwargs:
       self.template_name = self.kwargs['page_name']

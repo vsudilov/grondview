@@ -17,7 +17,7 @@ from objectquery.forms import ObjectQueryForm
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    url(r'^$', grondview.views.StaticView.as_view() ),
+    url(r'^$', grondview.views.HomeView.as_view() ),
     url(r'^accounts/', include('userena.urls')),
     url(r'^accounts/(?P<user>[\w-]+)/sources/$',accounts.views.SourcesView.as_view() ),
     url(r'^accounts/(?P<user>[\w-]+)/delete/$',accounts.views.Authentication.as_view(method='delete') ),

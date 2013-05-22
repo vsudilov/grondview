@@ -1,5 +1,29 @@
 {% extends "base.html" %}
 
 {% block content %}
-  homepage
+<h2 style="margin-bottom:30px;">Welcome to GRONDview</h2>
+
+<h4>Current database statistics</h4>
+<table>
+  <tr>
+    <td>Unique fields (based on TARGETID keyword):</td>
+    <td>{{aggData.totalFields}}</td>
+  </tr>
+  <tr>
+    <td>Area coverage by unique fields (sq. degrees):</td>
+    <td>{{aggData.totalArea}}</td>
+  </tr>
+  <tr>
+    <td>Number of observations:</td>
+    <td>{{aggData.totalOBs}}</td>
+  </tr>
+  <tr>
+    <td>Pipeline sources (At least 2 filters):</td>
+    <td>{{aggData.totalPipelineObjects}}</td>
+  </tr>
+  <tr>  
+    <td>User sources (At least 2 filters):</td>
+    <td>{{aggData.totalUserObjects}}</td>
+  </tr>
+</table>
 {% endblock %}
