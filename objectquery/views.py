@@ -39,13 +39,13 @@ def get_sources(formdata,request,imageheaders):
   results = [r for r in results if r.bands >= n_bands or r.user==request.user]
 
   if formdata['forcedetect']:
-    if 0.0 in [r.distance for r in results]:
+    if 0.0 in [r.distance for r in results if r.user==request.user]:
       #Should let the user know there is already a source there!
       pass
     else:
       fields = {}
       sexRa,sexDec = deg2sex.main(ra,dec)
-      fields['sourceID'] = 'GROND_J%s%s' % (sexRa,sexDec)
+      fields['sourceID'] = 'uGROND_J%s%s' % (sexRa,sexDec)
       fields['RA'] = ra
       fields['DEC'] = dec
       fields['user'] = request.user
