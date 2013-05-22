@@ -13,7 +13,6 @@ class {
       'sextractor': stage => last;
       'cronjobs':	stage => last;
       'sass-watch':	stage => last;
-###      'coffee-watch': stage => last; #Doesnt work, bug in coffee --watch
       'run_webserver': stage => last;
       'celeryd-init': stage => last;
 }
@@ -74,9 +73,6 @@ class system{
           ensure => installed,
           provider => apt;
       "redis-server":
-          ensure => installed,
-          provider => apt;
-      "coffeescript":
           ensure => installed,
           provider => apt;
       "libx11-dev":
@@ -351,16 +347,6 @@ class setup_user {
   
 }
 
-
-# Misc
-#------
-class coffee-watch{
-  exec {
-   "coffee-watch":
-     command => "/usr/bin/coffee -o /home/vagrant/grondview/static/js/ -cw /home/vagrant/grondview/static/coffee/ &",
-     user => vagrant;
-       }
-}
 
 class run_webserver {
   exec {
