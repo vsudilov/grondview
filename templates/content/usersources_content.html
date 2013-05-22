@@ -1,0 +1,164 @@
+<script>
+$(function() {
+ ////////////////////////////////////////////////////////////////////////////////////  
+  // Django CSFR token with ajax
+  function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+      var cookies = document.cookie.split(';');
+      for (var i = 0; i < cookies.length; i++) {
+        var cookie = jQuery.trim(cookies[i]);
+        // Does this cookie string begin with the name we want?
+        if (cookie.substring(0, name.length + 1) == (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+
+    }
+    return cookieValue;
+  }
+  var csrftoken = getCookie('csrftoken');
+
+  function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+  };
+
+  $.ajaxSetup({
+    crossDomain: false, // obviates need for sameOrigin test
+    beforeSend: function(xhr, settings) {
+      if ( !csrfSafeMethod(settings.type) ) {
+        // Send the token to same-origin, relative URLs only.
+        // Send the token only if the method warrants CSRF protection
+        // Using the CSRFToken value acquired earlier
+        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+      }
+    }
+  });
+  ////////////////////////////////////////////////////////////////////////////////////  
+
+
+  var data = {{user_sources_data | safe}}
+  var pdata = {{user_photometry_data | safe}}
+
+  var sources_datatable = $('#sources_datatable').dataTable({
+     "aaData": [
+      ],
+      "aoColumns": [
+         { "sTitle": "sourceID", "sDefaultContent":"" },
+         { "sTitle": "Number of detections", "sDefaultContent":"" },
+         { "sTitle": "RA", "sDefaultContent":"" },
+         { "sTitle": "Dec", "sDefaultContent":"" },
+         { "sTitle": "Name", "sDefaultContent":"" },
+         { "sTitle": "Delete this source completely", "sDefaultContent":"" },
+      ] 
+  });
+
+  var photometry_datatable = $('#photometry_datatable').dataTable({
+     "aaData": [
+      ],
+      "aoColumns": [
+         { "sTitle": "sourceID", "sDefaultContent":"" },
+         { "sTitle": "Number of detections", "sDefaultContent":"" },
+         { "sTitle": "Name", "sDefaultContent":"" },
+         { "sTitle": "Delete all force detections in this target", "sDefaultContent":"" },
+      ] 
+  });
+
+
+  function makeTables(data,pdata){
+    //Sources datatable
+    var newdata = []
+    $.each(data, function(k,v) {
+      var rows = []
+      rows.push('<a href="/sources/{{user.username}}/'+k+'">'+k+'</a>')
+      rows.push(v.n_detections)
+      rows.push(v.RA)
+      rows.push(v.DEC)
+      rows.push(v.name)
+      rows.push('<button class="sources_datatable" id="'+k+'">-</button>')
+      newdata.push(rows)
+    });
+    sources_datatable.fnClearTable()
+    sources_datatable.fnAddData(newdata)
+
+    //Photometry datatable
+    var newdata = []
+    $.each(pdata, function(k,v) {
+      var rows = []
+      if (v.ownership !== "pipeline") {
+        rows.push('<a href="/sources/{{user.username}}/'+k+'">'+k+'</a>')
+      }
+      else {
+        rows.push('<a href="/sources/'+k+'">'+k+'</a>')
+      }
+      rows.push(v.n_detections)
+      rows.push(v.name)
+      rows.push('<button class="photometry_datatable" id="'+k+'">-</button>')
+      newdata.push(rows)
+    });
+    photometry_datatable.fnClearTable()
+    photometry_datatable.fnAddData(newdata)
+  }
+
+  $(document).on('click','button.sources_datatable',function() {
+    function cb() {
+      delete data[sourceID]
+      makeTables(data,pdata)
+    }
+    var sourceID = $(this).attr('id')
+    $.ajax({
+      type: 'POST',
+      data: { 
+        'model': 'astrosource',
+        'sourceID': sourceID,
+      },
+      dataType: 'json',
+      url: '/accounts/{{user.username}}/sources/',
+      success: function(data, textStatus, jqXHR){
+        cb()
+      },
+      error: function(e) {
+        console.log("Some error has occured ",e)
+      }
+    });
+  });
+
+  $(document).on('click','button.photometry_datatable',function() {
+    function cb() {
+      delete pdata[sourceID]
+      makeTables(data,pdata)
+    }
+    var sourceID = $(this).attr('id')
+    $.ajax({
+      type: 'POST',
+      data: { 
+        'model': 'photometry',
+        'sourceID': sourceID,
+      },
+      dataType: 'json',
+      url: '/accounts/{{user.username}}/sources/',
+      success: function(data, textStatus, jqXHR){
+        cb()
+      },
+      error: function(e) {
+        console.log("Some error has occured ",e)
+      }
+    });
+  });
+
+  makeTables(data,pdata)
+  
+});
+</script>
+
+{% include 'userena/profile_navbar.html' %}
+<div style="margin-bottom: 120px;">
+  <h3>User sources</h2>
+  <table id="sources_datatable"></table>
+</div>
+<div>
+  <h3>Sources with at least one force detection</h3>
+  <table id="photometry_datatable"></table>
+</div>

@@ -121,8 +121,10 @@ class HomeView(TemplateView):
     context['aggData']['totalPipelineObjects'] = len([i for i in t if i.nbands>=2])
     t = AstroSource.objects.filter(~Q(user__username='pipeline')).annotate(nbands=Count('photometry__BAND',distinct=True))
     context['aggData']['totalUserObjects'] = len([i for i in t if i.nbands>=2])
-    s = sum([(i.TOPRIGHT_DEC-i.BOTTOMLEFT_DEC)*(i.BOTTOMLEFT_RA-i.TOPRIGHT_RA) for i in ImageHeader.objects.distinct('TARGETID')])
-    context['aggData']['totalArea'] = round(s,3)
+    s = sum([(i.TOPRIGHT_DEC-i.BOTTOMLEFT_DEC)*(i.BOTTOMLEFT_RA-i.TOPRIGHT_RA) for i in ImageHeader.objects.filter(FILTER='r').distinct('TARGETID')])
+    context['aggData']['totalArea_r'] = round(s,3)
+    s = sum([(i.TOPRIGHT_DEC-i.BOTTOMLEFT_DEC)*(i.BOTTOMLEFT_RA-i.TOPRIGHT_RA) for i in ImageHeader.objects.filter(FILTER='J').distinct('TARGETID')])
+    context['aggData']['totalArea_J'] = round(s,3)
     context['aggData']['totalOBs'] = ImageHeader.objects.distinct('TARGETID','OB').count()
     return render(request, self.template_name, context)
 

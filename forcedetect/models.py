@@ -17,7 +17,7 @@ from astLib import astCoords
 class UserTask_photometry(models.Model):
   user = models.ForeignKey(User)
   jobid = models.CharField(max_length=40)
-  sourceID = models.CharField(max_length=30)
+  sourceID = models.CharField(max_length=35)
   band = models.CharField(max_length=1)
   OB = models.CharField(max_length=10)
   targetID = models.CharField(max_length=40)

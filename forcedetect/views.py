@@ -76,8 +76,6 @@ class ForceDetectView(JSONResponseMixin,TemplateView):
     db_entry = UserTask_photometry(**fields)
     db_entry.save()
     return self.render_to_response(context)
-  
-    pass
 
   def get(self, request, *args, **kwargs):
     jobid = self.kwargs['jobid']
