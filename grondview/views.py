@@ -133,6 +133,6 @@ class StaticView(TemplateView):
   template_name= 'content.html'
   def get(self,request, *args, **kwargs):
     if 'page_name' in self.kwargs:
-      self.template_name = self.kwargs['page_name']
+      self.template_name = '%s.html' % self.kwargs['page_name']
     return render(request, self.template_name)
 
