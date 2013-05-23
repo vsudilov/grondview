@@ -1,11 +1,13 @@
 from django.views.generic import TemplateView
 from django.shortcuts import render
 from django.contrib import auth
+from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, HttpResponseBadRequest
 from django.core.exceptions import PermissionDenied
 
 from objectquery.models import AstroSource, Photometry
 from forcedetect.views import JSONResponseMixin
+
 
 import json
 
@@ -53,14 +55,31 @@ class SourcesView(JSONResponseMixin,TemplateView):
     return self.render_to_response(context)
 
 class Authentication(TemplateView):
-  template_name = 'content.html'
+  template_name = 'userena/confirm_delete.html'
   method = None #Set in urls.py
 
+  def get(self, request, *args, **kwargs):
+    return render(request,self.template_name)
+
+  def post(self, request, *args, **kwargs):
+    try:
+      pwd1 = request.POST['pwd1']
+      pwd2 = request.POST['pwd2']
+      assert pwd1==pwd2
+    except:
+      context = {'errors': 'Bad input. Try again'}
+      return render(request,self.template_name,context)
+    if not request.user.check_password(pwd1):
+      raise PermissionDenied
+    [i.delete() for i in AstroSource.objects.filter(user=request.user)]
+    [i.delete() for i in Photometry.objects.filter(user=request.user)]
+    cu = User.objects.get(username=request.user.username)
+    cu.delete()
+    auth.logout(request)
+    return HttpResponseRedirect('/')
+    
   def dispatch(self, request, *args, **kwargs):
     if self.method == 'logout':
-      auth.logout(request)
-      return HttpResponseRedirect('/')
-    if self.method == 'delete':
       auth.logout(request)
       return HttpResponseRedirect('/')
     return super(Authentication, self).dispatch(request, *args, **kwargs)        

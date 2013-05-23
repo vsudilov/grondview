@@ -1,0 +1,25 @@
+{% extends 'userena/base_userena.html' %}
+
+{% block content %}
+{% include 'userena/profile_navbar.html' %}
+
+<div id="form-container">
+  <div style="margin-bottom: 30px; color:red;"><h4>Warning: This cannot be undone!</h4></div>
+  <div class="errors">{{errors}}</div>
+  <form action="" method="post">
+      {% csrf_token %}
+    <table>
+    <tr>
+      <td>Password:</td>
+      <td><input type="password" name="pwd1"></td>
+    </tr>
+    <tr>
+      <td>Confirm:</td> 
+      <td><input type="password" name="pwd2"></td>
+    </tr>
+    </table>
+    <input type="submit" value="Delete this account" />
+  </form>
+</div>
+
+{% endblock %}
