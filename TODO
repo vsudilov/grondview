@@ -8,9 +8,6 @@ objectquery/
   -circle sources in cutouts
   -search by source name (or coordinates)
 
-imagequery/
-  -bulk download link
-
 readme/impressum/contact/
   -write static pages
 
@@ -21,8 +18,6 @@ etc
   -Multiple concurrent requests to MPL seem to break it, at least in the devel server. Check this out with nginx/uwsgi.
 
 accounts/
-  -View/delete sources
-  -View/delete Photometryies
   -Delete account
 
 dataside

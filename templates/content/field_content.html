@@ -1,42 +1,47 @@
 <script>
-  $(function() {
-    var master_data = {{field_data | safe}}
-    var datatable = $('#fields_datatable').dataTable({
-       "aaData": [
-        ],
-        "aoColumns": [
-           { "sTitle": "OB", "sDefaultContent":"" },
-           { "sTitle": "OB type", "sDefaultContent":"" },
-           { "sTitle": "Date", "sDefaultContent":"" },
-           { "sTitle": "Time (UT)", "sDefaultContent":"" },
-           { "sTitle": "MJD", "sDefaultContent":"" },
-           { "sTitle": "# Bands", "sDefaultContent":"" },
-           { "sTitle": " ", "sDefaultContent":"" },
-        ]
-    });
-
-    function makeTable(data){
-      var newdata = []
-      $.each(data, function(k,v) {
-        var rows = []
-        var targetID = k.split(' ')[0]
-        var OB = k.split(' ')[1]
-        var download_link = '#'+v.filename
-        var url = '/fields/'+targetID+'/'+OB+'/'
-        rows.push("<a href="+url+">"+OB+"</a>")
-        rows.push(v.obtype)
-        rows.push(v.date)
-        rows.push(v.time)
-        rows.push(v.mjd)
-        rows.push(v.n_bands)
-        rows.push("<a href="+download_link+">"+"Download"+"</a>")
-        newdata.push(rows)
-      });
-      datatable.fnClearTable()
-      datatable.fnAddData(newdata)
-    }
-    makeTable(master_data)
+$(function() {
+  var master_data = {{field_data | safe}}
+  var datatable = $('#fields_datatable').dataTable({
+     "aaData": [
+      ],
+      "aoColumns": [
+         { "sTitle": "OB", "sDefaultContent":"" },
+         { "sTitle": "OB type", "sDefaultContent":"" },
+         { "sTitle": "Date", "sDefaultContent":"" },
+         { "sTitle": "Time (UT)", "sDefaultContent":"" },
+         { "sTitle": "MJD", "sDefaultContent":"" },
+         { "sTitle": "# Bands", "sDefaultContent":"" },
+         { "sTitle": " ", "sDefaultContent":"" },
+      ]
   });
+
+  function makeTable(data){
+    var newdata = []
+    $.each(data, function(k,v) {
+      var rows = []
+      var targetID = k.split(' ')[0]
+      var OB = k.split(' ')[1]
+      var download_link = '/download/'+targetID+'/'+OB
+      var url = '/fields/'+targetID+'/'+OB+'/'
+      rows.push("<a href="+url+">"+OB+"</a>")
+      rows.push(v.obtype)
+      rows.push(v.date)
+      rows.push(v.time)
+      rows.push(v.mjd)
+      rows.push(v.n_bands)
+      rows.push("<a class='download' href="+download_link+">"+"Download"+"</a>")
+      newdata.push(rows)
+    });
+    datatable.fnClearTable()
+    datatable.fnAddData(newdata)
+  }
+  $(document).on('click','.download',function() {
+    $('div.subtitle').text('Download is preparing, please wait') //Impossible to delete if we are stuck in the req/res cycle
+  });
+  makeTable(master_data)
+  
+
+});
 </script>
 
 <div id="source_title">
@@ -45,6 +50,6 @@
   <!-- warning/errors will go here -->
   </div>
 </div>
-<button id="download_all">Download all</button>
+<a href="/download/{{targetID}}/"><button class="download" id="download_all">Download all</button></a>
 <table id="fields_datatable"></table>
 

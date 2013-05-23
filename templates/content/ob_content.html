@@ -72,6 +72,6 @@
   <img src={{STATIC_URL}}images/cutout-placeholder.png class="{{band}}" />
   {% endfor %}
 </div>
-<button id="download_OB">Download this OB</button>
+<a class="download" href="/download/{{targetID}}/{{OB}}"><button id="download_OB">Download this OB</button></a>
 <table id="ob_datatable"></table>
 

@@ -1,10 +1,12 @@
 from django.shortcuts import render
 from django.contrib import auth
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
+from django.core.servers.basehttp import FileWrapper
 from django.utils.importlib import import_module
 from django.views.generic import TemplateView
 from django.db.models import Q
 from django.db.models import Count
+from django.views.generic import View
 
 from .forms import LoginForm
 from .settings import PROJECT_ROOT
@@ -24,10 +26,40 @@ from imagequery.views import get_fields
 from astLib import astCoords
 
 import sys,os
+import tempfile
+import zipfile
 sys.path.insert(0,os.path.join(PROJECT_ROOT,'utils'))
 from lib import constants
 
+class DownloadImages(View):
+  def get(self, request, *args, **kwargs):
+    basepath = ImageHeader.objects.filter(TARGETID=kwargs['TARGETID'])[0].PATH
+    basepath = os.path.join(basepath[:basepath.rfind(kwargs['TARGETID'])],kwargs['TARGETID'])
+    if 'OB' in kwargs:
+      basepath = os.path.join(basepath,kwargs['OB'])
 
+    # Do this async via tasks.delay()!!!
+    filelist = []
+    fextensions = ['ana.fits','.tsv','.reg','.result']
+    for path,dir,files in os.walk(basepath):
+      for f in files:
+        if any([f.endswith(fe) for fe in fextensions]):
+          filelist.append(os.path.join(path,f))  
+
+    temp = tempfile.TemporaryFile(dir=MEDIA_ROOT)
+    archive = zipfile.ZipFile(temp, 'w', zipfile.ZIP_DEFLATED)                          
+    [archive.write(f,arcname=f[f.rfind(kwargs['TARGETID']):]) for f in filelist]
+    archive.close()
+    wrapper = FileWrapper(temp)
+    response = HttpResponse(wrapper, content_type='application/zip')
+    response['Content-Disposition'] = 'attachment; filename=%s.zip' % kwargs['TARGETID'] 
+    response['Content-Length'] = temp.tell()
+    temp.seek(0)
+    return response
+
+  
+  def post(self, request, *args, **kwargs):
+    pass
 
 class FormView(TemplateView):  
   template_name= 'content.html'

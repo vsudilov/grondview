@@ -38,5 +38,7 @@ urlpatterns = patterns('',
     url(r'^fields/(?P<targetID>[\w:\.+-]+)/(?P<OB>\w+)/$',imagequery.views.FieldView.as_view() ),
     url(r'^fields/(?P<targetID>[\w:\.+-]+)/$',imagequery.views.FieldView.as_view() ),
 
+    url(r'^download/(?P<TARGETID>[\w:\.+-]+)/(?P<OB>[\w:\.+-]+)$', grondview.views.DownloadImages.as_view() ),
+    url(r'^download/(?P<TARGETID>[\w:\.+-]+)/$', grondview.views.DownloadImages.as_view() ),
     url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
 )
