@@ -74,6 +74,7 @@ class GrondData:
     fields = dict([(k.replace('-','_'),self.header[k]) for k in self.header if k]) 
     fields = _match_db_fields(fields) #Need to remove the extraneous keys...Django blindly tries to copy all keys to models 
     fields['PATH'] = self.image
+    fields['OB_CORRECTION'] = self.header.get('OB_CORRECTION','')
     wcs = astWCS.WCS(self.image)
     fields['RA'], fields['DEC'] = wcs.pix2wcs(self.header['NAXIS1']/2.0,self.header['NAXIS2']/2.0)
     fields['BOTTOMLEFT_RA'], fields['BOTTOMLEFT_DEC'] = wcs.pix2wcs(0,0)

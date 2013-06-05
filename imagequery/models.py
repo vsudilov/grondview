@@ -130,6 +130,7 @@ class ImageHeader(models.Model):
   NTP = models.IntegerField()
   OBSEQNUM = models.IntegerField()
   OBSRUNID = models.IntegerField()
+  OB_CORRECTION = models.charField(max_length=4)
   TARGETID = models.CharField(max_length=40)
   FILTER = models.CharField(max_length=1)
   RON = models.FloatField()
@@ -152,7 +153,7 @@ class ImageHeader(models.Model):
 
 
   def save(self, *args, **kwargs):
-    self.OB="OB%s_%s" % ( self.OBSRUNID, self.OBSEQNUM )
+    self.OB="OB%s_%s%s" % ( self.OBSRUNID, self.OBSEQNUM, self.OB_CORRECTION )
     super(ImageHeader, self).save(*args, **kwargs) # Call the "real" save() method.
 
   #-- Manager
