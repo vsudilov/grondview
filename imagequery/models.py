@@ -130,7 +130,7 @@ class ImageHeader(models.Model):
   NTP = models.IntegerField()
   OBSEQNUM = models.IntegerField()
   OBSRUNID = models.IntegerField()
-  OB_CORRECTION = models.charField(max_length=4)
+  OB_CORRECTION = models.CharField(max_length=4)
   TARGETID = models.CharField(max_length=40)
   FILTER = models.CharField(max_length=1)
   RON = models.FloatField()
