@@ -80,7 +80,13 @@ class GrondData:
     fields['BOTTOMLEFT_RA'], fields['BOTTOMLEFT_DEC'] = wcs.pix2wcs(0,0)
     fields['TOPRIGHT_RA'], fields['TOPRIGHT_DEC'] = wcs.pix2wcs(self.header['NAXIS1'],self.header['NAXIS2'])
     try:
-      result = ImageHeader.objects.get(PATH=fields['PATH'])
+      result = ImageHeader.objects.get(
+                                      TARGETID=fields['TARGETID'],
+                                      OB_CORRECTION=fields['OB_CORRECTION'],
+                                      OBSEQNUM=fields['OBSEQNUM'],
+                                      OBSRUNID=fields['OBSRUNID'],
+                                      FILTER=fields['FILTER'],
+                                      )
       print "NOTE: This field already exists in the database. I will UPDATE the values for it instead of INSERT a new row"
       fields['pk'] = result.pk
     except ImageHeader.DoesNotExist:
