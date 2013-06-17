@@ -7,6 +7,7 @@ import pyfits
 import re
 import ConfigParser
 import subprocess
+import datetime
 from astLib import astCoords
 from astLib import astWCS
 
@@ -241,6 +242,11 @@ def main(*args,**kwargs):
     for f in files:
       if re.search(FITS_REGEX,f):
         fullpath = os.path.abspath(path)
+        if kwargs['only_recent']:
+          mtime = os.path.getmtime(fullpath) #Get the modifcation time, in UNIX time
+          date = datetime.datetime.fromtimestamp(mtime) #Store in a more easily manipulted datatime.date object
+          if date <= datetime.datetime.today()-datetime.timedelta(minutes=int(kwargs['only_recent'])):
+            break
         f = GrondData(fullpath,user,**kwargs)
         print "Adding data in %s to db" % fullpath
         f.populateDB()

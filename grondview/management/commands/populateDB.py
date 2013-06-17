@@ -28,6 +28,13 @@ class Command(BaseCommand):
             help='Bands to attempt processing on [grizJHK]'),
         )
 
+  option_list += (
+            make_option('--only-recent',
+            dest='only_recent',
+            default=None,
+            help='Query only files with last modification time of X minutes'),
+        )
+
 
   help = '''USAGE: manage.py populateDB path
             Populate the database. Adds data from GROND_?_OB_ana.fits and GROND_?_OB_ana.result found recursively from path.
