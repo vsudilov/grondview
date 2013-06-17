@@ -31,7 +31,7 @@ class Command(BaseCommand):
 
   help = '''USAGE: manage.py populateDB path
             Populate the database. Adds data from GROND_?_OB_ana.fits and GROND_?_OB_ana.result found recursively from path.
-            Will not override/duplicate sources or fields already present in the database.  
+            Overwrites sources/fields already in the database (SQL UPDATE).  
           '''
   help = help.strip()
 

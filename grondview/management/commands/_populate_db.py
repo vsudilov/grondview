@@ -6,6 +6,7 @@ import os,sys
 import pyfits
 import re
 import ConfigParser
+import subprocess
 from astLib import astCoords
 from astLib import astWCS
 
@@ -222,7 +223,17 @@ def getPipelineUser():
     user.save()
   return user
 
+def checkRunningInstances():
+  process = 'manage.py'
+  cmd = 'ps aux | grep populateDB | grep -v grep'
+  P = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
+  P.wait()
+  procs = P.stdout.read()
+  if len(procs.split('\n'))>2:
+    sys.exit('Only one instance of `manage.py populateDB` should run at a time:\n%s\nEXITING.' % procs)
+
 def main(*args,**kwargs):
+  checkRunningInstances()
   DATADIR = args[0]
   FITS_REGEX = kwargs['fits_regex']
   user = getPipelineUser()
