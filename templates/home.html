@@ -1,33 +1,38 @@
 {% extends "base.html" %}
-
 {% block content %}
-<h2 style="margin-bottom:30px;">Welcome to GRONDview</h2>
-
-<h4>Current database statistics</h4>
-<table>
-  <tr>
-    <td>Unique fields (based on TARGETID keyword):</td>
-    <td>{{aggData.totalFields}}</td>
-  </tr>
-  <tr>
-    <td>Total area in r' unique fields (sq. degrees):</td>
-    <td>{{aggData.totalArea_r}}</td>
-  </tr>
-  <tr>
-    <td>Total area in J unique fields (sq. degrees):</td>
-    <td>{{aggData.totalArea_J}}</td>
-  </tr>
-  <tr>
-    <td>Number of observations:</td>
-    <td>{{aggData.totalOBs}}</td>
-  </tr>
-  <tr>
-    <td>Pipeline sources (At least 2 filters):</td>
-    <td>{{aggData.totalPipelineObjects}}</td>
-  </tr>
-  <tr>  
-    <td>User sources (At least 2 filters):</td>
-    <td>{{aggData.totalUserObjects}}</td>
-  </tr>
-</table>
+<div class="span2"></div>
+<div class="span8">
+<img src='{{STATIC_URL}}images/GROND-logo-col_stamp.jpg' style="float:right; margin: 8px;" class="img-rounded"/>
+<div class="well">
+  <h2 style="margin-bottom:30px;">Welcome to GrondView</h2>
+  <caption>Current database statistics</caption>
+  <table class="table">
+    <tr>
+      <td>Unique fields (unique TARGETID):</td>
+      <td>{{aggData.totalFields}}</td>
+    </tr>
+    <tr>
+      <td>Total area in r' unique fields (deg<sup>2</sup>):</td>
+      <td>{{aggData.totalArea_r}}</td>
+    </tr>
+    <tr>
+      <td>Total area in J unique fields (deg<sup>2</sup>):</td>
+      <td>{{aggData.totalArea_J}}</td>
+    </tr>
+    <tr>
+      <td>Total observations:</td>
+      <td>{{aggData.totalOBs}}</td>
+    </tr>
+    <tr>
+      <td>Pipeline sources (&#8805 2 filters):</td>
+      <td>{{aggData.totalPipelineObjects}}</td>
+    </tr>
+    <tr>  
+      <td>User sources (&#8805 2 filters):</td>
+      <td>{{aggData.totalUserObjects}}</td>
+    </tr>
+  </table>
+</div>
+</div>
+<div class="span2"></div>
 {% endblock %}

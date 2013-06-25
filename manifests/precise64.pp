@@ -15,6 +15,8 @@ class {
       'sass-watch':	stage => last;
       'run_webserver': stage => last;
       'celeryd-init': stage => last;
+## committed in repo, dont download fresh
+#      'bootstrap_js':    stage => main;
 }
 
 include postgresql::server
@@ -88,6 +90,28 @@ class system{
 
 
 }
+
+
+#bootstrap.js via .zip file on github
+#------------------------------
+class bootstrap_js {
+  exec{
+    "download_bootstrap":
+      command => "/usr/bin/wget http://twitter.github.io/bootstrap/assets/bootstrap.zip -O /home/vagrant/bootstrap.zip",
+      user => vagrant,
+      creates => "/home/vagrant/bootstrap.zip";
+  }
+  exec {
+    "unzip_and_move":
+      cwd => "/home/vagrant/",
+      command => "/usr/bin/unzip -f /home/vagrant/bootstrap.zip && /bin/mv /home/vagrant/bootstrap /home/vagrant/grondview/grondview/static/",
+      user => vagrant,
+      creates => "/home/vagrant/grondview/grondview/static/bootstrap",
+      require => Exec["download_bootstrap"];
+  }
+}
+
+
 
 # Python modules via pip
 #------------------------------

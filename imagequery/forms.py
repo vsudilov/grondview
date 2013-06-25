@@ -15,13 +15,4 @@ class ImageQueryForm(forms.Form):
                   attrs={'value':"5.4"}),
               label="Search radius (arcminutes)"
               ) 
-
-  dates = forms.CharField(
-              widget=forms.DateInput(
-                  attrs={'placeholder':"(Optional)",
-                          'class':'dates_input'},
-                  format="YYYY-MM-DD"),
-              label="Date range",
-              required=False,
-              )
   

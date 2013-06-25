@@ -17,17 +17,17 @@ class ObjectQueryForm(forms.Form):
   coords = forms.CharField(
               widget=forms.TextInput(
                   attrs={'placeholder':"Decimal or hh:mm:ss dd:mm:ss",'autofocus':'autofocus',
-                          'class':'coordinates_input'}),
+                          'class':''}),
               label="Coordinates"
               )
 
   radius_arcsec = forms.FloatField(
               widget=forms.TextInput(
-                  attrs={'value':"5.0",'class':'radius_input'}),
+                  attrs={'value':"5.0",'class':'radius_input','class':''}),
               label="Search radius (arcsec)"
               )
   n_bands = forms.ChoiceField(widget=forms.Select,choices=CHOICES['n_bands'],
-                              label="Seen in at least N bands:",
+                              label="Seen in at least N bands",
                               initial=2)
 
-  forcedetect = forms.BooleanField(required=False, initial=False, label='Create a source at this exact position\n(this source ignores N bands criterion)') 
+  forcedetect = forms.BooleanField(required=False, initial=False, label='Create a source at this position?') 
