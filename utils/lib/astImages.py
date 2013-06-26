@@ -35,6 +35,10 @@ try:
     matplotlib.interactive(False)
 except:
     print "WARNING: astImages: failed to import matplotlib - some functions will not work."
+import gc
+
+
+
 
 #---------------------------------------------------------------------------------------------------
 def clipImageSectionWCS(imageData, imageWCS, RADeg, decDeg, clipSizeDeg, returnWCS = False):
@@ -886,8 +890,8 @@ def saveBitmap(outputFileName, imageData, cutLevels, size, colorMapName, caption
     xSizeInches = size/dpi
     ySizeInches = xSizeInches
     fig.set_size_inches(xSizeInches,ySizeInches)
-    pylab.axes([0,0,1,1])
-    pylab.minorticks_off()
+    ax = pylab.axes([0,0,1,1])
+ #pylab.minorticks_off()
     
     try:
         colorMap=pylab.cm.get_cmap(colorMapName)
@@ -895,20 +899,23 @@ def saveBitmap(outputFileName, imageData, cutLevels, size, colorMapName, caption
         raise Exception, colorMapName+" is not a defined matplotlib colormap."
     
     if cutLevels[0]=="histEq":
-        pylab.imshow(cut['image'],  interpolation="bilinear", origin='lower', cmap=colorMap)
+        ax.imshow(cut['image'],  interpolation="bilinear", origin='lower', cmap=colorMap)
     else:
-        pylab.imshow(cut['image'],  interpolation="bilinear",  norm=cut['norm'], origin='lower',
+        ax.imshow(cut['image'],  interpolation="bilinear",  norm=cut['norm'], origin='lower',
             cmap=colorMap)
-    xmin,xmax = pylab.gca().get_xlim()
-    ymin,ymax = pylab.gca().get_ylim()
-    pylab.text(xmin+1,ymin+1,caption,color="red",fontsize=20,fontweight=500,backgroundcolor='white')
-    pylab.axhline(y=ymax*0.95, xmin=0.25, xmax=0.75,color='red',linewidth=2.4)
-    pylab.text(xmin+1,ymax*0.90,'%s"' % (round(clipSizeArcsec/2,1)) ,color="red",fontsize=12,fontweight=500,backgroundcolor='white')
-    pylab.axis("off")
-    pylab.grid(False, which="minor")
-    pylab.grid(False, which="majorminor") 
+    xmin,xmax = ax.get_xlim()
+    ymin,ymax = ax.get_ylim()
+    ax.text(xmin+1,ymin+1,caption,color="red",fontsize=20,fontweight=500,backgroundcolor='white')
+    ax.axhline(y=ymax*0.95, xmin=0.25, xmax=0.75,color='red',linewidth=2.4)
+    ax.text(xmin+1,ymax*0.90,'%s"' % (round(clipSizeArcsec/2,1)) ,color="red",fontsize=12,fontweight=500,backgroundcolor='white')
+    #pylab.axis("off")
+    ax.set_axis_off()
+    ax.grid(False, which="minor")
+    ax.grid(False, which="majorminor") 
     pylab.savefig(outputFileName,format="png",dpi=dpi)	
-
+    fig.clf()
+    del ax,fig
+    gc.collect()
     #pylab.close("all") #leads to memory leak AND degrades performance
     
     
