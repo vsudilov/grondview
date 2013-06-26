@@ -115,15 +115,20 @@ class ForceDetectView(JSONResponseMixin,TemplateView):
       imageheader = ImageHeader.objects.filter(TARGETID=db_entry.targetID).filter(OB=db_entry.OB).filter(FILTER=db_entry.band)[0]
       fields['imageheader'] = imageheader
       fields['astrosource'] = astrosource
-      [fields.update( {k:hashtable[k](results)} ) for k in hashtable.keys()]
+      fields.update( {'MAG_APP':hashtable['MAG_APP'](results) if 'APP' in results else None} )
+      fields.update( {'MAG_APP_ERR':hashtable['MAG_APP_ERR'](results) if 'APP' in results else None} )
+      fields.update( {'MAG_PSF':hashtable['MAG_PSF'](results) if 'PSF' in results else None} )
+      fields.update( {'MAG_PSF_ERR':hashtable['MAG_PSF_ERR'](results) if 'PSF' in results else None} )
+      fields.update( {'CALIB_SCHEME':hashtable['CALIB_SCHEME'](results)}  )
+      fields.update( {'CALIB_FILE':hashtable['CALIB_FILE'](results)} )
       p = Photometry(**fields)
       p.save()
       db_entry.delete() #Delete database entry, this should eventually be tied to the redis backend!
       context = {'completed':True,'jobid':jobid,
-                 'PSF':hashtable['MAG_PSF'](results),
-                 'PSF_ERR':hashtable['MAG_PSF_ERR'](results),
-                 'APP':hashtable['MAG_APP'](results),
-                 'APP_ERR':hashtable['MAG_APP_ERR'](results),
+                 'PSF':hashtable['MAG_PSF'](results) if 'PSF' in results else None,
+                 'PSF_ERR':hashtable['MAG_PSF_ERR'](results) if 'PSF' in results else None,
+                 'APP':hashtable['MAG_APP'](results) if 'APP' in results else None,
+                 'APP_ERR':hashtable['MAG_APP_ERR'](results) if 'APP' in results else None,
                  'band':db_entry.band,
                  'OB':db_entry.OB,
                  'targetID':db_entry.targetID}
