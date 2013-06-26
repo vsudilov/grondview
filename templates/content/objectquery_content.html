@@ -1,6 +1,6 @@
-<div id='image-cutout'>
+<div class='image-cutout-container'>
   {% for hdr in imageheaders %}
-  <img src="{{MEDIA_URL}}{{hdr.fname}}" class="img-rounded" width="194" />
+  <img src="{{MEDIA_URL}}{{hdr.fname}}" class="img-rounded" />
   {% endfor %}
 </div>
 
@@ -26,8 +26,6 @@
 </table>
 
 <script>
-  $(document).ready(function(){
-      $('#objectquery_results').dataTable();
-      });
+  $('#objectquery_results').dataTable();
 </script>
 {% endif %}

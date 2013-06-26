@@ -12,7 +12,7 @@ from forcedetect.views import JSONResponseMixin
 import json
 
 class SourcesView(JSONResponseMixin,TemplateView):
-  template_name = 'content.html'
+  template_name = 'content/usersources_content.html'
   def get(self, request, *args, **kwargs):
     if kwargs['user'] != request.user.username:
       raise PermissionDenied

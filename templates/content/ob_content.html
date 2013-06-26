@@ -48,30 +48,31 @@
               break;
           }
       }
-      $('div#source_title').html(
-        "{{targetID}} {{OB}} <br />" +
+      $('.page-header').html(
+        "<h2>{{targetID}} {{OB}} <br />" +
         b.OBTYPEID + "<br />" + 
-        "UT " + b.date + ", " + b.time + "<br />" +
+        "<small>UT " + b.date + ", " + b.time + "<br />" +
         "Mean airmass: "+ b.MEAN_AIRMASS+"<br />"+
-        "griz calib scheme: "+b.griz_calib_scheme+"<br />"
+        "griz calib scheme: "+b.griz_calib_scheme+"<br /></small></h2>"
       )
     }
+    $(document).on('click','.download',function() {
+      $('.span2').append('<div class="alert"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Your download is being prepared</strong></div>')
+    });
+
     setTitle(master_data)
     makeTable(master_data)
     getImages(master_data)
   });
 </script>
 
-<div id="source_title">
-  <div class="subtitle">
-  <!-- warning/errors will go here -->
-  </div>
-</div>
-<div id='image-cutout'>
+<div class="page-header" style="margin-bottom:10px"></div>
+
+<div class='image-cutout-container'>
   {% for band in 'grizJHK' %}
-  <img src={{STATIC_URL}}images/cutout-placeholder.png class="{{band}}" />
+  <img src={{STATIC_URL}}images/cutout-placeholder.png class="{{band}} img-rounded" />
   {% endfor %}
 </div>
-<a class="download" href="/download/{{targetID}}/{{OB}}"><button id="download_OB">Download this OB</button></a>
+<a class="download" href="/download/{{targetID}}/{{OB}}"><button style="margin-bottom:10px;" class="btn btn-primary" data-loading-text="Loading...">Download this OB</button></a>
 <table id="ob_datatable"></table>
 

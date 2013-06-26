@@ -17,16 +17,16 @@ class ObjectQueryForm(forms.Form):
   coords = forms.CharField(
               widget=forms.TextInput(
                   attrs={'placeholder':"Decimal or hh:mm:ss dd:mm:ss",'autofocus':'autofocus',
-                          'class':''}),
+                          'class':'input-block-level'}),
               label="Coordinates"
               )
 
   radius_arcsec = forms.FloatField(
               widget=forms.TextInput(
-                  attrs={'value':"5.0",'class':'radius_input','class':''}),
+                  attrs={'value':"5.0",'class':'radius_input','class':'input-block-level'}),
               label="Search radius (arcsec)"
               )
-  n_bands = forms.ChoiceField(widget=forms.Select,choices=CHOICES['n_bands'],
+  n_bands = forms.ChoiceField(widget=forms.Select(attrs={'class':'input-block-level'}),choices=CHOICES['n_bands'],
                               label="Seen in at least N bands",
                               initial=2)
 

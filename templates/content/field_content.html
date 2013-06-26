@@ -36,7 +36,7 @@ $(function() {
     datatable.fnAddData(newdata)
   }
   $(document).on('click','.download',function() {
-    $('div.subtitle').text('Download is preparing, please wait') //Impossible to delete if we are stuck in the req/res cycle
+    $('.span2').append('<div class="alert"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Your download is being prepared</strong></div>')
   });
   makeTable(master_data)
   
@@ -44,12 +44,11 @@ $(function() {
 });
 </script>
 
-<div id="source_title">
-  Observations with TARGETID={{targetID}}
-  <div class="subtitle">
-  <!-- warning/errors will go here -->
-  </div>
+
+<div class="page-header" style="margin-bottom:10px">
+  <h2>Observations with TARGETID {{targetID}}</h2>
 </div>
-<a href="/download/{{targetID}}/"><button class="download" id="download_all">Download all</button></a>
+
+<a href="/download/{{targetID}}/"><button style="margin-bottom: 10px;" class="download btn btn-primary" id="download_all">Download all</button></a>
 <table id="fields_datatable"></table>
 

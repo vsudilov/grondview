@@ -4,7 +4,13 @@
 <script>
 $(document).ready(function() {
     $("input#id_identification").focus();
+
+    $('input').each(function(i) {
+      $(this).addClass('input-block-level')       
+    });
 }); 
+
+
 </script> 
 <div class="span2"></div>
 <div class="span4">

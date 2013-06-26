@@ -1,252 +1,52 @@
-body { 
-  height: 100%;
-  font: 100% Arial, Helvetica, sans-serif
-  }
 
-* {
-margin: 0; padding: 0;
-text-decoration: none;
-}
 
-$page-width: 1350px;
-$navbar-width: 140px;
-$navbar-height: 1080px;
-$banner-height: 100px;
-$navbar-offset: 20px;
-$content-bkg-color: #E6E6E6;
-$content-width: ($page-width)-($navbar-width)-($navbar-offset);
-$banner-bkg-color: #A7DDF2;
-$bkg_color: #FFF;
-$grad_color: #CCC;
-
-#banner {
-  height: $banner-height;
-  width: ($page-width)-($navbar-width);
-  background: $banner-bkg-color;
-  margin-bottom: 3px;
-  margin-left: ($navbar-width)+($navbar_offset);
+.image-cutout-container {
+  width:100%;
+  margin-bottom: 10px;
   img {
-    width: auto;
-    height: auto;
-    max-height: $banner-height;
-  }
-
-  #banner-text {
-    line-height: $banner-height;
-    text-align:center;
-    font-size: 3.0em;
-    font-family: Lucida Console;
+    margin: 0;
+    padding: 0;
+    width: 194px;
   }
 }
 
-#navbar { 
-  background: $bkg_color;
-  background: -moz-linear-gradient($bkg_color, $grad_color);
-  background: -o-linear-gradient($bkg_color, $grad_color);
-  background: -webkit-linear-gradient($bkg_color, $grad_color);
-  -webkit-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
-  -moz-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
-  box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px; 
-  width: $navbar-width;
-  height: $navbar-height;
-  float: left;
-  padding-right: 10px;
-    
 
-  li {
-    padding: 0 0 0 0px;
-    list-style: none;
-    margin-top: $banner-height;
-    background: transparent;
-  
-    a {
+
+#logfile {
+/*      background-color: #EBEBEB;*/
+      background-color: #F5FAFF;
+      margin-bottom: 5px;
+      position:relative;
+      color:black;
+      overflow-y:auto;
       float: left;
-      font: bold 100% Arial, Helvetica, sans-serif;
-      height: 20px;
-      padding-top: 8px;
-      padding-bottom: 0;
-      padding-left: 15px;
-      padding-right: 20px;
-      background: transparent; 
-      text-align: left;
-      color: #000;
-      text-shadow: 1px 1px #FFF;
-      text-decoration: none;
-      .hover, &:hover {
-        color:darken($grad_color,35%)
-       }
-      .current {
-        color:darken($grad_color,35%)
-      }
-    }
-
-
-  }
-  .login a{
-    color: #F00;
-    }
-  .logout a{
-    color: #007BFF;
-   }
+      font-size: 0.7em;
+      width: 110%;
+      height:250px;
 }
- 
 
-#content-container {
-  position: absolute;
-  width: $content-width;
-  margin-left: ($navbar-width)+($navbar_offset);
-  margin-right: 0px;
+.userdetection {
+/*  color: #B0B0B0;*/
+  color: #009900;
+}
 
-  #profile-navbar {
-    height: 100px;
-    width: 100%;
-    text-align: center;
-    font-size: 1.2em;
-    background: $bkg_color;
-    
 
-    li {
-      padding: 0 10px 0 10px;
-      float: left;
-      list-style: none;
-      background: transparent;
-      
-    }
-
-    a {
-      height: 20px;
-      padding-top: 8px;
-      padding-bottom: 0;
-      padding-left: 15px;
-      padding-right: 20px;
-      background: transparent; 
-      text-align: left;
-      color: #000;
-      text-shadow: 1px 1px #FFF;
-      text-decoration: none;
-      .hover, &:hover {
-        color:darken($grad_color,35%)
-       }
-      .current {
-        color:darken($grad_color,35%)
-      }
-    }
-
-  }
-
-  #form-container {
-    float:left;
-    text-align: left;
-    width: ($content-width)*(0.42);
-    background: $content-bkg-color;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    padding-left: 10px;
-    padding-right: 10px;
-    display: inline-block;
-    margin-right: ($navbar_offset)*(0.3);
-    margin-bottom: 10px;
-    -webkit-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
-    -moz-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
-    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px; 
-    text-decoration: none;
-    
-    ul {
-      list-style-type: none;
-    }
-
-    .hint {
-        font-size: 0.8em;
-        color: blue;
-      }
-    
-    
-    table {
-      width:100%;
-      li {
-        list-style-type: none;
-      }
-      .coordinates_input {
-        width: 100%;
-      }      
-      .area_input {
-        width: 20%;
-      }
-      .bands_checkbox {
-        width: 20px;
-      }
-      .errorlist {
-      font-size: 0.8em;
-      color:red;
-      }
-    }
-  }
-
-  #lightcurve {
+#lightcurve {
     margin-left: 8px;
     margin-bottom: 5px;
     margin-top: 5px;
-    float:left;
-    font-size:0.8em;
-    font-family:Century Gothic,sans-serif;
-    width:$content-width/2.1;
-    height:270px;
-  }
-
-  #sed {
+    float: left;
+    font-size: 0.8em;
+    font-family: Century Gothic,sans-serif;
+    width: 49%;
+    height: 270px; }
+#sed {
     margin-right: 8px;
     margin-bottom: 5px;
     margin-top: 5px;
-    float:right;
-    font-size:0.8em;
-    font-family:Century Gothic,sans-serif;
-    width:$content-width/2.1;
-    height:270px;
-  }
-
-  #image-cutout {
-    margin-top:8px;
-    width: $content-width;
-    float: left;
-    img {
-      float: left;
-      width: auto;
-      height: auto;
-      max-width: $content-width/7.1;
-    }
-  }
-
-  #source_title {
-    text-align:center;
-    font-size: 1.4em;
-    .subtitle {
-      font-size: 0.6em;
-      color: red;
-    }
-  }
-  
-  #logfile-container {
-    position:fixed;
-    top:75%;
-    height:150px;
-    width:$content-width;
-    overflow-y: auto;
-    z-index:100;
-    
-    #logfile {
-      background-color: #EBEBEB;
-      position:relative;
-      color:black;
-      overflow-y:scroll;
-      float: left;
-      font-size: 0.8em;
-      width: 50%;
-      height:100%;
-    }
-  }
-
-  .userdetection {
-    color: #B0B0B0;
-  }
-
+    float: right;
+    font-size: 0.8em;
+    font-family: Century Gothic,sans-serif;
+    width: 49%;
+    height: 270px;
 }

@@ -1,9 +1,14 @@
 {% extends 'userena/base_userena.html' %}
 
 {% block content %}
+<style>
+input {
+  width:100%;
+}
+</style>
 {% include 'userena/profile_navbar.html' %}
-
-<div id="form-container">
+<div class="span4 offset3">
+<div class="well">
   <div style="margin-bottom: 30px; color:red;"><h4>Warning: This cannot be undone!</h4></div>
   <div class="errors">{{errors}}</div>
   <form action="" method="post">
@@ -18,8 +23,8 @@
       <td><input type="password" name="pwd2"></td>
     </tr>
     </table>
-    <input type="submit" value="Delete this account" />
+    <input type="submit" class='btn' value="Delete this account" />
   </form>
 </div>
-
+</div>
 {% endblock %}

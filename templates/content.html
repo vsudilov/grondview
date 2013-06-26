@@ -2,8 +2,8 @@
 {% block content %}
 
 <div class="span2">
-<div class="well">
   {% if form %}
+  <div class="well">
   <form class="" action="" method="post">{% csrf_token %}
     {% for field in form %}
     {{ field.errors }}
@@ -20,17 +20,16 @@
       </div>
     </div>
   </form>
-  {% endif %}
-
-    <div class="hint">
-    (Hint) coordinates of the stubdata are: <br> ra,dec 315.297, -51.096 (target1)<br>32.55223, -27.10571 (target2)<br>150.02838, 2.27318 (COSMOS03) <br>
+  <div class="alert">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <strong>(Hint)</strong> coordinates of the stubdata are: <br> ra,dec 315.297, -51.096 (target1)<br>32.55223, -27.10571 (target2)<br>150.02838, 2.27318 (COSMOS03) <br>
     235.01388, 12.87664 (SWIFT-519380) <br>
-    </div>
-
+  </div>
+  </div>
+  {% endif %}
 </div>
-</div>
 
-<div class="span9">
+<div class="span10">
 {% if fields %}
 {% include "content/imagequery_content.html" %}
 {% endif %}
@@ -55,5 +54,4 @@
 {% include "content/usersources_content.html" %}
 {% endif %}
 </div>
-<div class="span1"></div>
 {% endblock %}

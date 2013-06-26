@@ -62,7 +62,7 @@ $(function() {
      "aaData": [
       ],
       "aoColumns": [
-         { "sTitle": "OB type", "sDefaultContent":"" },
+         { "sTitle": "OB type", "sDefaultContent":"", "sWidth":"100px" },
          { "sTitle": "OB", "sDefaultContent":"" },
          { "sTitle": "g", "sDefaultContent":"" },
          { "sTitle": "g_err", "sDefaultContent":"" },
@@ -245,7 +245,7 @@ $(function() {
   ////////////////////////////////////////////////////////////////////////////////////
   // Populate table, SED, lightcurve, and image-cutouts
   function updatePage(data,currentOB,phototype,doImages) {
-    makeTable(data,phototype);
+    makeTable(data,phototype,currentOB);
     makeSED(data[currentOB],phototype);
     makeLightcurve(data,phototype);
     if (doImages) {
@@ -253,20 +253,21 @@ $(function() {
     }
   }
   
-  function makeTable(data, phototype){
+  function makeTable(data, phototype, currentOB){
     var newdata = []
     $.each(data, function(k,v) {
       var p = v.photometry
       var url = '/fields/'+v.targetID+'/'+v.OBname+'/'
       var rows = []
-      rows.push(v.OBtype)
+      var c = "btn-block btn-primary "+v.OBname
+      rows.push('<button type="button" class="'+c+'">'+v.OBtype+"</a>")
       rows.push("<a href="+url+">"+v.OBname +"</a>")
       for (var i = 0; i < bands.length; i++) {
         var ph = ('JHK'.indexOf(bands[i]) > -1) ? 'APP' : phototype
         var div = (p[bands[i]].ownership!="pipeline") ? "<div class='userdetection'>" : "<div>"
         var mag = p[bands[i]]['MAG_'+ph]
         var mag_err = p[bands[i]]['MAG_'+ph+'_ERR']
-        mag  = (typeof mag !== "undefined") ? mag : "<button type='button' class='forcedetect "+v.targetID+"?"+v.OBname+"?"+bands[i]+"'>+</button>"
+        mag  = (typeof mag !== "undefined") ? mag : "<button type='button' class='forcedetect "+v.targetID+"?"+v.OBname+"?"+bands[i]+" btn'>+</button>"
         mag_err = (typeof mag_err !== "undefined") ? mag_err : ""
         rows.push(div+mag+'</div>')
         rows.push(div+mag_err+'</div>')
@@ -275,6 +276,8 @@ $(function() {
     });
     datatable.fnClearTable()
     datatable.fnAddData(newdata)
+    var b = $('button.btn-block.btn-primary.'+data[currentOB].OBname)
+    b.attr('class','button btn-block btn-info '+data[currentOB].OBname)
   }
   
   function makeLightcurve(data,phototype) {    
@@ -375,7 +378,7 @@ $(function() {
     if (missing.length === 7) {
       //need to POST for new images with $.ajax
       for (var i = 0; i < bands.length; i++) {
-        var img = $('div#image-cutout img.'+bands[i])
+        var img = $('div.image-cutout-container img.'+bands[i])
         img.attr('src','{{STATIC_URL}}images/cutout-placeholder.png') //first make sure it is a placeholder png
         img.attr('id',currentOB.split(' ')[0]+'?'+currentOB.split(' ')[1]+'?'+bands[i])
         $.ajax({
@@ -404,7 +407,7 @@ $(function() {
       
       //Poll that these images still exist on the server
       for (var i = 0; i < bands.length; i++) {
-        var img = $('div#image-cutout img.'+bands[i])
+        var img = $('div.image-cutout-container img.'+bands[i])
         img.attr('src','{{STATIC_URL}}images/cutout-placeholder.png')
         if (missing.indexOf(bands[i]) !== -1) {
           continue
@@ -474,7 +477,7 @@ $(function() {
       success: function(data, textStatus, jqXHR){
         var classname = thisButton.attr('class') + ' busy ' + data.jobid;        
         thisButton.replaceWith("<img src='{{STATIC_URL}}images/ajax-loader.gif' class='"+classname+"'/ >")
-        $('#logfile-container').append('<div id="logfile" class="'+data.jobid+'"></div>');
+        $('div.span2').append('<div id="logfile" class="'+data.jobid+'"></div>');
         photometryPollWrapper(data.jobid);
       },
     });
@@ -596,15 +599,12 @@ $(function() {
 
 
 
-<div id="source_title">
-  {{astrosource.sourceID}} (RA, Dec: {{astrosource.RA}}, {{astrosource.DEC}})
-  <div class="subtitle">
-  <!-- warning/errors will go here -->
-  </div>
+<div class="page-header" style="margin-bottom:10px">
+  <h2>{% if astrosource.name %}{{name}}{% endif %}{{astrosource.sourceID}} <small>(RA, Dec: {{astrosource.RA}}, {{astrosource.DEC}})</small></h2>
 </div>
 
 
-<div id='image-cutout'>
+<div class='image-cutout-container'>
   {% for band in 'grizJHK' %}
   <img src={{STATIC_URL}}images/cutout-placeholder.png class="{{band}} img-rounded" />
   {% endfor %}
@@ -619,8 +619,7 @@ $(function() {
       <option name="PSF">PSF</option>
       <option name="APP">APP</option>
     </select>
-    <button id="userchoice_OB_submit" type="button">Redraw</button>
+    <button id="userchoice_OB_submit" type="button" class="btn">Redraw</button>
   </form>
 </div>
 <table id="source_datatable"></table>
-<div id="logfile-container"></div>

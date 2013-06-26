@@ -1,3 +1,5 @@
+{% extends "base.html" %}
+{% block content %}
 <script>
 $(function() {
  ////////////////////////////////////////////////////////////////////////////////////  
@@ -77,7 +79,7 @@ $(function() {
       rows.push(v.RA)
       rows.push(v.DEC)
       rows.push(v.name)
-      rows.push('<button class="sources_datatable" id="'+k+'">-</button>')
+      rows.push('<button class="sources_datatable btn" id="'+k+'">-</button>')
       newdata.push(rows)
     });
     sources_datatable.fnClearTable()
@@ -95,7 +97,7 @@ $(function() {
       }
       rows.push(v.n_detections)
       rows.push(v.name)
-      rows.push('<button class="photometry_datatable" id="'+k+'">-</button>')
+      rows.push('<button class="photometry_datatable btn" id="'+k+'">-</button>')
       newdata.push(rows)
     });
     photometry_datatable.fnClearTable()
@@ -162,3 +164,4 @@ $(function() {
   <h3>Sources with at least one force detection</h3>
   <table id="photometry_datatable"></table>
 </div>
+{% endblock %}
