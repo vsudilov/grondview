@@ -16,7 +16,8 @@ class {
       'run_webserver': stage => last;
       'celeryd-init': stage => last;
 ## committed in repo, dont download fresh
-#      'bootstrap_js':    stage => main;
+      'bootstrap_js':    stage => main;
+      'collectstatic': stage => last;
 }
 
 include postgresql::server
@@ -26,12 +27,8 @@ postgresql::db{ 'grondviewdb':
   grant         => 'all',
 }
 
-#user { "celery":
-#  ensure => present,
-#  shell => '/usr/sbin/nologin',
-#  managehome => false;
-#}
-
+# Set global paths
+#Exec { path => [ "/bin/", "/sbin/" , "/usr/bin/", "/usr/sbin/", "/home/vagrant/grondview" ] }
 
 # Run apt-get update once on VM creation
 # -----------------------------
@@ -83,6 +80,9 @@ class system{
       "alien":
           ensure => installed,
           provider => apt;
+      "unzip":
+          ensure => installed,
+          provider => apt;
       "nginx":
           ensure => installed,
           provider => apt;
@@ -104,13 +104,13 @@ class bootstrap_js {
   exec {
     "unzip_and_move":
       cwd => "/home/vagrant/",
-      command => "/usr/bin/unzip -f /home/vagrant/bootstrap.zip && /bin/mv /home/vagrant/bootstrap /home/vagrant/grondview/grondview/static/",
+      command => "/usr/bin/unzip /home/vagrant/bootstrap.zip && /bin/mv /home/vagrant/bootstrap /home/vagrant/grondview/grondview/static/",
       user => vagrant,
       creates => "/home/vagrant/grondview/grondview/static/bootstrap",
       require => Exec["download_bootstrap"];
   }
 }
-
+      
 
 
 # Python modules via pip
@@ -268,6 +268,24 @@ class iraf {
     
 
   }
+
+
+
+class collectstatic {
+#Can't get manage.py to work!
+#   exec {
+#     "manage.py_collect":
+#       command => 'manage.py collectstatic --noinput --pythonpath /home/vagrant/grondview --settings="grondview.settings"',
+#       user => vagrant,
+#       cwd => "/home/vagrant/grondview";
+#       }
+  exec {
+    "cs":
+      command => "/bin/cp -r /home/vagrant/grondview/grondview/static/* /home/vagrant/grondview/static/",
+      user => vagrant;
+  }
+}
+
 
 
 class sextractor {
