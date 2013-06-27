@@ -248,9 +248,15 @@ $(function() {
     makeTable(data,phototype,currentOB);
     makeSED(data[currentOB],phototype);
     makeLightcurve(data,phototype);
+    updatePhotoTypeMarker(phototype)
     if (doImages) {
       updateCutouts(data,currentOB);
     }
+  }
+  
+  function updatePhotoTypeMarker(phototype) {
+    var marker=$('.phototype_marker')
+    marker.text('griz: '+phototype)
   }
   
   function makeTable(data, phototype, currentOB){
@@ -601,6 +607,7 @@ $(function() {
 
 <div class="page-header" style="margin-bottom:10px">
   <h2>{% if astrosource.name %}{{name}}{% endif %}{{astrosource.sourceID}} <small>(RA, Dec: {{astrosource.RA}}, {{astrosource.DEC}})</small></h2>
+  <div class="phototype_marker"></div>
 </div>
 
 

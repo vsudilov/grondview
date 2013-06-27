@@ -7,7 +7,7 @@ from django.core.exceptions import PermissionDenied
 
 from objectquery.models import AstroSource, Photometry
 from forcedetect.views import JSONResponseMixin
-
+from accounts.models import UserProfile, UserSourceNames
 
 import json
 
@@ -33,7 +33,13 @@ class SourcesView(JSONResponseMixin,TemplateView):
       pdata[_id]['n_detections'] = Photometry.objects.filter(astrosource__sourceID=_id).filter(user=request.user).count()
       pdata[_id]['name'] = i.astrosource.name
       pdata[_id]['ownership'] = i.astrosource.user.username
-    context = {'user_sources_data':json.dumps(data),'user_photometry_data':json.dumps(pdata)}
+    tdata = {}
+    profile = UserProfile.objects.get(user=request.user)
+    for i in profile.tagged_sources:
+      tdata[i.sourceID] = []
+    context = {'user_sources_data':json.dumps(data),
+               'user_photometry_data':json.dumps(pdata),
+               'user_tagged_sources':json.dumps(tdata)}
     return render(request,self.template_name,context)
 
   def post(self, request, *args, **kwargs):
