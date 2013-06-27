@@ -43,6 +43,7 @@ $(function() {
 
   var data = {{user_sources_data | safe}}
   var pdata = {{user_photometry_data | safe}}
+  var tdata = {{user_tagged_sources | safe}}
 
   var sources_datatable = $('#sources_datatable').dataTable({
      "aaData": [
@@ -68,8 +69,20 @@ $(function() {
       ] 
   });
 
+  var tagged_sources_datatable = $('#tagged_sources_datatable').dataTable({
+     "aaData": [
+      ],
+      "aoColumns": [
+         { "sTitle": "sourceID", "sDefaultContent":"" },
+         { "sTitle": "RA", "sDefaultContent":"" },
+         { "sTitle": "DEC", "sDefaultContent":"" },
+         { "sTitle": "Name", "sDefaultContent":"" },
+         { "sTitle": "Untag this source", "sDefaultContent":"" },
+      ] 
+  });
 
-  function makeTables(data,pdata){
+
+  function makeTables(data,pdata,tdata){
     //Sources datatable
     var newdata = []
     $.each(data, function(k,v) {
@@ -102,12 +115,33 @@ $(function() {
     });
     photometry_datatable.fnClearTable()
     photometry_datatable.fnAddData(newdata)
+
+    //Tagged sources datatable
+    var newdata = []
+    $.each(tdata, function(k,v) {
+      var rows = []
+      if (v.ownership !== "pipeline") {
+        rows.push('<a href="/sources/{{user.username}}/'+k+'">'+k+'</a>')
+      }
+      else {
+        rows.push('<a href="/sources/'+k+'">'+k+'</a>')
+      }
+      rows.push(v.RA)
+      rows.push(v.DEC)
+      rows.push(v.name)
+      rows.push('<button class="tagged_sources_datatable btn" id="'+k+'">-</button>')
+      newdata.push(rows)
+    });
+    tagged_sources_datatable.fnClearTable()
+    tagged_sources_datatable.fnAddData(newdata)
+
   }
+
 
   $(document).on('click','button.sources_datatable',function() {
     function cb() {
       delete data[sourceID]
-      makeTables(data,pdata)
+      makeTables(data,pdata,tdata)
     }
     var sourceID = $(this).attr('id')
     $.ajax({
@@ -127,10 +161,32 @@ $(function() {
     });
   });
 
+  $(document).on('click','button.tagged_sources_datatable',function() {
+    function cb() {
+      delete tdata[sourceID]
+      makeTables(data,pdata,tdata)
+    }
+    var sourceID = $(this).attr('id')
+    $.ajax({
+      type: 'POST',
+      data: { 
+        'sourceID': sourceID,
+      },
+      dataType: 'json',
+      url: '/sources/tag/',
+      success: function(data, textStatus, jqXHR){
+        cb()
+      },
+      error: function(e) {
+        console.log("Some error has occured ",e)
+      }
+    });
+  });
+
   $(document).on('click','button.photometry_datatable',function() {
     function cb() {
       delete pdata[sourceID]
-      makeTables(data,pdata)
+      makeTables(data,pdata,tdata)
     }
     var sourceID = $(this).attr('id')
     $.ajax({
@@ -150,18 +206,25 @@ $(function() {
     });
   });
 
-  makeTables(data,pdata)
+  makeTables(data,pdata,tdata)
   
 });
 </script>
 
-{% include 'userena/profile_navbar.html' %}
-<div style="margin-bottom: 120px;">
-  <h3>User sources</h2>
-  <table id="sources_datatable"></table>
-</div>
-<div>
-  <h3>Sources with at least one force detection</h3>
-  <table id="photometry_datatable"></table>
+<div class="span8 offset2">
+  <div class="well" style="margin-bottom: 20px;">
+    <h3 style="margin-top:-20px;">User sources</h2>
+    <table id="sources_datatable"></table>
+  </div>
+
+  <div class="well" style="margin-bottom: 20px;">
+    <h3 style="margin-top:-20px;">Tagged sources</h3>
+    <table id="tagged_sources_datatable"></table>
+  </div>
+
+  <div class="well">
+    <h3 style="margin-top:-20px;">Sources with at least one force detection</h3>
+    <table id="photometry_datatable"></table>
+  </div>
 </div>
 {% endblock %}

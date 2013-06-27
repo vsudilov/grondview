@@ -21,7 +21,15 @@
             </ul>
           </li>
           {% if user.is_authenticated %}
-          <li style="margin-left: 100px;"{% if "/accounts/{{user.username}}/" in request.path %} class="active" {% endif %} ><a href="/accounts/{{user.username}}">My account</a></li>
+          <li class="dropdown" style="margin-left: 100px;">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">My account <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              <li><a href="{% url 'userena_password_change' user.username %}">Change password</a></li>
+              <li><a href="/accounts/{{user.username}}/sources/">View my sources</a></li>
+              <li class="divider"></li>
+              <li><a href="/accounts/{{user.username}}/delete/">Delete my account</a></li>
+            </ul>
+          </li>
           <li><a href="/logout/">Log out</a></li>
           {% endif %}
         </ul>

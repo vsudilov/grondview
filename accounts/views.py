@@ -1,8 +1,8 @@
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, View
 from django.shortcuts import render
 from django.contrib import auth
 from django.contrib.auth.models import User
-from django.http import HttpResponseRedirect, HttpResponseBadRequest
+from django.http import HttpResponseRedirect, HttpResponseBadRequest, HttpResponse
 from django.core.exceptions import PermissionDenied
 
 from objectquery.models import AstroSource, Photometry
@@ -10,6 +10,18 @@ from forcedetect.views import JSONResponseMixin
 from accounts.models import UserProfile, UserSourceNames
 
 import json
+
+class TagView(JSONResponseMixin,View):
+  def post(self,request,*args,**kwargs):
+    profile = UserProfile.objects.get(user=request.user)
+    s = AstroSource.objects.filter(sourceID=request.POST['sourceID'])[0]
+    if s not in profile.tagged_sources.all():
+      profile.tagged_sources.add(s)
+    else:
+      profile.tagged_sources.remove(s)
+    profile.save()
+    context = {'completed':True}
+    return self.render_to_response(context)
 
 class SourcesView(JSONResponseMixin,TemplateView):
   template_name = 'content/usersources_content.html'
@@ -24,7 +36,10 @@ class SourcesView(JSONResponseMixin,TemplateView):
       data[_id]['n_detections'] = Photometry.objects.filter(astrosource__sourceID=i.sourceID).count()
       data[_id]['RA'] = i.RA
       data[_id]['DEC'] = i.DEC
-      data[_id]['name'] = i.name
+      try:
+        data[_id]['name'] = UserSourceNames.objects.get(user=request.user,astrosource=i)
+      except UserSourceNames.DoesNotExist:
+        data[_id]['name'] = None
     results = Photometry.objects.filter(user=request.user).distinct('astrosource__sourceID')
     pdata = {}
     for i in results:
@@ -35,8 +50,16 @@ class SourcesView(JSONResponseMixin,TemplateView):
       pdata[_id]['ownership'] = i.astrosource.user.username
     tdata = {}
     profile = UserProfile.objects.get(user=request.user)
-    for i in profile.tagged_sources:
-      tdata[i.sourceID] = []
+    for i in profile.tagged_sources.all():
+      _id = i.sourceID
+      tdata[_id] = {}
+      tdata[_id]['RA'] = i.RA
+      tdata[_id]['DEC'] = i.DEC
+      tdata[_id]['ownership'] = i.astrosource.user.username
+      try:
+        tdata[_id]['name'] = UserSourceNames.objects.get(user=request.user,astrosource=i)
+      except UserSourceNames.DoesNotExist:
+        tdata[_id]['name'] = None
     context = {'user_sources_data':json.dumps(data),
                'user_photometry_data':json.dumps(pdata),
                'user_tagged_sources':json.dumps(tdata)}

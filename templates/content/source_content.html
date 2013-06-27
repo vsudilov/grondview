@@ -256,7 +256,7 @@ $(function() {
   
   function updatePhotoTypeMarker(phototype) {
     var marker=$('.phototype_marker')
-    marker.text('griz: '+phototype)
+    marker.html('griz: '+phototype)
   }
   
   function makeTable(data, phototype, currentOB){
@@ -444,6 +444,44 @@ $(function() {
   
   ////////////////////////////////////////////////////////////////////////////////////
   //event listeners
+
+  $(document).on('click','button.tagged_marker',function() {
+    var b = $(this)
+    b.button('loading')
+    $.ajax({
+      type: 'POST',
+      data: { 
+        'sourceID':'{{astrosource.sourceID}}',
+      },
+      dataType: 'json',
+      context: b,
+      url: '/sources/tag/',
+      success: function(data) {
+        cb_success(this)
+      },
+      error: function () {
+        cb_err(this)
+      },
+    });
+    
+    function cb_success(b) {
+      b.button('reset')
+      if ( b.hasClass('btn-primary') ) {
+        b.attr('class','tagged_marker btn btn-info')
+        b.html('tagged &#x2713')
+      }
+      else {
+        b.attr('class','tagged_marker btn btn-primary')
+        b.html('not tagged')
+      }
+    }
+
+    function cb_err(b) {
+      b.button('reset')
+      $('div.span2').append('<div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Some error has occured. Please try again later.</strong></div>')
+    }
+  });
+
   $(document).on('click','button#userchoice_OB_submit',function() {
     var t = $('select#userchoice_OB option:selected').attr('name').split('?')
     currentOB = t[0]+" "+t[1]
@@ -457,9 +495,7 @@ $(function() {
       $('button.forcedetect').each(function() {
         $(this).prop('disabled',true)
       })
-    }
-    $('button#userchoice_OB_submit').prop('disabled',true)
-  
+    } 
   
     var target = this.className.split(" ");
     var targetID = target[1].split("?")[0];
@@ -507,7 +543,7 @@ $(function() {
       console.log(pollCounter)
       $.ajax({
         type: 'HEAD',
-        context: img,
+        context: this,
         url: '{{MEDIA_URL}}'+fname,
         success: function(){         
           cb(this)
@@ -606,8 +642,27 @@ $(function() {
 
 
 <div class="page-header" style="margin-bottom:10px">
-  <h2>{% if astrosource.name %}{{name}}{% endif %}{{astrosource.sourceID}} <small>(RA, Dec: {{astrosource.RA}}, {{astrosource.DEC}})</small></h2>
-  <div class="phototype_marker"></div>
+  <h3>
+    {% if astrosource.name %}{{name}}{% endif %}{{astrosource.sourceID}} <small>(RA, Dec: {{astrosource.RA}}, {{astrosource.DEC}})</small>
+
+    <div style="float:right; margin-right:200px;" class="btn-group">
+    <button class="btn btn-primary phototype_marker"></button>
+    {% if tagged %}
+    <button type="button" class="btn btn-primary btn-info tagged_marker" data-loading-text="..." >tagged &#x2713</button>
+    {% else %}
+    <button type="button" class="btn btn-primary tagged_marker" data-loading-text="..." >not tagged</button>
+    {% endif %}
+    <div class="btn-group" style="margin-left:5px;">
+      <button class="btn dropdown-toggle btn-primary" data-toggle="dropdown">&#x2699; <span class="caret"></span></button>
+      <ul class="dropdown-menu">
+        <li><a href="#">Force detect</a></li>
+        <li><a href="#">Name source</a></li>
+<!--        <li class="divider"></li>-->
+        <li><a href="/export/csv/{{astrosource.sourceID}}">Export data to csv</a></li>
+      </ul>
+    </div>
+    </div>   
+  </h3>
 </div>
 
 
@@ -618,15 +673,15 @@ $(function() {
 </div>
 <div id="lightcurve"></div>
 <div id="sed"></div>
-<div id="OB_chooser">
-  <form>    
-    <select id='userchoice_OB'>
-    </select>
-    <select id="userchoice_photometry">
-      <option name="PSF">PSF</option>
-      <option name="APP">APP</option>
-    </select>
-    <button id="userchoice_OB_submit" type="button" class="btn">Redraw</button>
-  </form>
-</div>
+<!--<div id="OB_chooser">-->
+<!--  <form>    -->
+<!--    <select id='userchoice_OB'>-->
+<!--    </select>-->
+<!--    <select id="userchoice_photometry">-->
+<!--      <option name="PSF">PSF</option>-->
+<!--      <option name="APP">APP</option>-->
+<!--    </select>-->
+<!--    <button id="userchoice_OB_submit" type="button" class="btn">Redraw</button>-->
+<!--  </form>-->
+<!--</div>-->
 <table id="source_datatable"></table>

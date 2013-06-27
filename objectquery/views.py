@@ -14,6 +14,8 @@ from objectquery.models import AstroSource
 from objectquery.models import Photometry
 from imagequery.models import ImageHeader
 
+from accounts.models import UserProfile, UserSourceNames
+
 import os, sys
 import operator
 import json
@@ -159,9 +161,12 @@ class ObjectView(TemplateView):
       forceOB=nominalOB.split()[1],
       )
 
+    profile = UserProfile.objects.get(user=request.user)
+    s = AstroSource.objects.filter(sourceID=sourceID)[0]
+    tagged=True if s in profile.tagged_sources.all() else False
     for i in imageheaders:
       data[nominalOB]['images'][i.FILTER] = i.fname
-    context = {'source_data':json.dumps(data),'request':request,'nominalOB':nominalOB,'astrosource':thisSource}
+    context = {'source_data':json.dumps(data),'request':request,'nominalOB':nominalOB,'astrosource':thisSource,'tagged':tagged}
     return render(request,self.template_name,context)
 
   def post(self,request,*args,**kwargs):

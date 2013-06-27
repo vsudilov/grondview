@@ -10,7 +10,7 @@ class UserProfile(UserenaBaseProfile):
                               unique=True,
                               verbose_name=_('user'),
                               related_name='my_profile')
-  tagged_sources = models.ForeignKey(AstroSource, null=True)
+  tagged_sources = models.ManyToManyField(AstroSource)
 
 
 class UserSourceNames(models.Model):
