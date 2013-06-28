@@ -83,7 +83,7 @@ class ExportView(View):
       row.append(k['OBname'])
       row.append(k['OBtype'])
       row.append(k['MJD'])
-      row.append(k['griz_calib_scheme'])
+      row.append(k.get('griz_calib_scheme','N/A'))
       row.append(k['photometry']['g'].get(photo_key,'NaN'))
       row.append(k['photometry']['g'].get(photo_errkey,'NaN'))
       row.append(k['photometry']['r'].get(photo_key,'NaN'))
