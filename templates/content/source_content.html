@@ -265,7 +265,7 @@ $(function() {
       var p = v.photometry
       var url = '/fields/'+v.targetID+'/'+v.OBname+'/'
       var rows = []
-      var c = "btn-block btn-primary "+v.OBname
+      var c = "ob-chooser-button btn-block btn-primary "+v.targetID+" "+v.OBname
       rows.push('<button type="button" class="'+c+'">'+v.OBtype+"</a>")
       rows.push("<a href="+url+">"+v.OBname +"</a>")
       for (var i = 0; i < bands.length; i++) {
@@ -282,8 +282,8 @@ $(function() {
     });
     datatable.fnClearTable()
     datatable.fnAddData(newdata)
-    var b = $('button.btn-block.btn-primary.'+data[currentOB].OBname)
-    b.attr('class','button btn-block btn-info '+data[currentOB].OBname)
+    var b = $('button.btn-block.btn-primary.'+currentOB.split(" ")[0]+'.'+currentOB.split(" ")[1])
+    b.attr('class','ob-current button btn-block btn-info '+currentOB)
   }
   
   function makeLightcurve(data,phototype) {    
@@ -527,6 +527,16 @@ $(function() {
     updatePage(master_data,currentOB,phototype,true)
   });
 
+  $(document).on('click','button.ob-chooser-button',function() {
+    var s = $(this).attr('class').split(" ")
+    OBname = s.pop() 
+    targetID = s.pop()
+    currentOB = targetID + " " + OBname
+    console.log(currentOB)
+    $(this).attr('class','ob-current button btn-block btn-info '+currentOB)
+    updatePage(master_data,currentOB,phototype,true)
+  });
+
   $(document).on('click','button.forcedetect',function() {
     $(this).addClass('busy')
     if ( $('img.busy').length > 1 || $('button.busy').length > 1 ) {
@@ -581,7 +591,7 @@ $(function() {
       console.log(pollCounter)
       $.ajax({
         type: 'HEAD',
-        context: this,
+        context: img,
         url: '{{MEDIA_URL}}'+fname,
         success: function(){         
           cb(this)
@@ -694,7 +704,7 @@ $(function() {
     <small>RA, Dec: {{astrosource.RA}}, {{astrosource.DEC}}</small>
 
     <div style="float:right; margin-right:100px;" class="btn-group">
-    <button type="button" class="btn btn-primary phototype-marker" data-loading-text="..." >griz: PSF</button>
+    <button type="button" class="btn btn-primary phototype-marker" data-loading-text="..." ></button>
     {% if tagged %}
     <button type="button" class="btn btn-primary btn-info tagged_marker" data-loading-text="..." >tagged &#x2713</button>
     {% else %}
