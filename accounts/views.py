@@ -11,6 +11,23 @@ from accounts.models import UserProfile, UserSourceNames
 
 import json
 
+class NameView(JSONResponseMixin,View):
+  def post(self,request,*args,**kwargs):
+    s = AstroSource.objects.filter(sourceID=request.POST['sourceID'])[0]
+    try:
+      usn = UserSourceNames.objects.get(user=request.user,astrosource=s)
+      usn.name = request.POST['name']
+      usn.save()
+    except UserSourceNames.DoesNotExist:
+      fields = {}
+      fields['user'] = request.user
+      fields['astrosource'] = s
+      fields['name'] = request.POST['name']
+      usn = UserSourceNames(**fields)
+      usn.save()
+    context = {'completed':True,'name':UserSourceNames.objects.get(user=request.user,astrosource=s).name}
+    return self.render_to_response(context)
+
 class TagView(JSONResponseMixin,View):
   def post(self,request,*args,**kwargs):
     profile = UserProfile.objects.get(user=request.user)
@@ -55,9 +72,9 @@ class SourcesView(JSONResponseMixin,TemplateView):
       tdata[_id] = {}
       tdata[_id]['RA'] = i.RA
       tdata[_id]['DEC'] = i.DEC
-      tdata[_id]['ownership'] = i.astrosource.user.username
+      tdata[_id]['ownership'] = i.user.username
       try:
-        tdata[_id]['name'] = UserSourceNames.objects.get(user=request.user,astrosource=i)
+        tdata[_id]['name'] = UserSourceNames.objects.get(user=request.user,astrosource=i).name
       except UserSourceNames.DoesNotExist:
         tdata[_id]['name'] = None
     context = {'user_sources_data':json.dumps(data),

@@ -164,9 +164,15 @@ class ObjectView(TemplateView):
     profile = UserProfile.objects.get(user=request.user)
     s = AstroSource.objects.filter(sourceID=sourceID)[0]
     tagged=True if s in profile.tagged_sources.all() else False
+
+    try:
+      name = UserSourceNames.objects.get(user=request.user,astrosource=thisSource).name
+    except UserSourceNames.DoesNotExist:
+      name = None
+
     for i in imageheaders:
       data[nominalOB]['images'][i.FILTER] = i.fname
-    context = {'source_data':json.dumps(data),'request':request,'nominalOB':nominalOB,'astrosource':thisSource,'tagged':tagged}
+    context = {'source_data':json.dumps(data),'request':request,'nominalOB':nominalOB,'astrosource':thisSource,'tagged':tagged,'name':name}
     return render(request,self.template_name,context)
 
   def post(self,request,*args,**kwargs):

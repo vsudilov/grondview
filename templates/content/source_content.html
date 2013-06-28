@@ -445,6 +445,38 @@ $(function() {
   ////////////////////////////////////////////////////////////////////////////////////
   //event listeners
 
+  $(document).on('click','button.save-name-button',function() {
+    var new_name = $('input.input-name-field').val()
+    $.ajax({
+      type: 'POST',
+      data: { 
+        'sourceID':'{{astrosource.sourceID}}',
+        'name':new_name,
+      },
+      dataType: 'json',
+      url: '/sources/name/',
+      success: function(data) {
+        cb_success(data)
+      },
+      error: function () {
+        cb_err()
+      },
+    });
+    
+    function cb_success(data) {
+      if (data.name) {
+        $('span.source-title').html(data.name+' <small>{{astrosource.sourceID}}</small>')
+      }
+      else {
+        cb_err()
+      }
+    }
+
+    function cb_err() {
+      $('div.span2').append('<div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Some error has occured. Please try again later.</strong></div>')
+    }
+  });
+
   $(document).on('click','button.tagged_marker',function() {
     var b = $(this)
     b.button('loading')
@@ -643,9 +675,18 @@ $(function() {
 
 <div class="page-header" style="margin-bottom:10px">
   <h3>
-    {% if astrosource.name %}{{name}}{% endif %}{{astrosource.sourceID}} <small>(RA, Dec: {{astrosource.RA}}, {{astrosource.DEC}})</small>
+    <span class="source-title">
+    {% if name %}
+    {{name}}
+    <small>{{astrosource.sourceID}}</small>
+    {% else %}
+    {{astrosource.sourceID}} 
+    {% endif %}
+    </span>
+    <br />    
+    <small>RA, Dec: {{astrosource.RA}}, {{astrosource.DEC}}</small>
 
-    <div style="float:right; margin-right:200px;" class="btn-group">
+    <div style="float:right; margin-right:100px;" class="btn-group">
     <button class="btn btn-primary phototype_marker"></button>
     {% if tagged %}
     <button type="button" class="btn btn-primary btn-info tagged_marker" data-loading-text="..." >tagged &#x2713</button>
@@ -656,7 +697,7 @@ $(function() {
       <button class="btn dropdown-toggle btn-primary" data-toggle="dropdown">&#x2699; <span class="caret"></span></button>
       <ul class="dropdown-menu">
         <li><a href="#">Force detect</a></li>
-        <li><a href="#">Name source</a></li>
+        <li><a href="#name-source-modal" role="button" data-toggle="modal">Name source</a></li>
 <!--        <li class="divider"></li>-->
         <li><a href="/export/csv/{{astrosource.sourceID}}">Export data to csv</a></li>
       </ul>
@@ -673,15 +714,28 @@ $(function() {
 </div>
 <div id="lightcurve"></div>
 <div id="sed"></div>
-<!--<div id="OB_chooser">-->
-<!--  <form>    -->
-<!--    <select id='userchoice_OB'>-->
-<!--    </select>-->
-<!--    <select id="userchoice_photometry">-->
-<!--      <option name="PSF">PSF</option>-->
-<!--      <option name="APP">APP</option>-->
-<!--    </select>-->
-<!--    <button id="userchoice_OB_submit" type="button" class="btn">Redraw</button>-->
-<!--  </form>-->
-<!--</div>-->
 <table id="source_datatable"></table>
+
+
+<!-- Modal -->
+<div id="name-source-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="Name source" aria-hidden="true">
+<div class="modal-header">
+<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+</div>
+<div class="modal-body">
+    <form>
+    <fieldset>
+    <legend>Name source</legend>
+    <label>Enter name</label>
+    <input type="text" placeholder="{{astrosource.name}}" class="input-name-field">
+<!--    <span class="help-block">Example block-level help text here.</span>-->
+    </label>
+    </fieldset>
+    </form>
+</div>
+<div class="modal-footer">
+<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+<button class="btn btn-primary save-name-button" data-dismiss="modal">Save</button>
+</div>
+</div>
+
