@@ -60,8 +60,8 @@ $(function() {
   // Initialize datatable, charts
   var datatable = $('#source_datatable').dataTable({
      "aaData": [
-      ],
-      "aoColumns": [
+     ],
+     "aoColumns": [
          { "sTitle": "OB type", "sDefaultContent":"", "sWidth":"100px" },
          { "sTitle": "OB", "sDefaultContent":"" },
          { "sTitle": "g", "sDefaultContent":"" },
@@ -78,7 +78,7 @@ $(function() {
          { "sTitle": "H_err", "sDefaultContent":"" },
          { "sTitle": "K", "sDefaultContent":"" },
          { "sTitle": "K_err", "sDefaultContent":"" },
-      ]
+     ]
  
   });
 
@@ -255,6 +255,7 @@ $(function() {
   }
   
   function updatePhotoTypeMarker(phototype) {
+    $('a.export-to-csv').attr('href','/sources/export/csv/{{astrosource.sourceID}}?phototype='+phototype)
     $('button.phototype-marker').button('reset')
     $('button.phototype-marker').text('griz: '+phototype)
   }
@@ -353,24 +354,6 @@ $(function() {
     sed.series[0].setData(newdata);
     sed.series[1].setData(newerrors);
   }
-
-  function populate_dropdown(data, currentOB) {
-    //populate dropdown list which allows user to choose the OB that is plotted
-    for (var k in data) {
-        var ob = k.split(' ')[1]
-        var targetid = k.split(' ')[0]
-        var obtype = data[k].OBtype
-        if (k === currentOB) {
-          var opt = "<option selected='selected' name="+targetid+"?"+ob+">"+ob+" ("+obtype+")</option>"
-        }
-        else {
-          var opt = "<option name="+targetid+"?"+ob+">"+ob+" ("+obtype+")</option>"
-        }
-        var s = $('select#userchoice_OB')
-        s.append(opt)
-      }
-  }
-  
   
   
   function updateCutouts(data,currentOB) {
@@ -444,6 +427,7 @@ $(function() {
   
   ////////////////////////////////////////////////////////////////////////////////////
   //event listeners
+
 
   $(document).on('click','.phototype-marker',function() {
     $(this).button('loading')
@@ -678,13 +662,11 @@ $(function() {
   
   ////////////////////////////////////////////////////////////////////////////////////
   //Initial page population
-  populate_dropdown(master_data,currentOB);
   updatePage(master_data,currentOB,phototype,true)
-  $('button.save-name-button').focus()
   ////////////////////////////////////////////////////////////////////////////////////
   
   
-}); //end $(document).ready call
+});
 </script>
 
 
@@ -716,7 +698,7 @@ $(function() {
         <li><a href="#">Force detect</a></li>
         <li><a href="#name-source-modal" role="button" data-toggle="modal">Name source</a></li>
 <!--        <li class="divider"></li>-->
-        <li><a href="/export/csv/{{astrosource.sourceID}}">Export data to csv</a></li>
+        <li><a href="/sources/export/csv/{{astrosource.sourceID}}?phototype=PSF" class="export-to-csv">Export data to csv</a></li>
       </ul>
     </div>
     </div>   

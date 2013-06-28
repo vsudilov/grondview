@@ -80,6 +80,52 @@ def get_sources(formdata,request,imageheaders):
   return {'sources':sources}
 
 
+def getSourceData(thisSource,user):
+  results = ImageHeader.objects.findImagesWithObjectCoverage(thisSource.RA,thisSource.DEC)
+  #1. Create unique master keys, assuming uniqueness of the concat of TARGETID+OB
+  unique_observations = set(["%s %s" % (i.TARGETID,i.OB) for i in results])
+  data = dict([(_id,{}) for _id in unique_observations])
+
+  #2. Populate fields
+  for _id in unique_observations:        
+    data[_id]['images'] = dict( [(b,None) for b in constants.grondfilters] )
+    data[_id]['photometry'] = dict( [(b,{}) for b in constants.grondfilters] )
+
+    #2a.  Populate the properties that are OB (not band) specific
+    targetID, OB = _id.split()
+    p = results.filter(OB=OB).filter(TARGETID=targetID)
+    path = os.path.dirname(os.path.dirname(p[0].PATH)) #Get from ...target/r/GROND_ana.fits to ../target
+    Qs = [Q(user=user), Q(user__username='pipeline')] 
+    q = reduce(operator.or_, Qs)
+    thisOB = Photometry.objects.filter(astrosource__sourceID=thisSource.sourceID).filter(imageheader__PATH__startswith=path).filter(q)
+    data[_id]['OBname'] = p[0].OB
+    data[_id]['OBtype'] = p[0].OBTYPEID
+    data[_id]['targetID'] = p[0].TARGETID
+    data[_id]['MJD'] = p[0].MJD_OBS
+    for band_specific_data in thisOB:
+      #2b.  Populate the photometry fields:
+      ht_photometry = {
+        'MAG_PSF':      lambda p: round(p.MAG_PSF,2) if p.MAG_PSF else None,
+        'MAG_PSF_ERR':  lambda p: round(p.MAG_PSF_ERR,2) if p.MAG_PSF_ERR else None,
+        'MAG_APP':      lambda p: round(p.MAG_APP,2) if p.MAG_APP else None,
+        'MAG_APP_ERR':  lambda p: round(p.MAG_APP_ERR,2) if p.MAG_APP_ERR else None,
+        'ownership':    lambda p: p.user.username,
+      }
+      data[_id]['photometry'][band_specific_data.BAND] = {}
+      for k in ht_photometry:        
+        data[_id]['photometry'][band_specific_data.BAND][k] = ht_photometry[k](band_specific_data)
+
+      if band_specific_data.BAND in constants.optical:
+        #These will be potentially overwritten by every band in constants.optical
+        #This shouldn't be a problem, since the CALIB_SCHEME+FILE should
+        #be the same among all optical bands within a particular observation
+        data[_id]['griz_calib_scheme'] = band_specific_data.CALIB_SCHEME
+        #Consider if we really want/need to expose system pathnames to the client
+        data[_id]['griz_calib_file'] = band_specific_data.CALIB_FILE
+  #  Find the nominal OB with which to make the initial image cutouts and SED. The nominal OB will 
+  #  be image with the most detections, followed by the longest exposure time.
+  return data
+
 
 class ObjectView(TemplateView):
   template_name = 'content.html'
@@ -98,49 +144,8 @@ class ObjectView(TemplateView):
       #We should make this more robust, ie this will fail if two users "own" the same sourceID
       #Perhaps change the userfield to a M2M field and test if user is in the list?
       raise PermissionDenied
-
     
-    results = ImageHeader.objects.findImagesWithObjectCoverage(thisSource.RA,thisSource.DEC)
-    #1. Create unique master keys, assuming uniqueness of the concat of TARGETID+OB
-    unique_observations = set(["%s %s" % (i.TARGETID,i.OB) for i in results])
-    data = dict([(_id,{}) for _id in unique_observations])
-
-    #2. Populate fields
-    for _id in unique_observations:        
-      data[_id]['images'] = dict( [(b,None) for b in constants.grondfilters] )
-      data[_id]['photometry'] = dict( [(b,{}) for b in constants.grondfilters] )
-
-      #2a.  Populate the properties that are OB (not band) specific
-      targetID, OB = _id.split()
-      p = results.filter(OB=OB).filter(TARGETID=targetID)
-      path = os.path.dirname(os.path.dirname(p[0].PATH)) #Get from ...target/r/GROND_ana.fits to ../target
-      thisOB = Photometry.objects.filter(astrosource__sourceID=sourceID).filter(imageheader__PATH__startswith=path)
-      data[_id]['OBname'] = p[0].OB
-      data[_id]['OBtype'] = p[0].OBTYPEID
-      data[_id]['targetID'] = p[0].TARGETID
-      data[_id]['MJD'] = p[0].MJD_OBS
-      for band_specific_data in thisOB:
-        #2b.  Populate the photometry fields:
-        ht_photometry = {
-          'MAG_PSF':      lambda p: round(p.MAG_PSF,2) if p.MAG_PSF else None,
-          'MAG_PSF_ERR':  lambda p: round(p.MAG_PSF_ERR,2) if p.MAG_PSF_ERR else None,
-          'MAG_APP':      lambda p: round(p.MAG_APP,2) if p.MAG_APP else None,
-          'MAG_APP_ERR':  lambda p: round(p.MAG_APP_ERR,2) if p.MAG_APP_ERR else None,
-          'ownership':    lambda p: p.user.username,
-        }
-        data[_id]['photometry'][band_specific_data.BAND] = {}
-        for k in ht_photometry:        
-          data[_id]['photometry'][band_specific_data.BAND][k] = ht_photometry[k](band_specific_data)
-
-        if band_specific_data.BAND in constants.optical:
-          #These will be potentially overwritten by every band in constants.optical
-          #This shouldn't be a problem, since the CALIB_SCHEME+FILE should
-          #be the same among all optical bands within a particular observation
-          data[_id]['griz_calib_scheme'] = band_specific_data.CALIB_SCHEME
-          #Consider if we really want/need to expose system pathnames to the client
-          data[_id]['griz_calib_file'] = band_specific_data.CALIB_FILE
-    #  Find the nominal OB with which to make the initial image cutouts and SED. The nominal OB will 
-    #  be image with the most detections, followed by the longest exposure time.
+    data = getSourceData(thisSource,request.user)
     data_statistics = {}
     for observation in data:
       data_statistics[observation] = {}

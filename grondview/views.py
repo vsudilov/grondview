@@ -7,6 +7,8 @@ from django.views.generic import TemplateView
 from django.db.models import Q
 from django.db.models import Count
 from django.views.generic import View
+from django.utils import simplejson
+from django.db.models import Q
 
 from .forms import LoginForm
 from .settings import PROJECT_ROOT
@@ -20,12 +22,13 @@ from objectquery.models import AstroSource
 from imagequery.forms import ImageQueryForm
 from objectquery.forms import ObjectQueryForm
 
-from objectquery.views import get_sources
+from objectquery.views import get_sources, getSourceData
 from imagequery.views import get_fields
 
 from astLib import astCoords
 
 import sys,os
+import operator
 import tempfile
 import zipfile
 sys.path.insert(0,os.path.join(PROJECT_ROOT,'utils'))
@@ -56,10 +59,56 @@ class DownloadImages(View):
     response['Content-Length'] = temp.tell()
     temp.seek(0)
     return response
-
-  
   def post(self, request, *args, **kwargs):
     pass
+
+class ExportView(View):
+  def get(self, request, *args, **kwargs):
+    Qs = [Q(user=request.user), Q(user__username='pipeline')] 
+    q = reduce(operator.or_, Qs)
+    thisSource = AstroSource.objects.filter(sourceID=kwargs['sourceID']).filter(q)[0]
+    data = getSourceData(thisSource,request.user)
+    rows = []
+    header = []
+    header.append('# sourceID: %s' % thisSource.sourceID)
+    header.append('# ra, dec: %s,%s' % (thisSource.RA,thisSource.DEC))
+    header.append('# griz phototype: %s' % request.GET['phototype'])
+    header.append('# targetid,ob,obtype,mjd,griz_calib,g,g_err,r,r_err,i,i_err,z,z_err,J,J_err,H,H_err,K,K_err')
+    rows.append('\n'.join(header))
+    photo_key = 'MAG_APP' if request.GET['phototype']=="APP" else 'MAG_PSF'
+    photo_errkey = 'MAG_APP_ERR' if request.GET['phototype']=="APP" else 'MAG_PSF_ERR'
+    for k in data.values():
+      row = []
+      row.append(k['targetID'])
+      row.append(k['OBname'])
+      row.append(k['OBtype'])
+      row.append(k['MJD'])
+      row.append(k['griz_calib_scheme'])
+      row.append(k['photometry']['g'].get(photo_key,'NaN'))
+      row.append(k['photometry']['g'].get(photo_errkey,'NaN'))
+      row.append(k['photometry']['r'].get(photo_key,'NaN'))
+      row.append(k['photometry']['r'].get(photo_errkey,'NaN'))
+      row.append(k['photometry']['i'].get(photo_key,'NaN'))
+      row.append(k['photometry']['i'].get(photo_errkey,'NaN'))
+      row.append(k['photometry']['z'].get(photo_key,'NaN'))
+      row.append(k['photometry']['z'].get(photo_errkey,'NaN'))
+      row.append(k['photometry']['J'].get('MAG_APP','NaN'))
+      row.append(k['photometry']['J'].get('MAG_APP_ERR','NaN'))
+      row.append(k['photometry']['H'].get('MAG_APP','NaN'))
+      row.append(k['photometry']['H'].get('MAG_APP_ERR','NaN'))
+      row.append(k['photometry']['K'].get('MAG_APP','NaN'))
+      row.append(k['photometry']['K'].get('MAG_APP_ERR','NaN'))
+      rows.append(','.join([str(i) for i in row]))
+    temp = tempfile.TemporaryFile(dir=MEDIA_ROOT)
+    temp.write('\n'.join(rows))
+    temp.flush()
+    wrapper = FileWrapper(temp)
+    response = HttpResponse(wrapper, content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=table.csv'
+    response['Content-Length'] = temp.tell()
+    temp.seek(0)
+    return response
+
 
 class FormView(TemplateView):  
   template_name= 'content.html'
