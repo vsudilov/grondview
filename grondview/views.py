@@ -77,7 +77,7 @@ class ExportView(View):
     rows.append('\n'.join(header))
     photo_key = 'MAG_APP' if request.GET['phototype']=="APP" else 'MAG_PSF'
     photo_errkey = 'MAG_APP_ERR' if request.GET['phototype']=="APP" else 'MAG_PSF_ERR'
-    for k in data.values():
+    for k in sorted(data.values(),key=lambda l: l['MJD']):
       row = []
       row.append(k['targetID'])
       row.append(k['OBname'])
