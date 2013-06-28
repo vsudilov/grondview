@@ -45,8 +45,11 @@ class SourcesView(JSONResponseMixin,TemplateView):
   def get(self, request, *args, **kwargs):
     if kwargs['user'] != request.user.username:
       raise PermissionDenied
+
+    #User sources
     results = AstroSource.objects.filter(user=request.user)
     data = {}
+
     for i in results:
       _id = i.sourceID
       data[_id] = {}
@@ -57,14 +60,21 @@ class SourcesView(JSONResponseMixin,TemplateView):
         data[_id]['name'] = UserSourceNames.objects.get(user=request.user,astrosource=i)
       except UserSourceNames.DoesNotExist:
         data[_id]['name'] = None
+
+    #Force detected sources
     results = Photometry.objects.filter(user=request.user).distinct('astrosource__sourceID')
     pdata = {}
     for i in results:
       _id = i.astrosource.sourceID
       pdata[_id] = {}
       pdata[_id]['n_detections'] = Photometry.objects.filter(astrosource__sourceID=_id).filter(user=request.user).count()
-      pdata[_id]['name'] = i.astrosource.name
+      try:
+        pdata[_id]['name'] = UserSourceNames.objects.get(user=request.user,astrosource=i)
+      except UserSourceNames.DoesNotExist:
+        pdata[_id]['name'] = None
       pdata[_id]['ownership'] = i.astrosource.user.username
+
+    #Tagged sources
     tdata = {}
     profile = UserProfile.objects.get(user=request.user)
     for i in profile.tagged_sources.all():
