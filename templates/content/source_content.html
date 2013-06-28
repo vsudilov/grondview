@@ -468,7 +468,7 @@ $(function() {
         $('span.source-title').html(data.name+' <small>{{astrosource.sourceID}}</small>')
       }
       else {
-        cb_err()
+        $('span.source-title').html('{{astrosource.sourceID}}')
       }
     }
 
@@ -664,6 +664,7 @@ $(function() {
   //Initial page population
   populate_dropdown(master_data,currentOB);
   updatePage(master_data,currentOB,phototype,true)
+  $('button.save-name-button').focus()
   ////////////////////////////////////////////////////////////////////////////////////
   
   
@@ -729,6 +730,7 @@ $(function() {
     <label>Enter name</label>
     <input type="text" placeholder="{{astrosource.name}}" class="input-name-field">
 <!--    <span class="help-block">Example block-level help text here.</span>-->
+    <input type="submit" style="visibility:hidden" disabled="disabled">
     </label>
     </fieldset>
     </form>
