@@ -255,8 +255,8 @@ $(function() {
   }
   
   function updatePhotoTypeMarker(phototype) {
-    var marker=$('.phototype_marker')
-    marker.html('griz: '+phototype)
+    $('button.phototype-marker').button('reset')
+    $('button.phototype-marker').text('griz: '+phototype)
   }
   
   function makeTable(data, phototype, currentOB){
@@ -444,6 +444,12 @@ $(function() {
   
   ////////////////////////////////////////////////////////////////////////////////////
   //event listeners
+
+  $(document).on('click','.phototype-marker',function() {
+    $(this).button('loading')
+    phototype = phototype=='APP' ? 'PSF' : 'APP'
+    updatePage(master_data,currentOB,phototype,false)
+  });
 
   $(document).on('click','button.save-name-button',function() {
     var new_name = $('input.input-name-field').val()
@@ -688,7 +694,7 @@ $(function() {
     <small>RA, Dec: {{astrosource.RA}}, {{astrosource.DEC}}</small>
 
     <div style="float:right; margin-right:100px;" class="btn-group">
-    <button class="btn btn-primary phototype_marker"></button>
+    <button type="button" class="btn btn-primary phototype-marker" data-loading-text="..." >griz: PSF</button>
     {% if tagged %}
     <button type="button" class="btn btn-primary btn-info tagged_marker" data-loading-text="..." >tagged &#x2713</button>
     {% else %}
