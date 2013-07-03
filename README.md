@@ -5,6 +5,8 @@ assumes a `vagrant up` precise64.box environment. Packages from apt+pypi. iraf (
 
 nginx/uwsgi up by default. Kill these if you want to run the devel server.
 
-run `./runserver.sh` to start the development server (add a user account for the site when prompted!)
+Manually add data to the database with `manage.py populateDB ~/path/to/data/`. 10x10 binned data are provided in stubdata/ for visualizatinon, although of course no analysis can be done on them.
+
+run `./runserver.sh` to start the development server.
 
 connect to http://localhost:8000 on host machine.

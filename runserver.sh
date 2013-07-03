@@ -1,8 +1,5 @@
 #!/bin/bash
 
-#compile js
-#./coffeecompile.sh
-
 #Create stubdata, load it, sync it
 python manage.py syncdb
 python manage.py check_permissions

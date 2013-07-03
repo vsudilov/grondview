@@ -1,9 +1,5 @@
 TODO:
 
-/sources/
-  -table, force detect all OB link
-  -ability to dump data to ascii
-
 objectquery/
   -circle sources in cutouts
   -search by source name (or coordinates)
