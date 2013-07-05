@@ -20,16 +20,22 @@
       </div>
     </div>
   </form>
-  <div class="alert">
-    <button type="button" class="close" data-dismiss="alert">&times;</button>
-    <strong>(Hint)</strong> coordinates of the stubdata are: <br> ra,dec 315.297, -51.096 (target1)<br>32.55223, -27.10571 (target2)<br>150.02838, 2.27318 (COSMOS03) <br>
-    235.01388, 12.87664 (SWIFT-519380) <br>
-  </div>
+<!--  <div class="alert">-->
+<!--    <button type="button" class="close" data-dismiss="alert">&times;</button>-->
+<!--    <strong>(Hint)</strong> coordinates of the stubdata are: <br> ra,dec 315.297, -51.096 (target1)<br>32.55223, -27.10571 (target2)<br>150.02838, 2.27318 (COSMOS03) <br>-->
+<!--    235.01388, 12.87664 (SWIFT-519380) <br>-->
+<!--  </div>-->
   </div>
   {% endif %}
 </div>
 
 <div class="span10">
+{% if no_results %}
+<script>
+  $('div.span2>div.well').append('<div class="alert"><button type="button" class="close" data-dismiss="alert">&times;</button>No results found with given criteria</div>')
+</script>
+{% endif %}
+
 {% if fields %}
 {% include "content/imagequery_content.html" %}
 {% endif %}

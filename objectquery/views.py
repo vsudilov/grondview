@@ -58,7 +58,7 @@ def get_sources(formdata,request,imageheaders):
 
   if not results:
     #raise NoCoverageError(radius=radius)
-    return {'sources':'NO_SOURCES_DETECTED'}
+    return {'no_results':True}
   
 
   distances = dict((i.sourceID,i.distance*3600) for i in results) #Keep distance for later
