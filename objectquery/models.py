@@ -28,7 +28,7 @@ class AstroSourceQuerySet(QuerySet):
     radius *= constants.convert_arcmin_or_arcsec_to_degrees[units]
 
     results = []
-    for i in self:
+    for i in self.filter(RA__range=(ra-radius,ra+radius),DEC__range=(dec-radius,dec+radius)):
       distance = astCoords.calcAngSepDeg(i.RA,i.DEC,ra,dec)
       if distance <= radius:
         i.__setattr__("distance",distance)
