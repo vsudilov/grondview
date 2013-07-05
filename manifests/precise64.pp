@@ -410,7 +410,7 @@ class run_webserver {
     "nginx_restart":
       command => "/etc/init.d/nginx restart",
       user => root,
-      require => [Exec['ln_nginxconf'],Exec['nginx_changeuser'],Exec['uwsgi_restart']];
+      require => [Exec['ln_nginxconf'],Exec['nginx_changeuser']];
   }
   
   exec {
@@ -439,7 +439,7 @@ class run_webserver {
       command => "/usr/local/bin/uwsgi --emperor /etc/uwsgi/vassals --uid vagrant --gid vagrant --master --daemonize /home/vagrant/grondview/logs/uwsgi.log",
       user => vagrant,
       environment => ['USER=vagrant','HOME=/home/vagrant','iraf=/usr/local/iraf/','IRAFARCH=linux'],
-      require => [Exec['ln_django_ini'],Exec['mk_uwsgi_logdir']];
+      require => [Exec['ln_django_ini'],Exec['mk_uwsgi_logdir'],Exec['nginx_restart']];
   }
 
 }
