@@ -410,7 +410,7 @@ class run_webserver {
     "nginx_restart":
       command => "/etc/init.d/nginx restart",
       user => root,
-      require => [Exec['ln_nginxconf'],Exec['nginx_changeuser']];
+      require => [Exec['ln_nginxconf'],Exec['nginx_changeuser'],Exec['uwsgi_restart']];
   }
   
   exec {
