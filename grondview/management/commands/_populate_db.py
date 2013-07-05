@@ -16,7 +16,7 @@ from objectquery.models import AstroSource,Photometry
 from django.contrib.auth.models import User
 
 from grondview.settings import PROJECT_ROOT
-from grondview.settings import GP_INIDIR
+from grondview.settings import DATADIR
 
 sys.path.insert(0,os.path.join(PROJECT_ROOT,'utils'))
 from lib import resultfile
@@ -198,7 +198,7 @@ class GrondData:
           if fields['CALIB_SCHEME'].lower() == 'sdss':
             fields['CALIB_FILE'] = os.path.join(os.path.dirname(self.imageheader.PATH),'GROND_%s_OB_cat_SDSS.tsv' % fields['BAND'])
           else:
-            iniFile = os.path.join(GP_INIDIR,self.imageheader.TARGETID,self.imageheader.OB,'%sana.ini' % fields['BAND'])
+            iniFile = os.path.join(DATADIR,self.imageheader.TARGETID,self.imageheader.OB,'%sana.ini' % fields['BAND'])
             cp = ConfigParser.ConfigParser()
             cp.read(iniFile)
             fields['CALIB_FILE'] = cp.get('calcat')

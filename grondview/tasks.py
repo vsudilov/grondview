@@ -50,7 +50,7 @@ def makeImage(ImageHeaderInstance,fname,clipSize,ra,dec,units='arcseconds', **kw
   return ImageHeaderInstance
 
 @celery.task
-def photometry(iniFile, objwcs, **kwargs):
+def photometry(iniFile,targetid, OB, objwcs, **kwargs):
   request=current_task.request
   jobid = request.id
   if not os.path.isdir(os.path.join(MEDIA_ROOT,jobid)):
@@ -67,7 +67,7 @@ def photometry(iniFile, objwcs, **kwargs):
   if not os.path.isfile(iniFile):
     logger.critical('Unable to locate the ini file!')
   try:
-    results = phot.main(iniFile, logger, objwcs, jobid)
+    results = phot.main(iniFile, targetid, OB, logger, objwcs, jobid)
   except:
     logger.critical('Some unknown error has occured')
     raise

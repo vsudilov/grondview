@@ -8,12 +8,9 @@ from iraf import imcoords
 
 import numpy as np
 
-try:
-  from grondview.settings import PROJECT_ROOT
-  from grondview.settings import MEDIA_ROOT
-except ImportError:
-  PROJECT_ROOT = '/home/vagrant/grondview/' #For running seperately on sauron (not precise64.box), debug ONLY
-  MEDIA_ROOT = '/home/vagrant/grondview/media/'
+from grondview.settings import PROJECT_ROOT
+from grondview.settings import MEDIA_ROOT
+from grondview.settings import DATADIR
 import constants
 
 import sextractor
@@ -360,7 +357,7 @@ def calibrate(usersource,task,photometry,logger):
     results[phototype] = matchsource(usersource[0],usersource[1],calibrated_data)
   return results         
 
-def parseIni(iniFile,task):
+def parseIni(iniFile,targetid, OB, task):
   cp = ConfigParser.ConfigParser()
   cp.read(iniFile)
   
@@ -371,7 +368,7 @@ def parseIni(iniFile,task):
   #get strings in ini
   for param in ('band','func','calcat','workdir',): 
    task[param] = cp.get(s,param)
-  task['images'] = os.path.join(task['workdir'],'GROND_%s_OB_ana.fits' % task['band'])
+  task['images'] = os.path.join(DATADIR,targetid,OB,task['band'],'GROND_%s_OB_ana.fits' % task['band'])
   s = 'fits'
   task[s] = {}
   for param in ('ra','dec','numpixx','numpixy','exposure','dateobs','ron','gain'):
@@ -380,7 +377,7 @@ def parseIni(iniFile,task):
   return task
 
 
-def main(iniFile, logger, objwcs, jobid):
+def main(iniFile,targetid, OB, logger, objwcs, jobid):
   task = {}
   task['output_directory'] = os.path.join(MEDIA_ROOT,jobid)
   if not os.path.isdir(task['output_directory']):
@@ -399,7 +396,7 @@ def main(iniFile, logger, objwcs, jobid):
     logger.addHandler(fh)
   start = time.time()
   logger.info("Starting photometry module.") 
-  parseIni(iniFile,task)
+  parseIni(iniFile,targetid, OB, task)
   task['objwcs'] = objwcs
   task['jobid'] = jobid
   results = performPhotometry(task,logger)

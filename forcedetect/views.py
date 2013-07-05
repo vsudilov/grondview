@@ -5,7 +5,7 @@ import json
 from celery.result import AsyncResult
 
 from grondview.exceptions import *
-from grondview.settings import GP_INIDIR
+from grondview.settings import DATADIR
 from grondview.settings import MEDIA_ROOT
 from grondview.settings import PROJECT_ROOT
 from grondview import tasks
@@ -59,9 +59,9 @@ class ForceDetectView(JSONResponseMixin,TemplateView):
       return HttpResponseBadRequest("Too many requests from user [%s]" % request.user.username)
 
     #Find path, iniFile, logger; create task
-    iniFile = os.path.join(GP_INIDIR,targetID,OB,'%sana.ini' % band)
+    iniFile = os.path.join(DATADIR,targetID,OB,'%sana.ini' % band)
     objwcs = (ra,dec)
-    task = tasks.photometry.delay(iniFile, objwcs, user=request.user.username)
+    task = tasks.photometry.delay(iniFile, targetID, OB, objwcs, user=request.user.username)
     context = {'jobid':task.id}
 
     #Make a database entry for the current task.
