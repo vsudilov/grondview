@@ -1,5 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from optparse import make_option
+from grondview.settings import PROJECT_ROOT
+import os
 
 class Command(BaseCommand):
   args = 'data_directory'
@@ -49,3 +51,5 @@ class Command(BaseCommand):
     except:
       print self.help
       raise
+    finally:
+      os.unlink(os.path.join(PROJECT_ROOT,'populateDB.lock'))

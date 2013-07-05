@@ -224,17 +224,14 @@ def getPipelineUser():
     user.save()
   return user
 
-def checkRunningInstances():
-  process = 'manage.py'
-  cmd = 'ps aux | grep populateDB | grep -v grep'
-  P = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
-  P.wait()
-  procs = P.stdout.read()
-  if len(procs.split('\n'))>2:
-    sys.exit('Only one instance of `manage.py populateDB` should run at a time:\n%s\nEXITING.' % procs)
+def checkLocks():
+  lockfile = os.path.join(PROJECT_ROOT,'populateDB.lock')
+  if os.path.isfile(lockfile):
+    sys.exit('Only one instance of `manage.py populateDB` should run at a time:\nEXITING.')
+  open(lockfile,'w').close()
 
 def main(*args,**kwargs):
-  checkRunningInstances()
+  checkLocks()
   DATADIR = args[0]
   FITS_REGEX = kwargs['fits_regex']
   user = getPipelineUser()
@@ -254,4 +251,4 @@ def main(*args,**kwargs):
   
 
 if __name__=="__main__":
-  main()
+    main()
