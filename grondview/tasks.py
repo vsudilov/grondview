@@ -64,6 +64,8 @@ def photometry(iniFile, objwcs, **kwargs):
   fh = logging.FileHandler(filename=os.path.join(MEDIA_ROOT,jobid,'logfile'),mode='a') #file handler
   fh.setFormatter(formatter)
   logger.addHandler(fh)
+  if not os.path.isfile(iniFile):
+    logger.critical('Unable to locate the ini file!')
   try:
     results = phot.main(iniFile, logger, objwcs, jobid)
   except:
