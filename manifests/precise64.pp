@@ -83,7 +83,7 @@ class system{
       "unzip":
           ensure => installed,
           provider => apt;
-      "nginx":
+      "nginx-full":
           ensure => installed,
           provider => apt;
   }
@@ -130,7 +130,7 @@ class python_modules{
           ensure => installed,
           provider => pip;
       "uwsgi":
-          ensure => installed,
+          ensure => "1.9.10",
           provider => pip;
   }
 }
@@ -438,7 +438,7 @@ class run_webserver {
     "uwsgi_restart":
       command => "/usr/local/bin/uwsgi --emperor /etc/uwsgi/vassals --uid vagrant --gid vagrant --master --daemonize /home/vagrant/grondview/logs/uwsgi.log",
       user => vagrant,
-      environment => ['USER=vagrant','HOME=/home/vagrant'],
+      environment => ['USER=vagrant','HOME=/home/vagrant','iraf=/usr/local/iraf/','IRAFARCH=linux'],
       require => [Exec['ln_django_ini'],Exec['mk_uwsgi_logdir']];
   }
 

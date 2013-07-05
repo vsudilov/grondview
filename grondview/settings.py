@@ -6,7 +6,7 @@ USER_HOME = os.path.expanduser('~')
 PROJECT_ROOT = os.path.join(USER_HOME,'grondview')
 GP_INIDIR = os.path.join(PROJECT_ROOT,'work/ini') #Path to ini files
 
-DEBUG = True
+DEBUG = False
 ALLOWED_HOSTS = ['localhost','sauron.mpe.mpg.de','faramir.mpe.mpg.de']
 
 TEMPLATE_DEBUG = DEBUG
