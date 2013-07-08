@@ -78,7 +78,7 @@ class FieldView(TemplateView):
       for ih in results:
         data[ih.FILTER] = dict([(k,hashtable[k](ih)) for k in hashtable])
         data[ih.FILTER].update({'griz_calib_scheme':griz_calib_scheme})
-      context = {'ob_data':json.dumps(data),'targetID':kwargs['targetID'],'OB':kwargs['OB']}
+      context = {'ob_data':json.dumps(data),'targetID':kwargs['targetID'],'OB':kwargs['OB'],'RA':'%0.4f' % ih.RA,'DEC':'%0.4f' %  ih.DEC}
     else:
       results = ImageHeader.objects.filter(TARGETID=kwargs['targetID'])
       if not results:
