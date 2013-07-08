@@ -22,14 +22,16 @@
       for (var i = 0; i < bands.length; i++) {
         var row = []
         var b = bands[i]
-        row.push(b)
-        row.push(data[b].LIMITING_MAG_3S_ZP)
-        row.push(data[b].LIMITING_MAG_3S_CALIB)
-        row.push(data[b].ASTROMETRY_ACCURACY_RA)
-        row.push(data[b].ASTROMETRY_ACCURACY_DEC)
-        row.push(data[b].APP_SIZE)
-        row.push(data[b].SEEING)
-        newdata.push(row)
+        if (data[b]) {
+          row.push(b)
+          row.push(data[b].LIMITING_MAG_3S_ZP)
+          row.push(data[b].LIMITING_MAG_3S_CALIB)
+          row.push(data[b].ASTROMETRY_ACCURACY_RA)
+          row.push(data[b].ASTROMETRY_ACCURACY_DEC)
+          row.push(data[b].APP_SIZE)
+          row.push(data[b].SEEING)
+          newdata.push(row)
+        }
       }
       datatable.fnClearTable()
       datatable.fnAddData(newdata)
