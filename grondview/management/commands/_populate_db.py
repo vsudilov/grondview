@@ -190,7 +190,7 @@ class GrondData:
             iniFile = os.path.join(DATADIR,self.imageheader.TARGETID,self.imageheader.OB,'%sana.ini' % fields['BAND'])
             cp = ConfigParser.ConfigParser()
             cp.read(iniFile)
-            fields['CALIB_FILE'] = cp.get('calcat')
+            fields['CALIB_FILE'] = os.path.join(DATADIR,self.imageheader.TARGETID,self.imageheader.OB,'calcat_%s' % os.path.basename(cp.get('task','calcat')))  
         else:
           [fields.update( {k:matched[s][k]} ) for k in ['MAG_PSF','MAG_PSF_ERR','MAG_APP','MAG_APP_ERR']]
           fields['CALIB_SCHEME'] = 'ZP' #Overwrite 'USNO' calib scheme, as we never will report photometry against USNO

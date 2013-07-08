@@ -369,6 +369,8 @@ def parseIni(iniFile,targetid, OB, task):
   for param in ('band','func','calcat','workdir',): 
    task[param] = cp.get(s,param)
   task['images'] = os.path.join(DATADIR,targetid,OB,task['band'],'GROND_%s_OB_ana.fits' % task['band'])
+  task['workdir'] = os.path.join(DATADIR,targetid,OB,task['band'])
+  task['calcat'] = os.path.join(DATADIR,targetid,OB,'calcat_%s' % os.path.basename(task.get('calcat','')))
   s = 'fits'
   task[s] = {}
   for param in ('ra','dec','numpixx','numpixy','exposure','dateobs','ron','gain'):
@@ -404,7 +406,7 @@ def main(iniFile,targetid, OB, logger, objwcs, jobid):
     logger.critical('Unable to compute photometry for this position!')
     raise Exception, 'No results from photometry'
   for k,v in results.iteritems():
-    if v and type(v)!=str:
+    if v and type(v[2])!=str and type(v[2])!=unicode:
       logger.info("--> [%s]: %5.2f +- %2.2f" % (k,v[2],v[3]))
   end = time.time()
   logger.info("Photometry completed in %0.1f seconds" % (end-start) ) 
