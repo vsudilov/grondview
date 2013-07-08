@@ -84,7 +84,7 @@ class ImageHeaderQuerySet(QuerySet):
         candidateOBs[r.TARGETID+r.OB] = [r]
     max_filters = max( [len(i) for i in candidateOBs.values()] )
     candidateOBs = [i for i in candidateOBs.values() if len(i)==max_filters]
-    imageheaders = sorted(candidateOBs, key = lambda k: constants.obtypes_sequence[k[0].OBTYPEID])[0]
+    imageheaders = sorted(candidateOBs, key = lambda k: constants.obtypes_sequence[k[0].OBTYPEID.lower()])[0]
     imageheaders = sorted(imageheaders,key = lambda k: constants.band_sequence[k.FILTER])
     if makeImages:
       doTask(imageheaders)
