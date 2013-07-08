@@ -64,6 +64,7 @@ $(function() {
      "aoColumns": [
          { "sTitle": "OB type", "sDefaultContent":"", "sWidth":"100px" },
          { "sTitle": "OB", "sDefaultContent":"" },
+         { "sTitle": "Date", "sDefaultContent":"" },
          { "sTitle": "g", "sDefaultContent":"" },
          { "sTitle": "g_err", "sDefaultContent":"" },
          { "sTitle": "r", "sDefaultContent":"" },
@@ -269,6 +270,7 @@ $(function() {
       var c = "ob-chooser-button btn-block btn-primary "+v.targetID+" "+v.OBname
       rows.push('<button type="button" class="'+c+'">'+v.OBtype+"</a>")
       rows.push("<a href="+url+">"+v.OBname +"</a>")
+      rows.push(v.DATE)
       for (var i = 0; i < bands.length; i++) {
         var ph = ('JHK'.indexOf(bands[i]) > -1) ? 'APP' : phototype
         var div = (p[bands[i]].ownership!="pipeline") ? "<div class='userdetection'>" : "<div>"

@@ -102,6 +102,7 @@ def getSourceData(thisSource,user):
     data[_id]['OBtype'] = p[0].OBTYPEID
     data[_id]['targetID'] = p[0].TARGETID
     data[_id]['MJD'] = p[0].MJD_OBS
+    data[_id]['DATE'] = p[0].DATE_OBS[:p[0].DATE_OBS.find('T')]
     for band_specific_data in thisOB:
       #2b.  Populate the photometry fields:
       ht_photometry = {
