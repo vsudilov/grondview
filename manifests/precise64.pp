@@ -414,6 +414,13 @@ class run_webserver {
   }
   
   exec {
+    "nginx_re_restart":
+      command => "/etc/init.d/nginx restart",
+      user => root,
+      require => Exec['uwsgi_restart'];
+  }
+
+  exec {
     "nginx_changeuser":
       command => "/bin/sed -i 's/user www-data;/user vagrant;/g' /etc/nginx/nginx.conf",
       user => root;
