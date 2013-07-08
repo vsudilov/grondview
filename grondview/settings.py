@@ -5,7 +5,7 @@ import os
 USER_HOME = os.path.expanduser('~')
 PROJECT_ROOT = os.path.join(USER_HOME,'grondview')
 DATADIR = '/data/GROND'
-DEBUG = False
+DEBUG = True
 ALLOWED_HOSTS = ['localhost','sauron.mpe.mpg.de','faramir.mpe.mpg.de']
 
 TEMPLATE_DEBUG = DEBUG

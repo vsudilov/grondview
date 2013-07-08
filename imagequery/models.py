@@ -29,7 +29,7 @@ class ImageHeaderQuerySet(QuerySet):
     radius *= constants.convert_arcmin_or_arcsec_to_degrees[units]
 
     results = []
-    for i in self:
+    for i in self.filter(RA__range=(ra-radius,ra+radius),DEC__range=(dec-radius,dec+radius)):
       distance = astCoords.calcAngSepDeg(i.RA,i.DEC,ra,dec)
       if distance <= radius:
         i.__setattr__("distance",distance)
@@ -130,7 +130,7 @@ class ImageHeader(models.Model):
   NTP = models.IntegerField()
   OBSEQNUM = models.IntegerField()
   OBSRUNID = models.IntegerField()
-  OB_CORRECTION = models.CharField(max_length=4)
+  OB_CORR = models.CharField(max_length=4)
   TARGETID = models.CharField(max_length=40)
   FILTER = models.CharField(max_length=1)
   RON = models.FloatField()
@@ -153,7 +153,7 @@ class ImageHeader(models.Model):
 
 
   def save(self, *args, **kwargs):
-    self.OB="OB%s_%s%s" % ( self.OBSRUNID, self.OBSEQNUM, self.OB_CORRECTION )
+    self.OB="OB%s_%s%s" % ( self.OBSRUNID, self.OBSEQNUM, self.OB_CORR )
     super(ImageHeader, self).save(*args, **kwargs) # Call the "real" save() method.
 
   #-- Manager

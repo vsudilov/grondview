@@ -44,14 +44,6 @@ class GrondData:
     hdulist = pyfits.open(self.image)
     self.header = hdulist[0].header
 
-  def _arclength(self,ra1,dec1,ra2,dec2):
-    if abs(ra1-ra2) > 0.5 or abs(dec1-dec2) > 0.5:
-      return 1000 #Hopefully will optimize this routine for sources at large seperations by avoiding the trig functions
-    
-    def cosd(degs):
-      return cos(degs*pi/180)
-    return (    (    (ra1-ra2)*cosd(  (dec1+dec2)/2.0  )  )**2 + (dec1-dec2)**2)**(1/2.)*60.*60.
-
   def populateDB(self):
     self._make_ImageHeader()
     print "  --> ImageHeader done."
@@ -76,7 +68,7 @@ class GrondData:
     fields = dict([(k.replace('-','_'),self.header[k]) for k in self.header if k]) 
     fields = _match_db_fields(fields) #Need to remove the extraneous keys...Django blindly tries to copy all keys to models 
     fields['PATH'] = self.image
-    fields['OB_CORRECTION'] = self.header.get('OB_CORRECTION','')
+    fields['OB_CORR'] = self.header.get('OB_CORR','')
     wcs = astWCS.WCS(self.image)
     fields['RA'], fields['DEC'] = wcs.pix2wcs(self.header['NAXIS1']/2.0,self.header['NAXIS2']/2.0)
     fields['BOTTOMLEFT_RA'], fields['BOTTOMLEFT_DEC'] = wcs.pix2wcs(0,0)
@@ -84,7 +76,7 @@ class GrondData:
     try:
       result = ImageHeader.objects.get(
                                       TARGETID=fields['TARGETID'],
-                                      OB_CORRECTION=fields['OB_CORRECTION'],
+                                      OB_CORR=fields['OB_CORR'],
                                       OBSEQNUM=fields['OBSEQNUM'],
                                       OBSRUNID=fields['OBSRUNID'],
                                       FILTER=fields['FILTER'],
@@ -125,23 +117,20 @@ class GrondData:
     all_sources = self.resultfile.objects[:]
     print "     (detected %s sources in this resultfile)" % len(all_sources)
     #Compare the sources detected in this resultfile the database. If sourceID already exists, we shouldn't re-write it!
-    previously_detected_sources = AstroSource.objects.all()
     self.old_sources = []
-    for pds in previously_detected_sources:
-      for source in all_sources:
-        if self._arclength(pds.RA,pds.DEC,source['RA'],source['DEC']) <= self.args['match_tolerance']:
-          #Even if this source already exists, this may be a new observation of it
-          #Therefore, we need to check also the ImageHeader(s) of this source, and
-          #Add this one in if it doesnt exist.
-          sexRa,sexDec = deg2sex.main(pds.RA,pds.DEC)
-          sourceID = 'GROND_J%s%s' % (sexRa,sexDec)
-          this_source = AstroSource.objects.get(sourceID=sourceID)    
-          ihs = [i.PATH for i in this_source.imageheader.all()]
-          if self.imageheader.PATH not in ihs:
-            this_source.imageheader.add(self.imageheader)
-            this_source.save(force_update=True)
-          self.old_sources.append(this_source)
-          all_sources.remove(source)
+    for source in all_sources:
+      r = sorted(AstroSource.objects.positionFilter(source['RA'],source['DEC'],self.args['match_tolerance']),key=lambda k: k.distance)
+      if r:
+        #Even if this source already exists, this may be a new observation of it
+        #Therefore, we need to check also the ImageHeader(s) of this source, and
+        #Add this one in if it doesnt exist.
+        this_source = r[0] 
+        ihs = [i.PATH for i in this_source.imageheader.all()]
+        if self.imageheader.PATH not in ihs:
+          this_source.imageheader.add(self.imageheader)
+          this_source.save(force_update=True)
+        self.old_sources.append(this_source)
+        all_sources.remove(source)
     print "     (after removal of sources already in the database, %s new sources remain)" % len(all_sources)
 
     #Finally, make the Django models and save to DB
