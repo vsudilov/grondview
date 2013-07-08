@@ -118,6 +118,7 @@ class GrondData:
     print "     (detected %s sources in this resultfile)" % len(all_sources)
     #Compare the sources detected in this resultfile the database. If sourceID already exists, we shouldn't re-write it!
     self.old_sources = []
+    sources_to_remove = []
     for source in all_sources:
       r = sorted(AstroSource.objects.positionFilter(source['RA'],source['DEC'],self.args['match_tolerance']),key=lambda k: k.distance)
       if r:
@@ -125,12 +126,12 @@ class GrondData:
         #Therefore, we need to check also the ImageHeader(s) of this source, and
         #Add this one in if it doesnt exist.
         this_source = r[0] 
-        ihs = [i.PATH for i in this_source.imageheader.all()]
-        if self.imageheader.PATH not in ihs:
+        if self.imageheader not in this_source.imageheader.all():
           this_source.imageheader.add(self.imageheader)
-          this_source.save(force_update=True)
+          this_source.save()
         self.old_sources.append(this_source)
-        all_sources.remove(source)
+        sources_to_remove.append(source)
+    all_sources = [i for i in all_sources if i not in sources_to_remove]
     print "     (after removal of sources already in the database, %s new sources remain)" % len(all_sources)
 
     #Finally, make the Django models and save to DB
