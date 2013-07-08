@@ -314,9 +314,13 @@ def calibrate(usersource,task,photometry,logger):
     return results
 
   with open(task['calcat'],'r') as f:
-    calcat = [map(float,i.strip().split()) for i in f]
-  calcat = [i for i in calcat if len(i)>=4] #must have ra,dec,mag,mag_err
-
+    calcat = []
+    for line in f:
+      if line and not line.startswith('#'):
+        try:
+          calcat.append(map(float,line.strip().split()[:4]))
+        except:
+          pass  #must have ra,dec,mag,mag_err
   fitfunc = lambda p, x: p[0] + p[1] * x #linear fit
   errfunc = lambda p, x, y, err: (y - fitfunc(p, x)) / err
   pinit = [0.0, 1.0]
@@ -324,7 +328,7 @@ def calibrate(usersource,task,photometry,logger):
     data = []
     for source in photometry[phototype]:
       matchedsource = matchsource(source[0],source[1],calcat)
-      if not matchedsource:
+      if not matchedsource or len(matchedsource) != 4:
         continue
       if abs(matchedsource[2]-source[2]) > PHOTO_TOLERANCE[task['band']]:
         continue
