@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from optparse import make_option
-from grondview.settings import PROJECT_ROOT
+from grondview.settings import PROJECT_ROOT, DEFAULT_FROM_EMAIL
+from django.core.mail import send_mail
 import os
 
 class Command(BaseCommand):
@@ -56,8 +57,14 @@ class Command(BaseCommand):
     import _populate_db
     try:
       _populate_db.main(*args,**kwargs)
+      subject = "[grondview] Data incorporated successfully into the database"
+      body = 'Thanks for your contribution!'
     except:
+      subject = "[grondview] Error: All data were not loaded into the database"
+      body = 'Sorry!'
       print self.help
       raise
     finally:
+      if kwargs['email']:
+        send_mail(subject, body, DEFAULT_FROM_EMAIL,[kwargs['email']], fail_silently=True)
       os.unlink(os.path.join(PROJECT_ROOT,'populateDB.lock'))
