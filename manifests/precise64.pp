@@ -18,6 +18,7 @@ class {
 ## committed in repo, dont download fresh
       'bootstrap_js':    stage => main;
       'collectstatic': stage => last;
+      'patch_userena': stage => last;
 }
 
 include postgresql::server
@@ -169,7 +170,7 @@ class post_python_modules{
         provider => pip;
 
      "django-userena":
-         ensure => installed,
+         ensure => "1.2.1",
          provider => pip;
 
      "South":
@@ -269,7 +270,15 @@ class iraf {
 
   }
 
-
+# Patch userena to send activation email to admin instead of users
+class patch_userena {
+  exec {
+    "patch":
+      command => "/bin/bash /home/vagrant/grondview/manifests/patch_userena.sh",
+      user => root,
+      require => Class['post_python_modules'];
+  }
+}
 
 class collectstatic {
 #Can't get manage.py to work!
@@ -410,7 +419,7 @@ class run_webserver {
     "nginx_restart":
       command => "/etc/init.d/nginx restart",
       user => root,
-      require => [Exec['ln_nginxconf'],Exec['nginx_changeuser']];
+      require => [Exec['ln_nginxconf'],Exec['nginx_changeuser'],Exec['kill_uwsgi']];
   }
   
   exec {
@@ -440,13 +449,19 @@ class run_webserver {
       creates => '/var/log/uwsgi/';
   }
 
+  exec {
+    "kill_uwsgi":
+       command => "/usr/bin/killall -9 uwsgi",
+       user => root;
+  }
+       
 
   exec {
     "uwsgi_restart":
       command => "/usr/local/bin/uwsgi --emperor /etc/uwsgi/vassals --uid vagrant --gid vagrant --master --daemonize /home/vagrant/grondview/logs/uwsgi.log",
       user => vagrant,
       environment => ['USER=vagrant','HOME=/home/vagrant','iraf=/usr/local/iraf/','IRAFARCH=linux'],
-      require => [Exec['ln_django_ini'],Exec['mk_uwsgi_logdir'],Exec['nginx_restart']];
+      require => [Exec['ln_django_ini'],Exec['mk_uwsgi_logdir'],Exec['nginx_restart'],Exec['kill_uwsgi']];
   }
 
 }

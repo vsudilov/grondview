@@ -5,7 +5,7 @@ import os
 USER_HOME = os.path.expanduser('~')
 PROJECT_ROOT = os.path.join(USER_HOME,'grondview')
 DATADIR = '/data/GROND'
-DEBUG = True
+DEBUG = False
 ALLOWED_HOSTS = ['localhost','sauron.mpe.mpg.de','faramir.mpe.mpg.de']
 
 TEMPLATE_DEBUG = DEBUG
@@ -135,6 +135,7 @@ LOGIN_EXEMPT_URLS = (
     r'^signup/$',
     r'^accounts/password/reset/$',
     r'^accounts/[\w-]+/disabled/$',
+    r'^accounts/activate/[\w-]+/$',
     )
 
 ROOT_URLCONF = 'grondview.urls'
@@ -153,21 +154,22 @@ TEMPLATE_DIRS = (
 
 ANONYMOUS_USER_ID = -1
 AUTH_PROFILE_MODULE = 'accounts.UserProfile'
-LOGIN_REDIRECT_URL = '/accounts/%(username)s/'
+LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/accounts/signin/'
 LOGOUT_URL = '/accounts/signout/'
 USERENA_SIGNIN_REDIRECT_URL = '/'
-USERENA_ACTIVATION_REQUIRED = False
+USERENA_ACTIVATION_REQUIRED = True
   
 #Necessary for userena auth
-EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
-#EMAIL_USE_TLS = True
-#EMAIL_HOST = 'smtp.gmail.com'
-#EMAIL_PORT = 587
-#EMAIL_HOST_USER = 'yourgmailaccount@gmail.com'
-#EMAIL_HOST_PASSWORD = 'yourgmailpassword'
-
-
+#EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+#EMAIL_USE_TLS = False
+EMAIL_HOST = 'mpemail.mpe.mpg.de'
+EMAIL_PORT = 25
+#EMAIL_HOST_USER = None
+#EMAIL_HOST_PASSWORD = None
+DEFAULT_FROM_EMAIL = 'grondview@faramir.mpe.mpg.de'
+VERIFY_REQUEST_EMAILS = ('vsudilov@mpe.mpg.de', 'jcg@mpe.mpg.de')
 
 
 INSTALLED_APPS = (

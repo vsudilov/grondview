@@ -2,16 +2,7 @@
 {% load url from future %}
 
 {% block content %}
-{% if user.username == profile.user.username %}
-{% include 'userena/profile_navbar.html' %}
-{% endif %}
-<div class="span2"></div>
-<div class="span10"></div>
-<div id="form-container">
-  <img class="mugshot" src="{{ profile.get_mugshot_url }}" alt="Your mugshot" />
-  {% if profile.user.email and not hide_email %}
-  Email: {{ profile.user.email }}
-  {% endif %}
-</div>
+<div class="span5 offset3">
+This account has been activated.
 </div>
 {% endblock %}

@@ -1,2 +1,1 @@
-{% load i18n %}
-{% blocktrans with site.name as site %}Your signup at {{ site }}.{% endblocktrans %}
+New account request on grondview: {{ user.username }}

@@ -38,6 +38,14 @@ class Command(BaseCommand):
         )
 
 
+  option_list += (
+            make_option('--email-on-complete',
+            dest='email',
+            default=None,
+            help='Notify when the script is complete'),
+        )
+
+
   help = '''USAGE: manage.py populateDB path
             Populate the database. Adds data from GROND_?_OB_ana.fits and GROND_?_OB_ana.result found recursively from path.
             Overwrites sources/fields already in the database (SQL UPDATE).  

@@ -1,10 +1,8 @@
 {% extends 'userena/base_userena.html' %}
-{% load i18n %}
-
-{% block title %}{% trans "Account activation failed." %}{% endblock %}
-{% block content_title %}<h2>{% trans "Your account could not be activated..." %}</h2>{% endblock %}
 
 {% block content %}
-<p>{% trans "Your account could not be activated. This could be because your activation link has aged." %}</p>
-<p>{% trans "Please try signing up again or contact us if you think something went wrong." %}</p>
+<div class="span5 offset3">
+<p>Problem with activation link. This could be because this activation link has aged, or someone has already verified the account.</p>
+<p>Please contact the admin for further help</p>
+</div>
 {% endblock %}
