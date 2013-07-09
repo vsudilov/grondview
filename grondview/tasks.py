@@ -29,24 +29,27 @@ def makeImage(ImageHeaderInstance,fname,clipSize,ra,dec,units='arcseconds', **kw
   d = pyfits.open(ImageHeaderInstance.PATH)[0].data
   cutout = {'data':d}
   scale=zscale.zscale(d)
-  clipSizeDeg = ImageHeaderInstance.TOPRIGHT_DEC-ImageHeaderInstance.BOTTOMLEFT_DEC
   if clipSize:
     wcs = astWCS.WCS(ImageHeaderInstance.PATH)  
     clipSizeDeg = clipSize * constants.convert_arcmin_or_arcsec_to_degrees[units]
     cutout = astImages.clipImageSectionWCS(d, wcs, ra, dec, clipSizeDeg, returnWCS = False)
+  else:
+    clipSizeDeg = ImageHeaderInstance.TOPRIGHT_DEC-ImageHeaderInstance.BOTTOMLEFT_DEC
   caption = ImageHeaderInstance.FILTER
   ImageHeaderInstance.fname = fname
-
-  astImages.saveBitmap(
-    os.path.join(MEDIA_ROOT,fname),
-    cutout['data'],
-    cutLevels=["smart", 99.5],
-    size=200,
-    colorMapName='gray',
-    caption=caption,
-    clipSizeDeg=clipSizeDeg,
-    scale=scale,
-    )
+  try:
+    astImages.saveBitmap(
+      os.path.join(MEDIA_ROOT,fname),
+      cutout['data'],
+      cutLevels=["smart", 99.5],
+      size=200,
+      colorMapName='gray',
+      caption=caption,
+      clipSizeDeg=clipSizeDeg,
+      scale=scale,
+      )
+  except:
+    pass #Fail silently; rendering will recover
   return ImageHeaderInstance
 
 @celery.task

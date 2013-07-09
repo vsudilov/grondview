@@ -518,7 +518,6 @@ $(function() {
     OBname = s.pop() 
     targetID = s.pop()
     currentOB = targetID + " " + OBname
-    console.log(currentOB)
     $(this).attr('class','ob-current button btn-block btn-info '+currentOB)
     updatePage(master_data,currentOB,phototype,true)
   });
@@ -574,7 +573,6 @@ $(function() {
     var pollCounter = 0
     function poll(img,fname) {
       pollCounter += 1
-      console.log(pollCounter)
       $.ajax({
         type: 'HEAD',
         context: img,
