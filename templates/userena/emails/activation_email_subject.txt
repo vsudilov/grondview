@@ -1,1 +1,1 @@
-New account request on grondview: {{ user.username }}
+[grondview] New account request: {{ user.username }}
