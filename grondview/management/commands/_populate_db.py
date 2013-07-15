@@ -101,7 +101,7 @@ class GrondData:
                  'CALIB_RMS':'CALIB_RMS'}
     fields = {}      
     for k in translation:
-      fields[k] = self.resultfile.header[translation[k]]
+      fields[k] = self.resultfile.header.get(translation[k],-99)
     fields['LIMITING_MAG_3S_ZP'] += constants.convert_to_AB[self.imageheader.FILTER]
     fields['LIMITING_MAG_3S_CALIB'] += constants.convert_to_AB[self.imageheader.FILTER]
     fields['imageheader'] = self.imageheader

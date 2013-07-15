@@ -66,7 +66,7 @@ class Command(BaseCommand):
       raise
     finally:
       if kwargs['email']:
-        send_mail(subject, body, DEFAULT_FROM_EMAIL,[kwargs['email']], fail_silently=True)
+        send_mail(subject, body, DEFAULT_FROM_EMAIL,[kwargs['email']], fail_silently=False)
       lockfile = os.path.join(PROJECT_ROOT,'populateDB.lock')
       with open(lockfile,'r') as f:
         pid = int(f.read())
