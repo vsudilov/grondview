@@ -67,4 +67,16 @@ class Command(BaseCommand):
     finally:
       if kwargs['email']:
         send_mail(subject, body, DEFAULT_FROM_EMAIL,[kwargs['email']], fail_silently=True)
-      os.unlink(os.path.join(PROJECT_ROOT,'populateDB.lock'))
+      lockfile = os.path.join(PROJECT_ROOT,'populateDB.lock')
+      with open(lockfile,'r') as f:
+        pid = int(f.read())
+      if pid == os.getpid():
+        os.unlink(lockfile)
+
+
+
+
+
+
+
+

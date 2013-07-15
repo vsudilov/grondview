@@ -218,7 +218,8 @@ def checkLocks():
   lockfile = os.path.join(PROJECT_ROOT,'populateDB.lock')
   if os.path.isfile(lockfile):
     sys.exit('Only one instance of `manage.py populateDB` should run at a time:\nEXITING.')
-  open(lockfile,'w').close()
+  with open(lockfile,'w') as f:
+    f.write(str(os.getpid()))
 
 def main(*args,**kwargs):
   checkLocks()
