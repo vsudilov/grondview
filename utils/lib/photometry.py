@@ -410,7 +410,7 @@ def main(iniFile,targetid, OB, logger, objwcs, jobid):
     logger.critical('Unable to compute photometry for this position!')
     raise Exception, 'No results from photometry'
   for k,v in results.iteritems():
-    if v and type(v[2])!=str and type(v[2])!=unicode:
+    if v and type(v)==list and type(v[2])!=str and type(v[2])!=unicode:
       logger.info("--> [%s]: %5.2f +- %2.2f" % (k,v[2],v[3]))
   end = time.time()
   logger.info("Photometry completed in %0.1f seconds" % (end-start) ) 
