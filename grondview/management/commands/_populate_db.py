@@ -223,6 +223,7 @@ def checkLocks():
 
 def main(*args,**kwargs):
   checkLocks()
+  starttime = datetime.datetime.now()
   DATADIR = args[0]
   FITS_REGEX = kwargs['fits_regex']
   user = getPipelineUser()
@@ -233,7 +234,7 @@ def main(*args,**kwargs):
         if kwargs['only_recent']:
           mtime = os.path.getmtime(fullpath) #Get the modifcation time, in UNIX time
           date = datetime.datetime.fromtimestamp(mtime) #Store in a more easily manipulted datatime.date object
-          if date <= datetime.datetime.today()-datetime.timedelta(minutes=int(kwargs['only_recent'])):
+          if date <= starttime-datetime.timedelta(minutes=int(kwargs['only_recent'])):
             break
         f = GrondData(fullpath,user,**kwargs)
         print "Adding data in %s to db" % fullpath
