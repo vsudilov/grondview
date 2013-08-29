@@ -169,7 +169,7 @@ EMAIL_PORT = 25
 #EMAIL_HOST_USER = None
 #EMAIL_HOST_PASSWORD = None
 DEFAULT_FROM_EMAIL = 'grondview@faramir.mpe.mpg.de'
-VERIFY_REQUEST_EMAILS = ('vsudilov@mpe.mpg.de', 'jcg@mpe.mpg.de')
+VERIFY_REQUEST_EMAILS = ('vsudilov@mpe.mpg.de', 'jcg@mpe.mpg.de', 'arau@mpe.mpg.de', 'jonnyelliott@mpe.mpg.de')
 
 
 INSTALLED_APPS = (
