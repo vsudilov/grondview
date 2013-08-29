@@ -451,7 +451,8 @@ class run_webserver {
 
   exec {
     "kill_uwsgi":
-       command => "/usr/bin/killall -9 uwsgi",
+       #command => "/usr/bin/killall -9 uwsgi",
+       command => "/bin/echo '...'",
        user => root;
   }
        
