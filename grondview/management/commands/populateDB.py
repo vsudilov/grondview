@@ -66,12 +66,13 @@ class Command(BaseCommand):
       raise
     finally:
       if kwargs['email']:
-        send_mail(subject, body, DEFAULT_FROM_EMAIL,[kwargs['email']], fail_silently=False)
+        send_mail(subject, body, DEFAULT_FROM_EMAIL,[kwargs['email'],'vsudilov@mpe.mpg.de'], fail_silently=False)
       lockfile = os.path.join(PROJECT_ROOT,'populateDB.lock')
-      with open(lockfile,'r') as f:
-        pid = int(f.read())
-      if pid == os.getpid():
-        os.unlink(lockfile)
+      if os.path.isfile(lockfile):
+        with open(lockfile,'r') as f:
+          pid = int(f.read())
+        if pid == os.getpid():
+          os.unlink(lockfile)
 
 
 
