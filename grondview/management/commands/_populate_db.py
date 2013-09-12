@@ -68,6 +68,7 @@ class GrondData:
     fields = dict([(k.replace('-','_'),self.header[k]) for k in self.header if k]) 
     fields = _match_db_fields(fields) #Need to remove the extraneous keys...Django blindly tries to copy all keys to models 
     fields['PATH'] = self.image
+    fields['OBTYPEID'] = fields['OBTYPEID'].replace('min','m')
     fields['OB_CORR'] = self.header.get('OB_CORR','')
     wcs = astWCS.WCS(self.image)
     fields['RA'], fields['DEC'] = wcs.pix2wcs(self.header['NAXIS1']/2.0,self.header['NAXIS2']/2.0)
@@ -240,7 +241,6 @@ def main(*args,**kwargs):
         print "Adding data in %s to db" % fullpath
         f.populateDB()
         break
-  
 
 if __name__=="__main__":
     main()
