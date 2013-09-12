@@ -125,7 +125,7 @@ class python_modules{
           ensure => "2.4.0",
           provider => pip;
       "django":
-          ensure => "1.5",
+          ensure => "1.5.3",
           provider => pip;
       "d2to1":
           ensure => installed,
