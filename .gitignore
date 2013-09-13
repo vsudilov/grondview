@@ -1,3 +1,4 @@
+*.pickle
 *.log
 *.pot
 *.pyc

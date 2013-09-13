@@ -5,10 +5,8 @@ from django.core.servers.basehttp import FileWrapper
 from django.utils.importlib import import_module
 from django.views.generic import TemplateView
 from django.db.models import Q
-from django.db.models import Count
 from django.views.generic import View
 from django.utils import simplejson
-from django.db.models import Q
 
 from .forms import LoginForm
 from .settings import PROJECT_ROOT
@@ -31,6 +29,8 @@ import sys,os
 import operator
 import tempfile
 import zipfile
+import cPickle as pickle
+import datetime
 sys.path.insert(0,os.path.join(PROJECT_ROOT,'utils'))
 from lib import constants
 
@@ -195,18 +195,9 @@ class FormView(TemplateView):
 class HomeView(TemplateView):
   template_name = 'home.html'
   def get(self,request, *args, **kwargs):
-    context = {}
-    context['aggData'] = {}
-    context['aggData']['totalFields'] = ImageHeader.objects.distinct('TARGETID').count()
-    t = AstroSource.objects.filter(user__username='pipeline').annotate(nbands=Count('photometry__BAND',distinct=True))
-    context['aggData']['totalPipelineObjects'] = len([i for i in t if i.nbands>=2])
-    t = AstroSource.objects.filter(~Q(user__username='pipeline')).annotate(nbands=Count('photometry__BAND',distinct=True))
-    context['aggData']['totalUserObjects'] = len([i for i in t if i.nbands>=2])
-    s = sum([(i.TOPRIGHT_DEC-i.BOTTOMLEFT_DEC)*(i.BOTTOMLEFT_RA-i.TOPRIGHT_RA) for i in ImageHeader.objects.filter(FILTER='r').distinct('TARGETID')])
-    context['aggData']['totalArea_r'] = round(s,3)
-    s = sum([(i.TOPRIGHT_DEC-i.BOTTOMLEFT_DEC)*(i.BOTTOMLEFT_RA-i.TOPRIGHT_RA) for i in ImageHeader.objects.filter(FILTER='J').distinct('TARGETID')])
-    context['aggData']['totalArea_J'] = round(s,3)
-    context['aggData']['totalOBs'] = ImageHeader.objects.distinct('TARGETID','OB').count()
+    context = pickle.load(open(os.path.join(PROJECT_ROOT,'aggregate.pickle')))
+    ellapsed = datetime.datetime.now()-context['time']
+    context['time'] = int(round(ellapsed.seconds/60.0)) #minutes
     return render(request, self.template_name, context)
 
 

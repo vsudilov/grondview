@@ -98,7 +98,7 @@ class system{
 class bootstrap_js {
   exec{
     "download_bootstrap":
-      command => "/usr/bin/wget http://twitter.github.io/bootstrap/assets/bootstrap.zip -O /home/vagrant/bootstrap.zip",
+      command => "/usr/bin/wget http://getbootstrap.com/2.3.2/assets/bootstrap.zip -O /home/vagrant/bootstrap.zip",
       user => vagrant,
       creates => "/home/vagrant/bootstrap.zip";
   }
@@ -317,11 +317,17 @@ class sextractor {
 # cron jobs
 #----------------------------
 class cronjobs{
-  cron { "purge_media":
+  cron {"purge_media":
            command => "/usr/bin/python /home/vagrant/grondview/utils/purge_media.py >~/grondview/logs/cron.log 2>&1",
            user => vagrant,
            ensure => present,
            minute => "*/10"
+        }
+  cron {"aggregate_data":
+          command => "/usr/bin/python /home/vagrant/grondview/manage.py aggregate >~/grondview/logs/cron.log 2>&1",
+            user => vagrant,
+            ensure => present,
+            minute => "*/30";
   }
 }
 
