@@ -31,7 +31,7 @@ band_sequence =  dict([(b,bands.index(b)+1) for b in bands])
 optical = 'griz'
 infrared = 'JHK'
 
-obtypes = ['30m6td','20m4td','12m6td','10m8td','10m6td','8m4td','4m4td','4m4tdfast','2m2td','1m1td']
+obtypes = ['30m6td','20m4td','12m6td','10m8td','10m6td','6m6td','8m4td','4m4td','4m4tdfast','2m2td','1m1td']
 obtypes_sequence = dict([(o,obtypes.index(o)+1) for o in obtypes])
 
 extinction_coefficients = {
