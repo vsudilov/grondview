@@ -57,7 +57,7 @@ class system{
       "python-pip":
           ensure => installed,
           provider => apt;
-      "rubygems":
+      "ruby":
           ensure => installed,
           provider => apt;
       "libpq-dev":
