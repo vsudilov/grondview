@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from optparse import make_option
 from grondview.settings import PROJECT_ROOT, DEFAULT_FROM_EMAIL
 from django.core.mail import send_mail
+import traceback
 import os
 
 class Command(BaseCommand):
@@ -59,10 +60,11 @@ class Command(BaseCommand):
       _populate_db.main(*args,**kwargs)
       subject = "[grondview] Data incorporated successfully into the database"
       body = 'Thanks for your contribution!'
-    except:
+    except Exception, e:
       subject = "[grondview] Error: All data were not loaded into the database"
-      body = 'Sorry!'
+      body = "{}".format(traceback.format_exc())
       print self.help
+      print body
       raise
     finally:
       if kwargs['email']:
