@@ -39,7 +39,6 @@ class Command(BaseCommand):
             help='Query only files with last modification time of X minutes'),
         )
 
-
   option_list += (
             make_option('--email-on-complete',
             dest='email',
@@ -47,6 +46,13 @@ class Command(BaseCommand):
             help='Notify when the script is complete'),
         )
 
+  option_list += (
+            make_option('--skip-photometry',
+            dest='skip_photometry',
+            default=False,
+            action="store_true",
+            help='Skip parsing objects and their photometry'),
+        )
 
   help = '''USAGE: manage.py populateDB path
             Populate the database. Adds data from GROND_?_OB_ana.fits and GROND_?_OB_ana.result found recursively from path.

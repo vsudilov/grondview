@@ -49,6 +49,8 @@ class GrondData:
     print "  --> ImageHeader done."
     self._make_ImageProperties()
     print "  --> ImageProperties done."
+    if self.args['skip_photometry']:
+      return
     self._make_AstroSource()
     print "  --> AstroSource done."
     self._make_Photometry()
